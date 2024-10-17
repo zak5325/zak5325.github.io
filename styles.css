@@ -170,6 +170,17 @@ footer {
     color: #fff;
 }
 
+footer {
+    position: relative;
+}
+
+footer .back-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+
 /* 响应式设计 */
 @media (max-width: 600px) {
     .player-selection, .counter {
