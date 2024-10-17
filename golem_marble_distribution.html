@@ -173,7 +173,12 @@
             var rowNames = ['Row 1: ', 'Row 2: ', 'Row 3: ', 'Row 4: ', 'Row 5: '];
             for (var i = 0; i < 5; i++) {
                 var rowDiv = document.getElementById('row' + (i+1));
-                rowDiv.innerHTML = rowNames[i];
+                rowDiv.innerHTML = ''; // 清空之前的内容
+
+                var rowLabel = document.createElement('span');
+                rowLabel.textContent = rowNames[i];
+                rowDiv.appendChild(rowLabel);
+
                 if (rows[i].length === 0) {
                     rowDiv.innerHTML += ' -- ';
                 } else {
