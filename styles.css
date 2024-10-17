@@ -15,12 +15,6 @@ header {
     position: relative;
 }
 
-header .back-button {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-}
-
 header h1 {
     margin: 0;
     font-size: 32px;
@@ -42,12 +36,15 @@ main {
     background-color: #fff;
     padding: 20px;
     border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .player-selection {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     margin-bottom: 20px;
+    flex-wrap: wrap; /* 改为 wrap 以便在移动设备上自动换行 */
 }
 
 .player-selection label {
@@ -58,12 +55,14 @@ main {
 .player-selection select {
     padding: 5px;
     font-size: 16px;
+    width: 100%; /* 移动设备上保持全宽 */
+    margin-bottom: 10px; /* 添加 margin 以便和按钮分隔 */
 }
 
 .player-selection button {
-    margin-left: auto;
     padding: 8px 16px;
     font-size: 16px;
+    width: 100%; /* 移动设备上保持全宽 */
 }
 
 .marble-counts {
@@ -77,6 +76,7 @@ main {
     align-items: center;
     margin-bottom: 10px;
     width: 48%;
+    justify-content: space-between;
 }
 
 .counter .label {
@@ -173,8 +173,12 @@ footer {
 /* 响应式设计 */
 @media (max-width: 600px) {
     .player-selection, .counter {
-        flex-direction: column;
+        flex-direction: column; /* 弹珠计数器垂直排列 */
         align-items: flex-start;
+    }
+    .player-selection select,
+    .player-selection button {
+        width: 100%; /* 移动设备上保持全宽 */
     }
     .counter {
         width: 100%;
@@ -188,29 +192,4 @@ footer {
     .row {
         font-size: 16px;
     }
-}
-
-/* 返回首页按钮样式 */
-.back-button {
-    display: inline-block;
-    margin-top: 15px;
-    padding: 10px 20px;
-    background-color: #007BFF;
-    color: #fff;
-    text-decoration: none;
-    border-radius: 5px;
-    font-size: 16px;
-}
-
-.back-button:hover {
-    background-color: #0056b3;
-}
-
-/* 调整 header 内元素的排列方式 */
-header {
-    text-align: center;
-    padding: 40px 0;
-    background-color: #333;
-    color: #fff;
-    position: relative;
 }
