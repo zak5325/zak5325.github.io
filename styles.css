@@ -1,167 +1,3 @@
-/* 通用样式 */
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f4f4f4;
-}
-
-/* 头部样式 */
-header {
-    text-align: center;
-    padding: 40px 0;
-    background-color: #333;
-    color: #fff;
-    position: relative;
-}
-
-header h1 {
-    margin: 0;
-    font-size: 32px;
-}
-
-header p {
-    margin: 10px 0 0;
-    font-size: 16px;
-}
-
-/* 主体内容样式 */
-main {
-    padding: 20px;
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.tool-container {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-.player-selection {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    flex-wrap: wrap; /* 改为 wrap 以便在移动设备上自动换行 */
-}
-
-.player-selection label {
-    margin-right: 10px;
-    font-size: 18px;
-}
-
-.player-selection select {
-    padding: 5px;
-    font-size: 16px;
-    width: 100%; /* 移动设备上保持全宽 */
-    margin-bottom: 10px; /* 添加 margin 以便和按钮分隔 */
-}
-
-.player-selection button {
-    padding: 8px 16px;
-    font-size: 16px;
-    width: 100%; /* 移动设备上保持全宽 */
-}
-
-.marble-counts {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-}
-
-.counter {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-    width: 48%;
-    justify-content: space-between;
-}
-
-.counter .label {
-    display: flex;
-    align-items: center;
-    margin-right: 10px;
-}
-
-.counter .marble {
-    margin-right: 5px;
-}
-
-.counter span {
-    min-width: 30px;
-    text-align: center;
-    font-size: 16px;
-}
-
-.counter .counter-button {
-    width: 30px;
-    height: 30px;
-    font-size: 18px;
-    margin: 0 5px;
-    cursor: pointer;
-}
-
-.throw-button {
-    display: block;
-    width: 100%;
-    padding: 10px 0;
-    font-size: 18px;
-    background-color: #007BFF;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-top: 20px;
-}
-
-.throw-button:hover {
-    background-color: #0056b3;
-}
-
-.result-section {
-    margin-top: 30px;
-}
-
-.result-section h2 {
-    text-align: center;
-    font-size: 24px;
-    margin-bottom: 20px;
-}
-
-.row {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-    font-size: 18px;
-}
-
-.row .marble {
-    margin-right: 5px;
-}
-
-.row:not(:last-child) {
-    border-bottom: 1px solid #ccc;
-    padding-bottom: 10px;
-}
-
-/* 弹珠颜色样式 */
-.marble {
-    display: inline-block;
-    width: 25px;
-    height: 25px;
-    border-radius: 50%;
-    margin-right: 5px;
-    vertical-align: middle;
-}
-
-.blue { background-color: blue; }
-.red { background-color: red; }
-.yellow { background-color: yellow; }
-.black { background-color: black; }
-.white { background-color: white; border: 1px solid black; }
-
 /* 页脚样式 */
 footer {
     text-align: center;
@@ -170,37 +6,17 @@ footer {
     color: #fff;
 }
 
-footer {
-    position: relative;
-}
-
 footer .back-button {
-    position: absolute;
-    top: 20px;
-    right: 20px;
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007BFF;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 16px;
+    margin-top: 15px;
 }
 
-
-/* 响应式设计 */
-@media (max-width: 600px) {
-    .player-selection, .counter {
-        flex-direction: column; /* 弹珠计数器垂直排列 */
-        align-items: flex-start;
-    }
-    .player-selection select,
-    .player-selection button {
-        width: 100%; /* 移动设备上保持全宽 */
-    }
-    .counter {
-        width: 100%;
-    }
-    .throw-button {
-        font-size: 16px;
-    }
-    .result-section h2 {
-        font-size: 20px;
-    }
-    .row {
-        font-size: 16px;
-    }
+footer .back-button:hover {
+    background-color: #0056b3;
 }
