@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Golem Boardgame Marble Distribution</title>
+    <style>
+        .marble {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin: 2px;
+        }
+        .blue { background-color: blue; }
+        .red { background-color: red; }
+        .yellow { background-color: yellow; }
+        .black { background-color: black; }
+        .white { background-color: white; border: 1px solid black; }
+        .row {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Golem Boardgame Marble Distribution</h1>
+    <div>
+        <label>How many players: 
+            <select id="players">
+                <option value="1">1 player</option>
+                <option value="2">2 players</option>
+                <option value="3">3 players</option>
+                <option value="4">4 players</option>
+            </select>
+        </label>
+        <br><br>
+        <div id="marbleCounts">
+            <!-- The total marbles show here -->
+        </div>
+        <br>
+        <button id="throwButton">Throw</button>
+    </div>
+    <h2>Result:</h2>
+    <div id="results">
+        <div class="row" id="row1"></div>
+        <div class="row" id="row2"></div>
+        <div class="row" id="row3"></div>
+        <div class="row" id="row4"></div>
+        <div class="row" id="row5"></div>
+    </div>
+    <script>
+        // Set marbles based on current players
+        var marbleSettings = {
+            '1': { white: 3, black: 1, blue: 2, red: 2, yellow: 2 },
+            '2': { white: 3, black: 1, blue: 2, red: 2, yellow: 2 },
+            '3': { white: 5, black: 1, blue: 2, red: 2, yellow: 2 },
+            '4': { white: 4, black: 1, blue: 3, red: 3, yellow: 3 }
+        };
+
+        var playersSelect = document.getElementById('players');
+        var marbleCountsDiv = document.getElementById('marbleCounts');
+
+        // Initialize the marbles
+        updateMarbleCounts();
+
+        // When player's count changes, update the marbles showing
+        playersSelect.addEventListener('change', updateMarbleCounts);
+
+        function updateMarbleCounts() {
+            var playerCount = playersSelect.value;
+            var counts = marbleSettings[playerCount];
+
+            // Clear the result
+            marbleCountsDiv.innerHTML = '';
+
+            // Show every color's count
+            for (var color in counts) {
+                var colorName;
+                switch(color) {
+                    case 'white': colorName = 'White'; break;
+                    case 'black': colorName = 'Black'; break;
+                    case 'blue': colorName = 'Blue'; break;
+                    case 'red': colorName = 'Red'; break;
+                    case 'yellow': colorName = 'Yellow'; break;
+                }
+                var p = document.createElement('p');
+                p.textContent = colorName + ': ' + counts[color];
+                marbleCountsDiv.appendChild(p);
+            }
+        }
+
+        document.getElementById('throwButton').addEventListener('click', function() {
+            var playerCount = playersSelect.value;
+            var counts = marbleSettings[playerCount];
+
+            // Create marble array
+            var marbles = [];
+            for (var color in counts) {
+                for (var i = 0; i < counts[color]; i++) {
+                    marbles.push(color);
+                }
+            }
+
+            // Randomize the marbles
+            marbles = marbles.sort(() => Math.random() - 0.5);
+
+            // Randomly distribute to the rows
+            var rows = [ [], [], [], [], [] ]; // Five rows
+            marbles.forEach(function(marble) {
+                // Randomly choose one row
+                var rowIndex = Math.floor(Math.random() * 5);
+                rows[rowIndex].push(marble);
+            });
+
+            // Show results
+            var rowNames = ['The first row: ', 'The second row: ', 'The third row: ', 'The fourth row: ', 'The fifth row: '];
+            for (var i = 0; i < 5; i++) {
+                var rowDiv = document.getElementById('row' + (i+1));
+                rowDiv.innerHTML = rowNames[i];
+                if (rows[i].length === 0) {
+                    rowDiv.innerHTML += ' -- ';
+                } else {
+                    rows[i].forEach(function(color) {
+                        var marbleDiv = document.createElement('div');
+                        marbleDiv.className = 'marble ' + color;
+                        rowDiv.appendChild(marbleDiv);
+                    });
+                }
+            }
+        });
+    </script>
+</body>
+</html>
