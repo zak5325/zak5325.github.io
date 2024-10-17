@@ -83,7 +83,7 @@ nav a:hover {
 .player-selection {
     margin-bottom: 20px;
     text-align: center;
-    font-size: 1.2em; /* 增大字体大小 */
+    font-size: 1.2em;
 }
 
 .player-selection label {
@@ -92,14 +92,14 @@ nav a:hover {
 
 .player-selection select {
     margin-right: 10px;
-    font-size: 1em; /* 增大下拉菜单字体大小 */
+    font-size: 1em;
     padding: 5px 10px;
 }
 
 .player-selection button {
-    padding: 10px 20px; /* 增大按钮尺寸 */
-    font-size: 1.2em; /* 增大字体大小 */
-    background-color: #007BFF; /* 与“Throw Marbles”按钮一致 */
+    padding: 10px 20px;
+    font-size: 1.2em;
+    background-color: #007BFF;
     color: #fff;
     border: none;
     border-radius: 5px;
@@ -208,6 +208,7 @@ nav a:hover {
 .row span {
     margin-right: 10px;
     font-weight: bold;
+    flex-shrink: 0;
 }
 
 .row div.marble {
@@ -253,7 +254,7 @@ footer .back-button:hover {
         display: flex;
         flex-direction: column;
         align-items: center;
-        font-size: 1em; /* 在小屏幕上适当调整字体大小 */
+        font-size: 1em;
     }
 
     .player-selection label, .player-selection select, .player-selection button {
@@ -265,11 +266,21 @@ footer .back-button:hover {
     }
 
     .row {
-        flex-direction: column;
-        align-items: flex-start;
+        flex-direction: row; /* 保持横向排列 */
+        flex-wrap: wrap; /* 允许换行 */
+        align-items: center; /* 垂直居中 */
     }
 
     .row span {
         margin-bottom: 5px;
+        margin-right: 10px;
+        font-weight: bold;
+        flex-shrink: 0;
+    }
+
+    .row div.marble {
+        margin-left: 0;
+        margin-right: 5px;
+        margin-top: 5px;
     }
 }
