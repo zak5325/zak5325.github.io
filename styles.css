@@ -79,6 +79,111 @@ nav a:hover {
     color: #007BFF;
 }
 
+/* 弹珠计数样式 */
+.marble-counts {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.counter {
+    margin: 10px;
+    text-align: center;
+}
+
+.label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 5px;
+}
+
+.marble {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.marble.white {
+    background-color: #fff;
+    border: 1px solid #000;
+}
+
+.marble.black {
+    background-color: #000;
+}
+
+.marble.blue {
+    background-color: blue;
+}
+
+.marble.red {
+    background-color: red;
+}
+
+.marble.yellow {
+    background-color: yellow;
+}
+
+.counter-button {
+    width: 30px;
+    height: 30px;
+    margin: 0 5px;
+    font-size: 1em;
+}
+
+.counter-button:focus {
+    outline: none;
+}
+
+.counter span {
+    display: inline-block;
+    width: 30px;
+    text-align: center;
+    font-size: 1.2em;
+}
+
+/* 抛掷按钮样式 */
+.throw-button {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    font-size: 1.2em;
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.throw-button:hover {
+    background-color: #0056b3;
+}
+
+/* 结果区域样式 */
+.result-section h2 {
+    text-align: center;
+}
+
+.row {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* 左对齐 */
+    flex-wrap: wrap;
+}
+
+.row span {
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+.row div.marble {
+    margin-left: 5px;
+    margin-top: 5px;
+}
+
 /* 页脚样式 */
 footer {
     text-align: center;
