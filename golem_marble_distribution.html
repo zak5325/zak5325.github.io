@@ -9,7 +9,8 @@
             width: 20px;
             height: 20px;
             border-radius: 50%;
-            margin: 2px;
+            margin-right: 5px;
+            vertical-align: middle;
         }
         .blue { background-color: blue; }
         .red { background-color: red; }
@@ -18,6 +19,27 @@
         .white { background-color: white; border: 1px solid black; }
         .row {
             margin-bottom: 10px;
+        }
+        .counter {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .counter button {
+            width: 25px;
+            height: 25px;
+            font-size: 18px;
+            margin: 0 5px;
+        }
+        .counter span {
+            min-width: 20px;
+            text-align: center;
+            display: inline-block;
+        }
+        .label {
+            display: flex;
+            align-items: center;
+            margin-right: 10px;
         }
     </style>
 </head>
@@ -37,6 +59,7 @@
             <!-- The total marbles show here -->
         </div>
         <br>
+        <button id="initializeButton">Initialize</button>
         <button id="throwButton">Throw</button>
     </div>
     <h2>Result:</h2>
@@ -59,20 +82,30 @@
         var playersSelect = document.getElementById('players');
         var marbleCountsDiv = document.getElementById('marbleCounts');
 
-        // Initialize the marbles
-        updateMarbleCounts();
+        var currentCounts = {}; // 用于保存当前的弹珠数量
+        var maxCounts = {}; // 保存每种颜色的最大数量
 
-        // When player's count changes, update the marbles showing
-        playersSelect.addEventListener('change', updateMarbleCounts);
+        // 初始化弹珠数量
+        initializeMarbles();
 
-        function updateMarbleCounts() {
+        // 当玩家人数改变时，更新弹珠显示
+        playersSelect.addEventListener('change', initializeMarbles);
+
+        // 初始化按钮事件
+        document.getElementById('initializeButton').addEventListener('click', initializeMarbles);
+
+        function initializeMarbles() {
             var playerCount = playersSelect.value;
             var counts = marbleSettings[playerCount];
 
-            // Clear the result
+            // 更新当前数量和最大数量
+            currentCounts = Object.assign({}, counts);
+            maxCounts = Object.assign({}, counts);
+
+            // 清空弹珠数量显示
             marbleCountsDiv.innerHTML = '';
 
-            // Show every color's count
+            // 为每种颜色创建计数器
             for (var color in counts) {
                 var colorName;
                 switch(color) {
@@ -82,36 +115,79 @@
                     case 'red': colorName = 'Red'; break;
                     case 'yellow': colorName = 'Yellow'; break;
                 }
-                var p = document.createElement('p');
-                p.textContent = colorName + ': ' + counts[color];
-                marbleCountsDiv.appendChild(p);
+
+                var counterDiv = document.createElement('div');
+                counterDiv.className = 'counter';
+
+                // 创建颜色标签，包含小球和颜色名称
+                var labelDiv = document.createElement('div');
+                labelDiv.className = 'label';
+
+                var marbleDiv = document.createElement('div');
+                marbleDiv.className = 'marble ' + color;
+
+                var labelText = document.createElement('span');
+                labelText.textContent = colorName + ': ';
+
+                labelDiv.appendChild(marbleDiv);
+                labelDiv.appendChild(labelText);
+
+                var minusButton = document.createElement('button');
+                minusButton.textContent = '-';
+                minusButton.dataset.color = color;
+                minusButton.addEventListener('click', function() {
+                    var color = this.dataset.color;
+                    if (currentCounts[color] > 0) {
+                        currentCounts[color]--;
+                        document.getElementById(color + 'Count').textContent = currentCounts[color];
+                    }
+                });
+
+                var countSpan = document.createElement('span');
+                countSpan.id = color + 'Count';
+                countSpan.textContent = currentCounts[color];
+
+                var plusButton = document.createElement('button');
+                plusButton.textContent = '+';
+                plusButton.dataset.color = color;
+                plusButton.addEventListener('click', function() {
+                    var color = this.dataset.color;
+                    if (currentCounts[color] < maxCounts[color]) {
+                        currentCounts[color]++;
+                        document.getElementById(color + 'Count').textContent = currentCounts[color];
+                    }
+                });
+
+                counterDiv.appendChild(labelDiv);
+                counterDiv.appendChild(minusButton);
+                counterDiv.appendChild(countSpan);
+                counterDiv.appendChild(plusButton);
+
+                marbleCountsDiv.appendChild(counterDiv);
             }
         }
 
         document.getElementById('throwButton').addEventListener('click', function() {
-            var playerCount = playersSelect.value;
-            var counts = marbleSettings[playerCount];
-
-            // Create marble array
+            // 根据当前数量创建弹珠数组
             var marbles = [];
-            for (var color in counts) {
-                for (var i = 0; i < counts[color]; i++) {
+            for (var color in currentCounts) {
+                for (var i = 0; i < currentCounts[color]; i++) {
                     marbles.push(color);
                 }
             }
 
-            // Randomize the marbles
+            // 随机打乱弹珠顺序
             marbles = marbles.sort(() => Math.random() - 0.5);
 
-            // Randomly distribute to the rows
-            var rows = [ [], [], [], [], [] ]; // Five rows
+            // 随机分配到行
+            var rows = [ [], [], [], [], [] ]; // 五行
             marbles.forEach(function(marble) {
-                // Randomly choose one row
+                // 随机选择一行
                 var rowIndex = Math.floor(Math.random() * 5);
                 rows[rowIndex].push(marble);
             });
 
-            // Show results
+            // 显示结果
             var rowNames = ['The first row: ', 'The second row: ', 'The third row: ', 'The fourth row: ', 'The fifth row: '];
             for (var i = 0; i < 5; i++) {
                 var rowDiv = document.getElementById('row' + (i+1));
