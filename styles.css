@@ -43,6 +43,17 @@ nav a {
     text-decoration: none;
     color: #333;
     font-size: 1.2em;
+    position: relative;
+    padding-left: 25px;
+}
+
+nav a::before {
+    content: '\25B6'; /* Unicode for black right-pointing triangle */
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-size: 1.2em;
+    color: #007BFF;
 }
 
 nav a:hover {
@@ -73,6 +84,11 @@ main {
 
 .player-selection select {
     margin-right: 10px;
+}
+
+.player-selection button {
+    padding: 5px 10px;
+    font-size: 1em;
 }
 
 /* 弹珠计数样式 */
@@ -133,6 +149,13 @@ main {
     outline: none;
 }
 
+.counter span {
+    display: inline-block;
+    width: 30px;
+    text-align: center;
+    font-size: 1.2em;
+}
+
 /* 抛掷按钮样式 */
 .throw-button {
     display: block;
@@ -156,74 +179,4 @@ main {
 }
 
 .row {
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.row span {
-    margin-right: 10px;
-    font-weight: bold;
-}
-
-.row div.marble {
-    margin-left: 5px;
-}
-
-/* 页脚样式 */
-footer {
-    text-align: center;
-    padding: 20px 0;
-    background-color: #333;
-    color: #fff;
-}
-
-/* 返回主页按钮样式 */
-footer .back-button {
-    display: inline-block;
-    padding: 15px 30px;
-    background-color: #28a745;
-    color: #fff;
-    text-decoration: none;
-    border-radius: 5px;
-    font-size: 18px;
-    font-weight: bold;
-    margin-top: 20px;
-    transition: background-color 0.3s ease;
-}
-
-footer .back-button:hover {
-    background-color: #218838;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-/* 响应式设计 */
-@media (max-width: 600px) {
-    nav li {
-        display: block;
-        margin: 10px 0;
-    }
-
-    .player-selection {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .player-selection label, .player-selection select, .player-selection button {
-        margin-bottom: 10px;
-    }
-
-    .counter {
-        width: 100%;
-    }
-
-    .label {
-        justify-content: flex-start;
-    }
-
-    .throw-button {
-        width: 100%;
-    }
-}
+    margin
