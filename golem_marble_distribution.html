@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Golem Marble Distribution Tool</title>
+    <!-- 视口设置，确保移动设备显示效果良好 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO 元数据 -->
+    <meta name="description" content="Distribute marbles for the Golem boardgame randomly and efficiently.">
+    <meta name="keywords" content="golem, boardgame, marble, distribution, tool, gaming">
+    <!-- 引入外部 CSS 文件 -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Golem Marble Distribution Tool</h1>
+        <p>Randomly distribute marbles for your Golem boardgame sessions.</p>
+    </header>
+    <main>
+        <section class="tool-container">
+            <div class="player-selection">
+                <label for="players">How many players:</label>
+                <select id="players">
+                    <option value="1">1 player</option>
+                    <option value="2">2 players</option>
+                    <option value="3">3 players</option>
+                    <option value="4">4 players</option>
+                </select>
+                <button id="initializeButton">Initialize</button>
+            </div>
+            <div id="marbleCounts" class="marble-counts">
+                <!-- The total marbles will show here -->
+            </div>
+            <button id="throwButton" class="throw-button">Throw Marbles</button>
+        </section>
+        <section class="result-section">
+            <h2>Result:</h2>
+            <div id="results">
+                <div class="row" id="row1"></div>
+                <div class="row" id="row2"></div>
+                <div class="row" id="row3"></div>
+                <div class="row" id="row4"></div>
+                <div class="row" id="row5"></div>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2023 Boardgame Tools</p>
+    </footer>
+    <script>
+        // JavaScript code remains the same as before, with minor adjustments if needed
+        // Set marbles based on current players
+        var marbleSettings = {
+            '1': { white: 3, black: 1, blue: 2, red: 2, yellow: 2 },
+            '2': { white: 3, black: 1, blue: 2, red: 2, yellow: 2 },
+            '3': { white: 5, black: 1, blue: 2, red: 2, yellow: 2 },
+            '4': { white: 4, black: 1, blue: 3, red: 3, yellow: 3 }
+        };
+
+        var playersSelect = document.getElementById('players');
+        var marbleCountsDiv = document.getElementById('marbleCounts');
+
+        var currentCounts = {}; // Used to save current marble counts
+        var maxCounts = {}; // Save max counts for each color
+
+        // Initialize marbles
+        initializeMarbles();
+
+        // Update marbles display when player count changes
+        playersSelect.addEventListener('change', initializeMarbles);
+
+        // Initialize button event
+        document.getElementById('initializeButton').addEventListener('click', initializeMarbles);
+
+        function initializeMarbles() {
+            var playerCount = playersSelect.value;
+            var counts = marbleSettings[playerCount];
+
+            // Update currentCounts and maxCounts
+            currentCounts = Object.assign({}, counts);
+            maxCounts = Object.assign({}, counts);
+
+            // Clear marble counts display
+            marbleCountsDiv.innerHTML = '';
+
+            // Create counters for each color
+            for (var color in counts) {
+                var colorName;
+                switch(color) {
+                    case 'white': colorName = 'White'; break;
+                    case 'black': colorName = 'Black'; break;
+                    case 'blue': colorName = 'Blue'; break;
+                    case 'red': colorName = 'Red'; break;
+                    case 'yellow': colorName = 'Yellow'; break;
+                }
+
+                var counterDiv = document.createElement('div');
+                counterDiv.className = 'counter';
+
+                // Create color label with marble and color name
+                var labelDiv = document.createElement('div');
+                labelDiv.className = 'label';
+
+                var marbleDiv = document.createElement('div');
+                marbleDiv.className = 'marble ' + color;
+
+                var labelText = document.createElement('span');
+                labelText.textContent = colorName + ': ';
+
+                labelDiv.appendChild(marbleDiv);
+                labelDiv.appendChild(labelText);
+
+                var minusButton = document.createElement('button');
+                minusButton.textContent = '-';
+                minusButton.className = 'counter-button';
+                minusButton.dataset.color = color;
+                minusButton.addEventListener('click', function() {
+                    var color = this.dataset.color;
+                    if (currentCounts[color] > 0) {
+                        currentCounts[color]--;
+                        document.getElementById(color + 'Count').textContent = currentCounts[color];
+                    }
+                });
+
+                var countSpan = document.createElement('span');
+                countSpan.id = color + 'Count';
+                countSpan.textContent = currentCounts[color];
+
+                var plusButton = document.createElement('button');
+                plusButton.textContent = '+';
+                plusButton.className = 'counter-button';
+                plusButton.dataset.color = color;
+                plusButton.addEventListener('click', function() {
+                    var color = this.dataset.color;
+                    if (currentCounts[color] < maxCounts[color]) {
+                        currentCounts[color]++;
+                        document.getElementById(color + 'Count').textContent = currentCounts[color];
+                    }
+                });
+
+                counterDiv.appendChild(labelDiv);
+                counterDiv.appendChild(minusButton);
+                counterDiv.appendChild(countSpan);
+                counterDiv.appendChild(plusButton);
+
+                marbleCountsDiv.appendChild(counterDiv);
+            }
+        }
+
+        document.getElementById('throwButton').addEventListener('click', function() {
+            // Create marble array based on currentCounts
+            var marbles = [];
+            for (var color in currentCounts) {
+                for (var i = 0; i < currentCounts[color]; i++) {
+                    marbles.push(color);
+                }
+            }
+
+            // Randomize marbles
+            marbles = marbles.sort(() => Math.random() - 0.5);
+
+            // Randomly distribute to rows
+            var rows = [ [], [], [], [], [] ]; // Five rows
+            marbles.forEach(function(marble) {
+                // Randomly choose a row
+                var rowIndex = Math.floor(Math.random() * 5);
+                rows[rowIndex].push(marble);
+            });
+
+            // Show results
+            var rowNames = ['Row 1: ', 'Row 2: ', 'Row 3: ', 'Row 4: ', 'Row 5: '];
+            for (var i = 0; i < 5; i++) {
+                var rowDiv = document.getElementById('row' + (i+1));
+                rowDiv.innerHTML = rowNames[i];
+                if (rows[i].length === 0) {
+                    rowDiv.innerHTML += ' -- ';
+                } else {
+                    rows[i].forEach(function(color) {
+                        var marbleDiv = document.createElement('div');
+                        marbleDiv.className = 'marble ' + color;
+                        rowDiv.appendChild(marbleDiv);
+                    });
+                }
+            }
+        });
+    </script>
+</body>
+</html>
