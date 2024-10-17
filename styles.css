@@ -179,4 +179,86 @@ main {
 }
 
 .row {
-    margin
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* 左对齐 */
+    flex-wrap: wrap;
+}
+
+.row span {
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+.row div.marble {
+    margin-left: 5px;
+    margin-top: 5px;
+}
+
+/* 页脚样式 */
+footer {
+    text-align: center;
+    padding: 20px 0;
+    background-color: #333;
+    color: #fff;
+}
+
+/* 返回主页按钮样式 */
+footer .back-button {
+    display: inline-block;
+    padding: 15px 30px;
+    background-color: #28a745;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 20px;
+    transition: background-color 0.3s ease;
+}
+
+footer .back-button:hover {
+    background-color: #218838;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* 响应式设计 */
+@media (max-width: 600px) {
+    nav li {
+        display: block;
+        margin: 10px 0;
+    }
+
+    .player-selection {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .player-selection label, .player-selection select, .player-selection button {
+        margin-bottom: 10px;
+    }
+
+    .counter {
+        width: 100%;
+    }
+
+    .label {
+        justify-content: flex-start;
+        margin-left: 20px;
+    }
+
+    .throw-button {
+        width: 100%;
+    }
+
+    .row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .row span {
+        margin-bottom: 5px;
+    }
+}
