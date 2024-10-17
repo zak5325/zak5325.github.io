@@ -12,6 +12,13 @@ header {
     padding: 40px 0;
     background-color: #333;
     color: #fff;
+    position: relative;
+}
+
+header .back-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
 }
 
 header h1 {
@@ -181,4 +188,29 @@ footer {
     .row {
         font-size: 16px;
     }
+}
+
+/* 返回首页按钮样式 */
+.back-button {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 10px 20px;
+    background-color: #007BFF;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.back-button:hover {
+    background-color: #0056b3;
+}
+
+/* 调整 header 内元素的排列方式 */
+header {
+    text-align: center;
+    padding: 40px 0;
+    background-color: #333;
+    color: #fff;
+    position: relative;
 }
