@@ -6,17 +6,21 @@ footer {
     color: #fff;
 }
 
+/* Back to Home 按钮样式 */
 footer .back-button {
     display: inline-block;
-    padding: 10px 20px;
-    background-color: #007BFF;
+    padding: 15px 30px; /* 增加按钮的尺寸 */
+    background-color: #28a745; /* 使用绿色按钮，更容易被看到 */
     color: #fff;
     text-decoration: none;
     border-radius: 5px;
-    font-size: 16px;
-    margin-top: 15px;
+    font-size: 18px; /* 提高字体大小 */
+    font-weight: bold; /* 突出字体 */
+    margin-top: 20px; /* 给按钮增加上间距 */
+    transition: background-color 0.3s ease; /* 增加平滑的颜色过渡效果 */
 }
 
 footer .back-button:hover {
-    background-color: #0056b3;
+    background-color: #218838; /* 悬停时颜色变化 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 添加阴影以增强视觉效果 */
 }
