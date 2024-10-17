@@ -50,8 +50,7 @@
         <a href="index.html" class="back-button">Back to Home</a>
     </footer>
     <script>
-        // JavaScript code remains the same as before, with minor adjustments if needed
-        // Set marbles based on current players
+        // 弹珠设置
         var marbleSettings = {
             '1': { white: 3, black: 1, blue: 2, red: 2, yellow: 2 },
             '2': { white: 3, black: 1, blue: 2, red: 2, yellow: 2 },
@@ -180,7 +179,9 @@
                 rowDiv.appendChild(rowLabel);
 
                 if (rows[i].length === 0) {
-                    rowDiv.innerHTML += ' -- ';
+                    var emptyText = document.createElement('span');
+                    emptyText.textContent = '--';
+                    rowDiv.appendChild(emptyText);
                 } else {
                     rows[i].forEach(function(color) {
                         var marbleDiv = document.createElement('div');
