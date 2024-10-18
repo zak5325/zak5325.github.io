@@ -85,6 +85,12 @@
                 // 清空弹珠数量显示
                 marbleCountsDiv.innerHTML = '';
 
+                // 清空结果区域
+                for (var i = 1; i <= 5; i++) {
+                    var rowDiv = document.getElementById('row' + i);
+                    rowDiv.innerHTML = '';
+                }
+
                 // 为每种颜色创建计数器
                 for (var color in counts) {
                     var colorName;
