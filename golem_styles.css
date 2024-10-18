@@ -160,32 +160,42 @@ main {
     text-align: center;
 }
 
+/* 新的表格样式 */
 .row {
-    margin-bottom: 10px;
     display: flex;
-    align-items: center;
-    justify-content: flex-start;
+    margin-bottom: 10px;
+}
+
+.cell {
+    flex: 1;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.action-image {
+    /* 您可以在这里设置图片的样式 */
+    text-align: center;
+}
+
+.action-image img {
+    max-width: 100%;
+    height: auto;
+}
+
+.marbles {
+    display: flex;
     flex-wrap: wrap;
-}
-
-.row span {
-    margin-right: 10px;
-    font-weight: bold;
-    flex-shrink: 0;
-}
-
-.row div.marble {
-    margin-left: 5px;
-    margin-top: 5px;
+    align-items: center;
 }
 
 /* 为可点击的弹珠添加悬停效果 */
-.row .marble {
+.marbles .marble {
     cursor: pointer;
     transition: transform 0.2s;
+    margin: 5px;
 }
 
-.row .marble:hover {
+.marbles .marble:hover {
     transform: scale(1.2);
 }
 
@@ -234,21 +244,14 @@ footer .back-button:hover {
     }
 
     .row {
-        flex-direction: row; /* 保持横向排列 */
-        flex-wrap: wrap; /* 允许换行 */
-        align-items: center; /* 垂直居中 */
+        flex-direction: column;
     }
 
-    .row span {
-        margin-bottom: 5px;
-        margin-right: 10px;
-        font-weight: bold;
-        flex-shrink: 0;
+    .cell {
+        width: 100%;
     }
 
-    .row div.marble {
-        margin-left: 0;
-        margin-right: 5px;
-        margin-top: 5px;
+    .marbles {
+        justify-content: center;
     }
 }
