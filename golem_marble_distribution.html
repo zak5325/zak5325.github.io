@@ -187,6 +187,23 @@
                         rows[i].forEach(function(color) {
                             var marbleDiv = document.createElement('div');
                             marbleDiv.className = 'marble ' + color;
+                            marbleDiv.dataset.color = color;
+
+                            // 添加点击事件监听器
+                            marbleDiv.addEventListener('click', function() {
+                                var color = this.dataset.color;
+
+                                // 从行中移除弹珠
+                                this.parentNode.removeChild(this);
+
+                                // 更新当前弹珠计数
+                                currentCounts[color]--;
+                                if (currentCounts[color] < 0) currentCounts[color] = 0;
+
+                                // 更新上方的计数显示
+                                document.getElementById(color + 'Count').textContent = currentCounts[color];
+                            });
+
                             rowDiv.appendChild(marbleDiv);
                         });
                     }
