@@ -177,7 +177,7 @@ main {
 }
 
 .action-image img {
-    width: 400px; /* 设置统一的宽度 */
+    width: 500px; /* 设置统一的宽度 */
     height: 100px; /* 设置统一的高度 */
     object-fit: cover; /* 图片裁剪以填充容器 */
 }
