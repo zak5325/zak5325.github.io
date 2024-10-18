@@ -173,13 +173,13 @@ main {
 }
 
 .action-image {
-    /* 您可以在这里设置图片的样式 */
     text-align: center;
 }
 
 .action-image img {
-    max-width: 100%;
-    height: auto;
+    width: 100px; /* 设置统一的宽度 */
+    height: 100px; /* 设置统一的高度 */
+    object-fit: cover; /* 图片裁剪以填充容器 */
 }
 
 .marbles {
