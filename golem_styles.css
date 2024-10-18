@@ -160,28 +160,39 @@ main {
     text-align: center;
 }
 
-/* 新的表格样式 */
+/* 行和单元格样式 */
 .row {
     display: flex;
+    flex-wrap: wrap;
     margin-bottom: 10px;
 }
 
 .cell {
-    flex: 1;
+    flex: 1 1 50%;
     padding: 10px;
     box-sizing: border-box;
 }
 
+@media (max-width: 600px) {
+    .cell {
+        flex: 1 1 100%;
+    }
+}
+
+/* 图片样式 */
 .action-image {
     text-align: center;
+    max-width: 200px; /* 可选：设置最大宽度 */
+    margin: 0 auto;
 }
 
 .action-image img {
-    width: 500px; /* 设置统一的宽度 */
-    height: 100px; /* 设置统一的高度 */
-    object-fit: cover; /* 图片裁剪以填充容器 */
+    width: 100%;
+    height: auto;
+    object-fit: cover;
 }
 
+/* 弹珠区域样式 */
 .marbles {
     display: flex;
     flex-wrap: wrap;
@@ -241,17 +252,5 @@ footer .back-button:hover {
 
     .throw-button {
         width: 100%;
-    }
-
-    .row {
-        flex-direction: column;
-    }
-
-    .cell {
-        width: 100%;
-    }
-
-    .marbles {
-        justify-content: center;
     }
 }
