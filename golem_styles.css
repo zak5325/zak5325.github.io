@@ -179,6 +179,16 @@ main {
     margin-top: 5px;
 }
 
+/* 为可点击的弹珠添加悬停效果 */
+.row .marble {
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.row .marble:hover {
+    transform: scale(1.2);
+}
+
 /* 页脚样式 */
 footer {
     text-align: center;
