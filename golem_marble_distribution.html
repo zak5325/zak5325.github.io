@@ -8,8 +8,8 @@
     <!-- SEO 元数据 -->
     <meta name="description" content="Distribute marbles for the Golem boardgame randomly and efficiently.">
     <meta name="keywords" content="golem, boardgame, marble, distribution, tool, gaming">
-    <!-- 引入外部 CSS 文件 -->
-    <link rel="stylesheet" href="styles.css">
+    <!-- 引入独立的 CSS 文件 -->
+    <link rel="stylesheet" href="golem_styles.css">
 </head>
 <body>
     <div class="container">
@@ -58,33 +58,33 @@
                 '3': { white: 5, black: 1, blue: 2, red: 2, yellow: 2 },
                 '4': { white: 4, black: 1, blue: 3, red: 3, yellow: 3 }
             };
-        
+
             var playersSelect = document.getElementById('players');
             var marbleCountsDiv = document.getElementById('marbleCounts');
-        
+
             var currentCounts = {}; // 用于保存当前的弹珠数量
             var maxCounts = {}; // 保存每种颜色的最大数量
-        
+
             // 初始化弹珠数量
             initializeMarbles();
-        
+
             // 当玩家人数改变时，更新弹珠显示
             playersSelect.addEventListener('change', initializeMarbles);
-        
+
             // 初始化按钮事件
             document.getElementById('initializeButton').addEventListener('click', initializeMarbles);
-        
+
             function initializeMarbles() {
                 var playerCount = playersSelect.value;
                 var counts = marbleSettings[playerCount];
-        
+
                 // 更新当前数量和最大数量
                 currentCounts = Object.assign({}, counts);
                 maxCounts = Object.assign({}, counts);
-        
+
                 // 清空弹珠数量显示
                 marbleCountsDiv.innerHTML = '';
-        
+
                 // 为每种颜色创建计数器
                 for (var color in counts) {
                     var colorName;
@@ -95,23 +95,23 @@
                         case 'red': colorName = 'Red'; break;
                         case 'yellow': colorName = 'Yellow'; break;
                     }
-        
+
                     var counterDiv = document.createElement('div');
                     counterDiv.className = 'counter';
-        
+
                     // 创建颜色标签，包含小球和颜色名称
                     var labelDiv = document.createElement('div');
                     labelDiv.className = 'label';
-        
+
                     var marbleDiv = document.createElement('div');
                     marbleDiv.className = 'marble ' + color;
-        
+
                     var labelText = document.createElement('span');
                     labelText.textContent = colorName + ': ';
-        
+
                     labelDiv.appendChild(marbleDiv);
                     labelDiv.appendChild(labelText);
-        
+
                     var minusButton = document.createElement('button');
                     minusButton.textContent = '-';
                     minusButton.className = 'counter-button';
@@ -123,11 +123,11 @@
                             document.getElementById(color + 'Count').textContent = currentCounts[color];
                         }
                     });
-        
+
                     var countSpan = document.createElement('span');
                     countSpan.id = color + 'Count';
                     countSpan.textContent = currentCounts[color];
-        
+
                     var plusButton = document.createElement('button');
                     plusButton.textContent = '+';
                     plusButton.className = 'counter-button';
@@ -139,16 +139,16 @@
                             document.getElementById(color + 'Count').textContent = currentCounts[color];
                         }
                     });
-        
+
                     counterDiv.appendChild(labelDiv);
                     counterDiv.appendChild(minusButton);
                     counterDiv.appendChild(countSpan);
                     counterDiv.appendChild(plusButton);
-        
+
                     marbleCountsDiv.appendChild(counterDiv);
                 }
             }
-        
+
             document.getElementById('throwButton').addEventListener('click', function() {
                 // 根据当前数量创建弹珠数组
                 var marbles = [];
@@ -157,10 +157,10 @@
                         marbles.push(color);
                     }
                 }
-        
+
                 // 随机打乱弹珠顺序
                 marbles = marbles.sort(() => Math.random() - 0.5);
-        
+
                 // 随机分配到行
                 var rows = [ [], [], [], [], [] ]; // 五行
                 marbles.forEach(function(marble) {
@@ -168,17 +168,17 @@
                     var rowIndex = Math.floor(Math.random() * 5);
                     rows[rowIndex].push(marble);
                 });
-        
+
                 // 显示结果
                 var rowNames = ['Row 1: ', 'Row 2: ', 'Row 3: ', 'Row 4: ', 'Row 5: '];
                 for (var i = 0; i < 5; i++) {
                     var rowDiv = document.getElementById('row' + (i+1));
                     rowDiv.innerHTML = ''; // 清空之前的内容
-        
+
                     var rowLabel = document.createElement('span');
                     rowLabel.textContent = rowNames[i];
                     rowDiv.appendChild(rowLabel);
-        
+
                     if (rows[i].length === 0) {
                         var emptyText = document.createElement('span');
                         emptyText.textContent = '--';
