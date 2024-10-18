@@ -42,43 +42,6 @@ main {
     padding: 20px;
 }
 
-/* 导航样式 */
-nav {
-    margin: 20px auto;
-    text-align: center;
-}
-
-nav ul {
-    list-style: none;
-    padding: 0;
-}
-
-nav li {
-    display: inline-block;
-    margin: 0 15px;
-}
-
-nav a {
-    text-decoration: none;
-    color: #333;
-    font-size: 1.2em;
-    position: relative;
-    padding-left: 25px;
-}
-
-nav a::before {
-    content: '\25B6'; /* Unicode for black right-pointing triangle */
-    position: absolute;
-    left: 0;
-    top: 0;
-    font-size: 1.2em;
-    color: #007BFF;
-}
-
-nav a:hover {
-    color: #007BFF;
-}
-
 /* 玩家选择样式 */
 .player-selection {
     margin-bottom: 20px;
@@ -245,11 +208,6 @@ footer .back-button:hover {
 
 /* 响应式设计 */
 @media (max-width: 600px) {
-    nav li {
-        display: block;
-        margin: 10px 0;
-    }
-
     .player-selection {
         display: flex;
         flex-direction: column;
