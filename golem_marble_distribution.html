@@ -37,11 +37,44 @@
             <section class="result-section">
                 <h2>Result:</h2>
                 <div id="results">
-                    <div class="row" id="row1"></div>
-                    <div class="row" id="row2"></div>
-                    <div class="row" id="row3"></div>
-                    <div class="row" id="row4"></div>
-                    <div class="row" id="row5"></div>
+                    <!-- 行 1 -->
+                    <div class="row" id="row1">
+                        <div class="cell action-image" id="actionRow1">
+                            <!-- 在这里放置图片 -->
+                            <!-- <img src="path_to_image1.png" alt="Action 1"> -->
+                        </div>
+                        <div class="cell marbles" id="marblesRow1">
+                            <!-- 弹珠将显示在这里 -->
+                        </div>
+                    </div>
+                    <!-- 行 2 -->
+                    <div class="row" id="row2">
+                        <div class="cell action-image" id="actionRow2">
+                            <!-- <img src="path_to_image2.png" alt="Action 2"> -->
+                        </div>
+                        <div class="cell marbles" id="marblesRow2"></div>
+                    </div>
+                    <!-- 行 3 -->
+                    <div class="row" id="row3">
+                        <div class="cell action-image" id="actionRow3">
+                            <!-- <img src="path_to_image3.png" alt="Action 3"> -->
+                        </div>
+                        <div class="cell marbles" id="marblesRow3"></div>
+                    </div>
+                    <!-- 行 4 -->
+                    <div class="row" id="row4">
+                        <div class="cell action-image" id="actionRow4">
+                            <!-- <img src="path_to_image4.png" alt="Action 4"> -->
+                        </div>
+                        <div class="cell marbles" id="marblesRow4"></div>
+                    </div>
+                    <!-- 行 5 -->
+                    <div class="row" id="row5">
+                        <div class="cell action-image" id="actionRow5">
+                            <!-- <img src="path_to_image5.png" alt="Action 5"> -->
+                        </div>
+                        <div class="cell marbles" id="marblesRow5"></div>
+                    </div>
                 </div>
             </section>
         </main>
@@ -85,10 +118,10 @@
                 // 清空弹珠数量显示
                 marbleCountsDiv.innerHTML = '';
 
-                // 清空结果区域
+                // 清空结果区域的弹珠列
                 for (var i = 1; i <= 5; i++) {
-                    var rowDiv = document.getElementById('row' + i);
-                    rowDiv.innerHTML = '';
+                    var marblesDiv = document.getElementById('marblesRow' + i);
+                    marblesDiv.innerHTML = '';
                 }
 
                 // 为每种颜色创建计数器
@@ -176,19 +209,14 @@
                 });
 
                 // 显示结果
-                var rowNames = ['Row 1: ', 'Row 2: ', 'Row 3: ', 'Row 4: ', 'Row 5: '];
                 for (var i = 0; i < 5; i++) {
-                    var rowDiv = document.getElementById('row' + (i+1));
-                    rowDiv.innerHTML = ''; // 清空之前的内容
-
-                    var rowLabel = document.createElement('span');
-                    rowLabel.textContent = rowNames[i];
-                    rowDiv.appendChild(rowLabel);
+                    var marblesDiv = document.getElementById('marblesRow' + (i+1));
+                    marblesDiv.innerHTML = ''; // 清空之前的弹珠
 
                     if (rows[i].length === 0) {
                         var emptyText = document.createElement('span');
                         emptyText.textContent = '--';
-                        rowDiv.appendChild(emptyText);
+                        marblesDiv.appendChild(emptyText);
                     } else {
                         rows[i].forEach(function(color) {
                             var marbleDiv = document.createElement('div');
@@ -210,7 +238,7 @@
                                 document.getElementById(color + 'Count').textContent = currentCounts[color];
                             });
 
-                            rowDiv.appendChild(marbleDiv);
+                            marblesDiv.appendChild(marbleDiv);
                         });
                     }
                 }
