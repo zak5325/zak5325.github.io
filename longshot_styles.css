@@ -1,0 +1,267 @@
+/* longshot_styles.css */
+
+/* 通用样式 */
+body {
+    font-family: Arial, sans-serif; /* 与 index.html 保持一致 */
+    background-color: #f0f0f0;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+/* 标题样式 */
+h1 {
+    color: #333;
+    text-shadow: 2px 2px #ccc;
+    text-align: center;
+    padding: 20px 0;
+    margin: 0;
+    background-color: #fff;
+}
+
+/* 内容布局 */
+.content {
+    display: flex;
+    flex-wrap: wrap;
+    height: calc(100vh - 160px); /* 减去 header 和 footer 的高度 */
+}
+
+/* 左半边样式 */
+.left {
+    flex: 1;
+    overflow: auto;
+    padding: 20px;
+    box-sizing: border-box;
+    position: relative; /* 添加 position: relative; */
+}
+
+/* 重置按钮容器样式 */
+.reset-container {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+}
+
+/* 重置按钮样式 */
+#resetButton {
+    font-size: 1.2em;
+    padding: 10px 20px;
+    background-color: #dc3545; /* 红色背景 */
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#resetButton:hover {
+    background-color: #c82333;
+}
+
+/* 右半边样式 */
+.right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* 复选框容器在右半边上方 */
+.right .checkboxes {
+    flex: 1;
+    overflow: auto;
+    margin-bottom: 20px;
+}
+
+/* 控制区域在右半边下方 */
+.right .controls {
+    margin-bottom: 20px;
+}
+
+/* 赛道容器 */
+.track-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px auto;
+}
+
+/* 赛道和名次容器 */
+.track-placing-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+/* 名次显示样式 */
+.placing-display {
+    width: 60px;
+    text-align: center;
+    font-weight: bold;
+    margin-left: 10px;
+    color: #000;
+}
+
+/* 赛道样式 */
+.track {
+    display: flex;
+    margin: 0 10px;
+}
+
+.cell {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #555;
+    text-align: center;
+    vertical-align: middle;
+    position: relative;
+    background-color: #fff;
+}
+
+.bet-line {
+    border-right: 4px solid red;
+}
+
+.start-line, .finish-line {
+    border-right: 4px solid blue;
+}
+
+.pre-bet-line {
+    background-color: #8B4513; /* Dark brown */
+}
+
+.post-bet-line {
+    background-color: #DEB887; /* Light brown */
+}
+
+/* 控制区域样式 */
+.controls label {
+    font-size: 1.2em;
+    margin-right: 10px;
+}
+
+select, button {
+    font-size: 1em;
+    padding: 10px;
+    margin: 10px 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+button {
+    cursor: pointer;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* 复选框样式 */
+.checkboxes {
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    overflow: auto;
+}
+
+.checkbox-row {
+    margin-bottom: 15px;
+}
+
+.horse-number {
+    font-weight: bold;
+    color: black;
+    margin-right: 10px;
+    font-size: 1.1em;
+}
+
+.checkbox-row label {
+    margin-right: 15px;
+}
+
+.horse-color-1 { background-color: red; padding: 5px; border-radius: 5px; color: white; }
+.horse-color-2 { background-color: yellow; padding: 5px; border-radius: 5px; color: black; }
+.horse-color-3 { background-color: blue; padding: 5px; border-radius: 5px; color: white; }
+.horse-color-4 { background-color: pink; padding: 5px; border-radius: 5px; color: black; }
+.horse-color-5 { background-color: green; padding: 5px; border-radius: 5px; color: white; }
+.horse-color-6 { background-color: lightblue; padding: 5px; border-radius: 5px; color: black; }
+.horse-color-7 { background-color: orange; padding: 5px; border-radius: 5px; color: black; }
+.horse-color-8 { background-color: purple; padding: 5px; border-radius: 5px; color: white; }
+
+.horse-marker {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 16px;
+    font-weight: bold;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.arrow-button {
+    cursor: pointer;
+    font-size: 30px;
+    user-select: none;
+    margin: 0 10px;
+    color: #007BFF;
+    transition: color 0.3s;
+}
+
+.arrow-button:hover {
+    color: #0056b3;
+}
+
+/* 页脚样式 */
+footer {
+    text-align: center;
+    padding: 20px 0;
+    background-color: #333;
+    color: #fff;
+}
+
+/* 返回主页按钮样式 */
+footer .back-button {
+    display: inline-block;
+    padding: 15px 30px;
+    background-color: #28a745;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 20px;
+    transition: background-color 0.3s ease;
+}
+
+footer .back-button:hover {
+    background-color: #218838;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* 响应式设计 */
+@media (max-width: 800px) {
+    .content {
+        flex-direction: column;
+    }
+    .left, .right {
+        flex: 1;
+        width: 100%;
+    }
+    /* 调整重置按钮在移动设备上的位置 */
+    .reset-container {
+        bottom: 10px;
+        left: 10px;
+    }
+}
