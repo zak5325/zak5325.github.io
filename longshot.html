@@ -4,34 +4,13 @@
     <meta charset="UTF-8">
     <title>Long Shot: The Dice Game Monitoring</title>
     <!-- 视口设置，确保移动设备显示效果良好 -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- 引入全局的字体和样式 -->
     <link rel="stylesheet" href="golem_styles.css">
     <!-- 引入新的 CSS 文件 -->
     <link rel="stylesheet" href="longshot_styles.css">
-    <!-- 添加一个用于检测屏幕方向的脚本 -->
-    <script>
-        function checkOrientation() {
-            if (window.innerHeight > window.innerWidth) {
-                // 如果是竖屏，显示提示
-                document.getElementById('orientation-warning').style.display = 'flex';
-            } else {
-                // 如果是横屏，隐藏提示
-                document.getElementById('orientation-warning').style.display = 'none';
-            }
-        }
-        window.addEventListener('load', checkOrientation);
-        window.addEventListener('resize', checkOrientation);
-    </script>
 </head>
 <body>
-    <!-- 添加一个用于提示用户旋转设备的遮罩层 -->
-    <div id="orientation-warning">
-        <div class="orientation-message">
-            <p>Please rotate your device to landscape mode for the best experience.</p>
-        </div>
-    </div>
-
     <div class="container">
         <header>
             <h1>Long Shot: The Dice Game Monitoring</h1>
@@ -76,39 +55,33 @@
             <p>&copy; 2024 Boardgame Tools</p>
             <a href="index.html" class="back-button">Back to Home</a>
         </footer>
-
         <!-- 脚本部分 -->
         <script>
             const horseCount = 8;
-            const trackLength = 17; // 赛道长度
+            const trackLength = 17; // 更新后的赛道长度
             let horsePositions = Array(horseCount).fill(0);
             let finishedHorses = [];
-            let horsePlacings = {}; // 用于记录马匹名次
-
+            let horsePlacings = {}; // 新增的对象，用于记录马匹名次
             // 确保在 DOM 加载完成后添加事件监听器
             document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('resetButton').addEventListener('click', resetGame);
                 initializeRaceTrack();
             });
-
             function initializeRaceTrack() {
                 const raceTrack = document.getElementById('raceTrack');
                 raceTrack.innerHTML = '';
                 for (let i = 0; i < horseCount; i++) {
                     const trackContainer = document.createElement('div');
                     trackContainer.classList.add('track-container');
-
                     // 左箭头
                     const leftArrow = document.createElement('div');
                     leftArrow.classList.add('arrow-button');
                     leftArrow.innerHTML = '&#8592;';
                     leftArrow.onclick = () => moveHorseManual(i + 1, -1);
                     trackContainer.appendChild(leftArrow);
-
                     // 赛道和名次容器
                     const trackPlacingWrapper = document.createElement('div');
                     trackPlacingWrapper.classList.add('track-placing-wrapper');
-
                     // 赛道
                     const track = document.createElement('div');
                     track.classList.add('track');
@@ -134,28 +107,23 @@
                         track.appendChild(cell);
                     }
                     trackPlacingWrapper.appendChild(track);
-
                     // 名次显示
                     const placingDisplay = document.createElement('div');
                     placingDisplay.classList.add('placing-display');
                     placingDisplay.id = `placing-${i + 1}`;
                     trackPlacingWrapper.appendChild(placingDisplay);
-
                     trackContainer.appendChild(trackPlacingWrapper);
-
                     // 右箭头
                     const rightArrow = document.createElement('div');
                     rightArrow.classList.add('arrow-button');
                     rightArrow.innerHTML = '&#8594;';
                     rightArrow.onclick = () => moveHorseManual(i + 1, 1);
                     trackContainer.appendChild(rightArrow);
-
                     raceTrack.appendChild(trackContainer);
                 }
                 initializeCheckboxes();
                 updateRaceTrack();
             }
-
             function initializeCheckboxes() {
                 const checkboxContainer = document.getElementById('checkboxContainer');
                 checkboxContainer.innerHTML = '';
@@ -194,7 +162,6 @@
                     checkboxContainer.appendChild(checkboxRow);
                 }
             }
-
             function moveHorse(steps) {
                 const selectedHorse = parseInt(document.getElementById('horseSelect').value);
                 if (!finishedHorses.includes(selectedHorse)) {
@@ -209,7 +176,6 @@
                 updateRaceTrack();
                 checkForWinners();
             }
-
             function moveHorseManual(horse, steps) {
                 if (!finishedHorses.includes(horse)) {
                     if (steps > 0 && horsePositions[horse - 1] + steps >= trackLength - 1) {
@@ -221,7 +187,6 @@
                 }
                 updateRaceTrack();
             }
-
             function checkAndMoveMarkedHorses(selectedHorse) {
                 for (let i = 0; i < horseCount; i++) {
                     const checkbox = document.getElementById(`checkbox-${selectedHorse}-${i + 1}`);
@@ -235,7 +200,6 @@
                     }
                 }
             }
-
             function updateRaceTrack() {
                 for (let i = 0; i < horseCount; i++) {
                     const track = document.getElementById(`track-${i + 1}`);
@@ -260,13 +224,11 @@
                     }
                 }
             }
-
             function checkForWinners() {
                 if (finishedHorses.length >= 3) {
                     alert(`The winning horses are: ${finishedHorses.slice(0, 3).join(', ')}`);
                 }
             }
-
             // 重置函数，添加确认对话框
             function resetGame() {
                 if (confirm("Are you sure you want to reset the game?")) {
