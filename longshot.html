@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Long Shot: The Dice Game Monitoring</title>
+    <!-- 视口设置，确保移动设备显示效果良好 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 引入全局的字体和样式 -->
+    <link rel="stylesheet" href="golem_styles.css">
+    <!-- 引入新的 CSS 文件 -->
+    <link rel="stylesheet" href="longshot_styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Long Shot: The Dice Game Monitoring</h1>
+        </header>
+        <main>
+            <div class="content">
+                <!-- 左半边：赛道进度 -->
+                <div class="left">
+                    <div id="raceTrack"></div>
+                    <!-- 将重置按钮放在左下角 -->
+                    <div class="reset-container">
+                        <button id="resetButton">Reset</button>
+                    </div>
+                </div>
+                <!-- 右半边：复选框和控件 -->
+                <div class="right">
+                    <!-- 右半边上半部分：复选框 -->
+                    <div class="checkboxes" id="checkboxContainer"></div>
+                    <!-- 右半边下半部分：控件 -->
+                    <div class="controls">
+                        <label for="horseSelect">Please choose the current activating horse</label>
+                        <select id="horseSelect">
+                            <option value="1">Horse 1</option>
+                            <option value="2">Horse 2</option>
+                            <option value="3">Horse 3</option>
+                            <option value="4">Horse 4</option>
+                            <option value="5">Horse 5</option>
+                            <option value="6">Horse 6</option>
+                            <option value="7">Horse 7</option>
+                            <option value="8">Horse 8</option>
+                        </select>
+                        <div>
+                            <button onclick="moveHorse(1)">Moving Number: 1</button>
+                            <button onclick="moveHorse(2)">Moving Number: 2</button>
+                            <button onclick="moveHorse(3)">Moving Number: 3</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <footer>
+            <p>&copy; 2024 Boardgame Tools</p>
+            <a href="index.html" class="back-button">Back to Home</a>
+        </footer>
+
+        <!-- 脚本部分 -->
+        <script>
+            const horseCount = 8;
+            const trackLength = 17; // 更新后的赛道长度
+            let horsePositions = Array(horseCount).fill(0);
+            let finishedHorses = [];
+            let horsePlacings = {}; // 新增的对象，用于记录马匹名次
+
+            // 确保在 DOM 加载完成后添加事件监听器
+            document.addEventListener('DOMContentLoaded', function() {
+                document.getElementById('resetButton').addEventListener('click', resetGame);
+                initializeRaceTrack();
+            });
+
+            function initializeRaceTrack() {
+                const raceTrack = document.getElementById('raceTrack');
+                raceTrack.innerHTML = '';
+                for (let i = 0; i < horseCount; i++) {
+                    const trackContainer = document.createElement('div');
+                    trackContainer.classList.add('track-container');
+
+                    // 左箭头
+                    const leftArrow = document.createElement('div');
+                    leftArrow.classList.add('arrow-button');
+                    leftArrow.innerHTML = '&#8592;';
+                    leftArrow.onclick = () => moveHorseManual(i + 1, -1);
+                    trackContainer.appendChild(leftArrow);
+
+                    // 赛道和名次容器
+                    const trackPlacingWrapper = document.createElement('div');
+                    trackPlacingWrapper.classList.add('track-placing-wrapper');
+
+                    // 赛道
+                    const track = document.createElement('div');
+                    track.classList.add('track');
+                    track.id = `track-${i + 1}`;
+                    for (let j = 0; j < trackLength; j++) {
+                        const cell = document.createElement('div');
+                        cell.classList.add('cell');
+                        if (j === 0) {
+                            cell.classList.add('post-bet-line'); // 起点为浅棕色
+                        }
+                        if (j === 1 || (j >= 2 && j <= 11)) {
+                            cell.classList.add('pre-bet-line'); // 下注线之前的深棕色区域
+                        }
+                        if (j > 11) {
+                            cell.classList.add('post-bet-line'); // 下注线之后的浅棕色区域
+                        }
+                        if (j === 11) {
+                            cell.classList.add('bet-line');
+                        }
+                        if (j === 15) {
+                            cell.classList.add('finish-line');
+                        }
+                        track.appendChild(cell);
+                    }
+                    trackPlacingWrapper.appendChild(track);
+
+                    // 名次显示
+                    const placingDisplay = document.createElement('div');
+                    placingDisplay.classList.add('placing-display');
+                    placingDisplay.id = `placing-${i + 1}`;
+                    trackPlacingWrapper.appendChild(placingDisplay);
+
+                    trackContainer.appendChild(trackPlacingWrapper);
+
+                    // 右箭头
+                    const rightArrow = document.createElement('div');
+                    rightArrow.classList.add('arrow-button');
+                    rightArrow.innerHTML = '&#8594;';
+                    rightArrow.onclick = () => moveHorseManual(i + 1, 1);
+                    trackContainer.appendChild(rightArrow);
+
+                    raceTrack.appendChild(trackContainer);
+                }
+                initializeCheckboxes();
+                updateRaceTrack();
+            }
+
+            function initializeCheckboxes() {
+                const checkboxContainer = document.getElementById('checkboxContainer');
+                checkboxContainer.innerHTML = '';
+                const preChecked = {
+                    1: [6],
+                    2: [5],
+                    3: [1],
+                    4: [2],
+                    5: [1, 4],
+                    6: [2, 3],
+                    7: [1, 3],
+                    8: [2, 4]
+                };
+                for (let i = 0; i < horseCount; i++) {
+                    const checkboxRow = document.createElement('div');
+                    checkboxRow.classList.add('checkbox-row');
+                    checkboxRow.innerHTML = `<span class="horse-number horse-color-${i + 1}">Horse ${i + 1}:</span> `;
+                    for (let j = 0; j < horseCount; j++) {
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.id = `checkbox-${i + 1}-${j + 1}`;
+                        if (preChecked[i + 1] && preChecked[i + 1].includes(j + 1)) {
+                            checkbox.checked = true;
+                            checkbox.disabled = true; // 预设的复选框不可修改
+                        } else {
+                            checkbox.checked = false; // 确保其他复选框在重置时未选中
+                            checkbox.disabled = false; // 允许用户修改
+                        }
+                        checkboxRow.appendChild(checkbox);
+                        const label = document.createElement('label');
+                        label.htmlFor = `checkbox-${i + 1}-${j + 1}`;
+                        label.innerText = `${j + 1}`;
+                        label.style.marginRight = "15px";
+                        checkboxRow.appendChild(label);
+                    }
+                    checkboxContainer.appendChild(checkboxRow);
+                }
+            }
+
+            function moveHorse(steps) {
+                const selectedHorse = parseInt(document.getElementById('horseSelect').value);
+                if (!finishedHorses.includes(selectedHorse)) {
+                    horsePositions[selectedHorse - 1] += steps;
+                    horsePositions[selectedHorse - 1] = Math.min(horsePositions[selectedHorse - 1], trackLength - 1);
+                    if (horsePositions[selectedHorse - 1] === trackLength - 1 && !finishedHorses.includes(selectedHorse)) {
+                        finishedHorses.push(selectedHorse);
+                        horsePlacings[selectedHorse] = finishedHorses.length; // 记录名次
+                    }
+                }
+                checkAndMoveMarkedHorses(selectedHorse);
+                updateRaceTrack();
+                checkForWinners();
+            }
+
+            function moveHorseManual(horse, steps) {
+                if (!finishedHorses.includes(horse)) {
+                    if (steps > 0 && horsePositions[horse - 1] + steps >= trackLength - 1) {
+                        horsePositions[horse - 1] = trackLength - 2; // 防止通过箭头将马移动到终点或超出终点
+                    } else {
+                        horsePositions[horse - 1] += steps;
+                        horsePositions[horse - 1] = Math.max(0, Math.min(horsePositions[horse - 1], trackLength - 2)); // 防止通过箭头达到终点
+                    }
+                }
+                updateRaceTrack();
+            }
+
+            function checkAndMoveMarkedHorses(selectedHorse) {
+                for (let i = 0; i < horseCount; i++) {
+                    const checkbox = document.getElementById(`checkbox-${selectedHorse}-${i + 1}`);
+                    if (checkbox.checked && !finishedHorses.includes(i + 1)) {
+                        horsePositions[i] += 1;
+                        horsePositions[i] = Math.min(horsePositions[i], trackLength - 1);
+                        if (horsePositions[i] === trackLength - 1 && !finishedHorses.includes(i + 1)) {
+                            finishedHorses.push(i + 1);
+                            horsePlacings[i + 1] = finishedHorses.length; // 记录名次
+                        }
+                    }
+                }
+            }
+
+            function updateRaceTrack() {
+                for (let i = 0; i < horseCount; i++) {
+                    const track = document.getElementById(`track-${i + 1}`);
+                    const cells = track.getElementsByClassName('cell');
+                    for (let j = 0; j < trackLength; j++) {
+                        cells[j].innerHTML = '';
+                        cells[j].style.backgroundColor = ''; // 重置背景颜色
+                    }
+                    if (horsePositions[i] < trackLength) {
+                        const marker = document.createElement('div');
+                        marker.classList.add('horse-marker');
+                        marker.classList.add(`horse-color-${i + 1}`);
+                        marker.innerText = i + 1;
+                        cells[horsePositions[i]].appendChild(marker);
+                    }
+                    // 更新名次显示
+                    const placingDisplay = document.getElementById(`placing-${i + 1}`);
+                    if (horsePlacings[i + 1]) {
+                        placingDisplay.innerText = `第 ${horsePlacings[i + 1]} 名`;
+                    } else {
+                        placingDisplay.innerText = '';
+                    }
+                }
+            }
+
+            function checkForWinners() {
+                if (finishedHorses.length >= 3) {
+                    alert(`The winning horses are: ${finishedHorses.slice(0, 3).join(', ')}`);
+                }
+            }
+
+            // 重置函数，添加确认对话框
+            function resetGame() {
+                if (confirm("Are you sure you want to reset the game?")) {
+                    // 重置马匹位置
+                    horsePositions = Array(horseCount).fill(0);
+                    // 清空已完成的马匹列表
+                    finishedHorses = [];
+                    // 清空马匹名次
+                    horsePlacings = {};
+                    // 重置复选框
+                    initializeCheckboxes();
+                    // 更新赛道显示
+                    updateRaceTrack();
+                }
+            }
+        </script>
+    </div>
+</body>
+</html>
