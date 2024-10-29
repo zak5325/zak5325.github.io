@@ -2,7 +2,7 @@
 
 /* 通用样式 */
 body {
-    font-family: Arial, sans-serif; /* 与 index.html 保持一致 */
+    font-family: Arial, sans-serif;
     background-color: #f0f0f0;
     color: #333;
     margin: 0;
@@ -17,13 +17,14 @@ h1 {
     padding: 20px 0;
     margin: 0;
     background-color: #fff;
+    font-size: 2em; /* 调整字体大小 */
 }
 
 /* 内容布局 */
 .content {
     display: flex;
     flex-wrap: wrap;
-    height: calc(100vh - 160px); /* 减去 header 和 footer 的高度 */
+    height: calc(100vh - 160px);
 }
 
 /* 左半边样式 */
@@ -32,7 +33,7 @@ h1 {
     overflow: auto;
     padding: 20px;
     box-sizing: border-box;
-    position: relative; /* 添加 position: relative; */
+    position: relative;
 }
 
 /* 重置按钮容器样式 */
@@ -46,7 +47,7 @@ h1 {
 #resetButton {
     font-size: 1.2em;
     padding: 10px 20px;
-    background-color: #dc3545; /* 红色背景 */
+    background-color: #dc3545;
     color: #fff;
     border: none;
     border-radius: 5px;
@@ -67,14 +68,14 @@ h1 {
     box-sizing: border-box;
 }
 
-/* 复选框容器在右半边上方 */
+/* 复选框容器 */
 .right .checkboxes {
     flex: 1;
     overflow: auto;
     margin-bottom: 20px;
 }
 
-/* 控制区域在右半边下方 */
+/* 控制区域 */
 .right .controls {
     margin-bottom: 20px;
 }
@@ -127,11 +128,11 @@ h1 {
 }
 
 .pre-bet-line {
-    background-color: #8B4513; /* Dark brown */
+    background-color: #8B4513;
 }
 
 .post-bet-line {
-    background-color: #DEB887; /* Light brown */
+    background-color: #DEB887;
 }
 
 /* 控制区域样式 */
@@ -250,7 +251,7 @@ footer .back-button:hover {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* 响应式设计 */
+/* 调整媒体查询的断点 */
 @media (max-width: 800px) {
     .content {
         flex-direction: column;
@@ -263,5 +264,54 @@ footer .back-button:hover {
     .reset-container {
         bottom: 10px;
         left: 10px;
+    }
+}
+
+/* 新增针对小屏幕的媒体查询 */
+@media (max-width: 600px) {
+    /* 调整字体大小 */
+    h1 {
+        font-size: 1.5em;
+    }
+
+    .controls label,
+    .horse-number {
+        font-size: 1em;
+    }
+
+    .placing-display {
+        font-size: 0.9em;
+    }
+
+    select, button {
+        font-size: 0.9em;
+        padding: 8px;
+    }
+
+    .cell {
+        width: 30px;
+        height: 30px;
+    }
+
+    .horse-marker {
+        width: 25px;
+        height: 25px;
+        font-size: 14px;
+    }
+
+    .arrow-button {
+        font-size: 24px;
+    }
+
+    /* 调整重置按钮 */
+    #resetButton {
+        font-size: 1em;
+        padding: 8px 16px;
+    }
+
+    /* 调整返回主页按钮 */
+    footer .back-button {
+        padding: 10px 20px;
+        font-size: 16px;
     }
 }
