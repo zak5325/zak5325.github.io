@@ -7,6 +7,28 @@ body {
     color: #333;
     margin: 0;
     padding: 0;
+    overflow-x: hidden; /* 防止横向滚动条 */
+}
+
+/* 旋转设备提示的样式 */
+#orientation-warning {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+
+.orientation-message {
+    color: #fff;
+    font-size: 1.5em;
+    text-align: center;
+    padding: 20px;
 }
 
 /* 标题样式 */
@@ -17,20 +39,21 @@ h1 {
     padding: 20px 0;
     margin: 0;
     background-color: #fff;
-    font-size: 2em; /* 调整字体大小 */
+    font-size: 2em;
 }
 
 /* 内容布局 */
 .content {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     height: calc(100vh - 160px);
+    overflow: hidden; /* 防止内容溢出 */
 }
 
 /* 左半边样式 */
 .left {
     flex: 1;
-    overflow: auto;
+    overflow-x: auto;
     padding: 20px;
     box-sizing: border-box;
     position: relative;
@@ -61,11 +84,12 @@ h1 {
 
 /* 右半边样式 */
 .right {
-    flex: 1;
+    flex: 0 0 400px; /* 固定宽度，防止过窄 */
     display: flex;
     flex-direction: column;
     padding: 20px;
     box-sizing: border-box;
+    overflow-y: auto;
 }
 
 /* 复选框容器 */
@@ -85,7 +109,8 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 10px auto;
+    margin: 10px 0;
+    min-width: 600px; /* 确保赛道有足够的宽度 */
 }
 
 /* 赛道和名次容器 */
@@ -117,6 +142,7 @@ h1 {
     vertical-align: middle;
     position: relative;
     background-color: #fff;
+    flex-shrink: 0; /* 防止赛道格子缩小 */
 }
 
 .bet-line {
@@ -255,63 +281,23 @@ footer .back-button:hover {
 @media (max-width: 800px) {
     .content {
         flex-direction: column;
+        overflow: auto;
     }
     .left, .right {
         flex: 1;
         width: 100%;
+    }
+    .right {
+        flex: none;
+        max-height: none;
     }
     /* 调整重置按钮在移动设备上的位置 */
     .reset-container {
         bottom: 10px;
         left: 10px;
     }
-}
-
-/* 新增针对小屏幕的媒体查询 */
-@media (max-width: 600px) {
-    /* 调整字体大小 */
-    h1 {
-        font-size: 1.5em;
-    }
-
-    .controls label,
-    .horse-number {
-        font-size: 1em;
-    }
-
-    .placing-display {
-        font-size: 0.9em;
-    }
-
-    select, button {
-        font-size: 0.9em;
-        padding: 8px;
-    }
-
-    .cell {
-        width: 30px;
-        height: 30px;
-    }
-
-    .horse-marker {
-        width: 25px;
-        height: 25px;
-        font-size: 14px;
-    }
-
-    .arrow-button {
-        font-size: 24px;
-    }
-
-    /* 调整重置按钮 */
-    #resetButton {
-        font-size: 1em;
-        padding: 8px 16px;
-    }
-
-    /* 调整返回主页按钮 */
-    footer .back-button {
-        padding: 10px 20px;
-        font-size: 16px;
+    /* 隐藏旋转提示 */
+    #orientation-warning {
+        display: none !important;
     }
 }
