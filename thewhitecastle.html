@@ -24,6 +24,9 @@
             color: #2e6da4;
             margin-top: 20px;
         }
+        .options {
+            margin: 20px 0;
+        }
         .room-row {
             display: flex;
             justify-content: center;
@@ -70,44 +73,98 @@
 <body>
 
 <h1>The White Castle Die Tile Setting Automation</h1>
-<div id="game-board"></div>
+
+<!-- 添加选项和按钮 -->
+<div class="options">
+    <label><input type="checkbox" id="promo1"> Include Promo1(Will replace 'Choose one from Pearl/Iron/Food')</label>
+    <br></br>
+    <label><input type="checkbox" id="promo4"> Include Promo4(For Matcha expansion)</label>
+    <br></br>
+    <button id="reset-button">Reset</button>
+</div>
+
+<div id="game-board">
+    <!-- 初始页面，房间和水井内容为空 -->
+</div>
+
 <footer>
     <p>&copy; 2024 Boardgame Tools</p>
     <a href="index.html" class="back-button">Back to Home</a>
 </footer>
+
 <script>
     (function() {
-        // 定义所有18个配件，每个配件有颜色和标签
-        // 加入promo1要拿掉資源三選一的版塊
-        const components = [
+        // 定义基础的游戏配件
+        const mainComponents = [
             {color: 'Red', label: 'Pearl'},
             {color: 'Red', label: 'Iron'},
             {color: 'Red', label: 'Food'},
             {color: 'Red', label: 'Coin'},
-            //{color: 'Red', label: 'Choose one from Pearl/Iron/Food'},
-            {color: 'Red', label: 'Daimyo'}, // promo1
-            {color: 'Red', label: 'Chasen'}, // promo4
+            {color: 'Red', label: 'Choose one from Pearl/Iron/Food'},
             {color: 'White', label: 'Pearl'},
             {color: 'White', label: 'Iron'},
             {color: 'White', label: 'Food'},
             {color: 'White', label: 'Coin'},
-            //{color: 'White', label: 'Choose one from Pearl/Iron/Food'},
-            {color: 'White', label: 'Clan Point'}, // promo1
-            {color: 'White', label: 'Chasen'}, // promo4
+            {color: 'White', label: 'Choose one from Pearl/Iron/Food'},
             {color: 'Black', label: 'Pearl'},
             {color: 'Black', label: 'Iron'},
             {color: 'Black', label: 'Food'},
             {color: 'Black', label: 'Coin'},
-            //{color: 'Black', label: 'Choose one from Pearl/Iron/Food'},
-            {color: 'Black', label: 'Influence'}, // promo1
-            {color: 'Black', label: 'Chasen'}, // promo4
+            {color: 'Black', label: 'Choose one from Pearl/Iron/Food'}
         ];
 
+        // 定义 Promo1 和 Promo4 的配件
+        const promo1Components = [
+            {color: 'Red', label: 'Daimyo'},
+            {color: 'White', label: 'Clan Point'},
+            {color: 'Black', label: 'Influence'}
+        ];
+
+        const promo4Components = [
+            {color: 'Red', label: 'Chasen'},
+            {color: 'White', label: 'Chasen'},
+            {color: 'Black', label: 'Chasen'}
+        ];
+
+        // 定义颜色映射
+        const colorMap = {
+            'Red': '#ffcccc',
+            'White': '#ffffff',
+            'Black': '#cccccc'
+        };
+
+        // 获取按钮和复选框元素
+        const resetButton = document.getElementById('reset-button');
+        const promo1Checkbox = document.getElementById('promo1');
+        const promo4Checkbox = document.getElementById('promo4');
+        const outputDiv = document.getElementById('game-board');
+
+        // 绑定按钮点击事件
+        resetButton.addEventListener('click', setupGame);
+
         function setupGame() {
-            let outputDiv = document.getElementById('game-board');
             outputDiv.innerHTML = '';
 
-            // 第一步：将所有配件洗混
+            // 获取用户选择的选项
+            const includePromo1 = promo1Checkbox.checked;
+            const includePromo4 = promo4Checkbox.checked;
+
+            // 根据选项构建组件列表
+            let components = mainComponents.slice(); // 复制主组件列表
+
+            if (includePromo1) {
+                // 移除 'Choose one from Pearl/Iron/Food' 配件
+                components = components.filter(comp => comp.label !== 'Choose one from Pearl/Iron/Food');
+                // 添加 Promo1 的配件
+                components = components.concat(promo1Components);
+            }
+
+            if (includePromo4) {
+                // 添加 Promo4 的配件
+                components = components.concat(promo4Components);
+            }
+
+            // 洗混配件
             let shuffledComponents = components.slice();
             shuffledComponents.sort(() => Math.random() - 0.5);
 
@@ -212,13 +269,6 @@
             gridPlacement[11] = remainingComponents.pop();
             gridPlacement[12] = remainingComponents.pop();
 
-            // 定义颜色映射
-            const colorMap = {
-                'Red': '#ffcccc',
-                'White': '#ffffff',
-                'Black': '#cccccc'
-            };
-
             // 创建游戏板块
 
             // 上方房间
@@ -290,8 +340,9 @@
             outputDiv.appendChild(wellDiv);
         }
 
-        // 执行游戏设置函数
-        setupGame();
+        // 初始页面不执行 setupGame，等待用户点击 "Reset" 按钮
+        // 如果你希望页面加载时自动执行，可以取消注释以下行
+        // setupGame();
     })();
 </script>
 
