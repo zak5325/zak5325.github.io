@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>The White Castle Die Tile Setting Automation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center; /* 将内容居中 */
+        }
+        h1 {
+            color: #2e6da4;
+        }
+        .room-row {
+            display: flex;
+            justify-content: center; /* 水平居中 */
+            margin-bottom: 20px;
+        }
+        .room {
+            border: 2px solid #2e6da4;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 0 10px;
+            width: 150px;
+        }
+        .room h3 {
+            margin-top: 0;
+        }
+        .token {
+            margin: 5px 0;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            /* 根据配件颜色设置背景色 */
+            background-color: lightgray;
+            color: black;
+        }
+        .well {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        .well .token {
+            margin: 0 10px;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+
+<h1>The White Castle Die Tile Setting Automation</h1>
+<div id="game-board"></div>
+
+<script>
+    (function() {
+        // 定义所有21个配件，每个配件有颜色和标签
+        const components = [
+            {color: 'Red', label: 'Pearl'},
+            {color: 'Red', label: 'Iron'},
+            {color: 'Red', label: 'Food'},
+            {color: 'Red', label: 'Coin'},
+            {color: 'Red', label: 'Choose one from Pearl/Iron/Food'},
+            {color: 'Red', label: 'Daimyo'}, //promo1
+            {color: 'Red', label: 'Chasen'}, //promo4
+            {color: 'White', label: 'Pearl'},
+            {color: 'White', label: 'Iron'},
+            {color: 'White', label: 'Food'},
+            {color: 'White', label: 'Coin'},
+            {color: 'White', label: 'Choose one from Pearl/Iron/Food'},
+            {color: 'White', label: 'Clan Point'}, //promo1
+            {color: 'White', label: 'Chasen'}, //promo4
+            {color: 'Black', label: 'Pearl'},
+            {color: 'Black', label: 'Iron'},
+            {color: 'Black', label: 'Food'},
+            {color: 'Black', label: 'Coin'},
+            {color: 'Black', label: 'Choose one from Pearl/Iron/Food'},
+            {color: 'Black', label: 'Influence'}, //promo1
+            {color: 'Black', label: 'Chasen'}, //promo4
+        ];
+
+        function setupGame() {
+            let outputDiv = document.getElementById('game-board');
+            outputDiv.innerHTML = '';
+
+            // 第一步：将所有配件洗混
+            let shuffledComponents = components.slice();
+            shuffledComponents.sort(() => Math.random() - 0.5);
+
+            // 第二步：为三个'*'位置各选择一个不同颜色的配件
+            const colors = ['Red', 'White', 'Black'];
+            const starTokens = [];
+            for (let color of colors) {
+                for (let i = 0; i < shuffledComponents.length; i++) {
+                    let comp = shuffledComponents[i];
+                    if (comp.color === color) {
+                        starTokens.push(comp);
+                        shuffledComponents.splice(i, 1);
+                        break;
+                    }
+                }
+            }
+
+            // 随机分配星标配件到下方三个房间
+            const bottomRooms = ['Bottom Left', 'Bottom Middle', 'Bottom Right'];
+            bottomRooms.sort(() => Math.random() - 0.5); // 随机排序房间
+            // 将选定的配件放置在下方房间的'*'位置
+            const rooms = {
+                'Top Left': {grids: [1, 6], tokens: []},
+                'Top Right': {grids: [2, 7], tokens: []},
+                'Bottom Left': {grids: ['*1', 3, 8], tokens: []},
+                'Bottom Middle': {grids: ['*2', 4, 9], tokens: []},
+                'Bottom Right': {grids: ['*3', 5, 10], tokens: []},
+            };
+
+            for (let i = 0; i < bottomRooms.length; i++) {
+                const roomName = bottomRooms[i];
+                const token = starTokens[i];
+                rooms[roomName]['tokens'].push(token);
+            }
+
+            // 记录每个格子的配件放置情况
+            const gridPlacement = {};
+
+            // 第三步：按照编号顺序（1到10）放置配件
+            for (let grid = 1; grid <= 10; grid++) {
+                // 找到格子所属的房间
+                let roomName = null;
+                for (let [name, room] of Object.entries(rooms)) {
+                    if (room.grids.includes(grid)) {
+                        roomName = name;
+                        break;
+                    }
+                }
+                if (!roomName) {
+                    outputDiv.innerHTML = `<p class="error">错误：格子${grid}不属于任何房间</p>`;
+                    return;
+                }
+
+                let room = rooms[roomName];
+                let roomColors = room.tokens.map(token => token.color);
+
+                // 根据房间规则，筛选可用的配件
+                let validComponents = [];
+                for (let comp of shuffledComponents) {
+                    let compColor = comp.color;
+                    let tempColors = roomColors.concat(compColor);
+                    if (['Top Left', 'Top Right'].includes(roomName)) {
+                        // 上方房间，颜色必须不同
+                        if (new Set(tempColors).size === tempColors.length) {
+                            validComponents.push(comp);
+                        }
+                    } else {
+                        // 下方房间，颜色不能全部相同
+                        if (new Set(tempColors).size > 1 || tempColors.length < 3) {
+                            validComponents.push(comp);
+                        }
+                    }
+                }
+
+                if (validComponents.length === 0) {
+                    outputDiv.innerHTML = `<p class="error">无法在格子${grid}放置配件，无法满足颜色规则。</p>`;
+                    return;
+                }
+
+                // 随机选择一个符合条件的配件
+                let selectedComp = validComponents[Math.floor(Math.random() * validComponents.length)];
+                // 放置配件
+                gridPlacement[grid] = selectedComp;
+                // 从列表中移除已放置的配件
+                let index = shuffledComponents.indexOf(selectedComp);
+                if (index > -1) {
+                    shuffledComponents.splice(index, 1);
+                }
+                // 更新房间的颜色记录和配件列表
+                room.tokens.push(selectedComp);
+            }
+
+            // 第四步：将剩余的两个配件翻面，放置在水井旁的格子11和12
+            let remainingComponents = shuffledComponents;
+            if (remainingComponents.length < 2) {
+                outputDiv.innerHTML = `<p class="error">剩余的配件不足以放置到水井旁。</p>`;
+                return;
+            }
+
+            gridPlacement[11] = remainingComponents.pop();
+            gridPlacement[12] = remainingComponents.pop();
+
+            // 定义颜色映射
+            const colorMap = {
+                'Red': '#ffcccc',
+                'White': '#ffffff',
+                'Black': '#cccccc'
+            };
+
+            // 创建游戏板块
+
+            // 上方房间
+            let topRoomsDiv = document.createElement('div');
+            topRoomsDiv.className = 'room-row';
+            for (let roomName of ['Top Left', 'Top Right']) {
+                let room = rooms[roomName];
+                let roomDiv = document.createElement('div');
+                roomDiv.className = 'room';
+                let roomTitle = document.createElement('h3');
+                roomTitle.textContent = roomName;
+                roomDiv.appendChild(roomTitle);
+
+                for (let i = 0; i < room.grids.length; i++) {
+                    let grid = room.grids[i];
+                    let token = room.tokens[i];
+                    let tokenDiv = document.createElement('div');
+                    tokenDiv.className = 'token';
+                    tokenDiv.textContent = `${token.color}`;
+                    // 设置背景色
+                    tokenDiv.style.backgroundColor = colorMap[token.color];
+                    // 如果背景色是白色，文字颜色设置为黑色
+                    if (token.color === 'White') {
+                        tokenDiv.style.color = 'black';
+                    } else {
+                        tokenDiv.style.color = 'black';
+                    }
+                    roomDiv.appendChild(tokenDiv);
+                }
+
+                topRoomsDiv.appendChild(roomDiv);
+            }
+            outputDiv.appendChild(topRoomsDiv);
+
+            // 下方房间
+            let bottomRoomsDiv = document.createElement('div');
+            bottomRoomsDiv.className = 'room-row';
+            for (let roomName of ['Bottom Left', 'Bottom Middle', 'Bottom Right']) {
+                let room = rooms[roomName];
+                let roomDiv = document.createElement('div');
+                roomDiv.className = 'room';
+                let roomTitle = document.createElement('h3');
+                roomTitle.textContent = roomName;
+                roomDiv.appendChild(roomTitle);
+
+                for (let i = 0; i < room.grids.length; i++) {
+                    let grid = room.grids[i];
+                    let token = room.tokens[i];
+                    let tokenDiv = document.createElement('div');
+                    tokenDiv.className = 'token';
+                    tokenDiv.textContent = `${token.color}`;
+                    // 设置背景色
+                    tokenDiv.style.backgroundColor = colorMap[token.color];
+                    if (token.color === 'White') {
+                        tokenDiv.style.color = 'black';
+                    } else {
+                        tokenDiv.style.color = 'black';
+                    }
+                    roomDiv.appendChild(tokenDiv);
+                }
+
+                bottomRoomsDiv.appendChild(roomDiv);
+            }
+            outputDiv.appendChild(bottomRoomsDiv);
+
+            // 水井旁位置
+            let wellDiv = document.createElement('div');
+            wellDiv.className = 'well';
+            for (let grid of [11, 12]) {
+                let comp = gridPlacement[grid];
+                if (comp) {
+                    let tokenDiv = document.createElement('div');
+                    tokenDiv.className = 'token';
+                    tokenDiv.textContent = `Face Down (${comp.color}-${comp.label})`;
+                    wellDiv.appendChild(tokenDiv);
+                }
+            }
+            outputDiv.appendChild(wellDiv);
+        }
+
+        // 执行游戏设置函数
+        setupGame();
+    })();
+</script>
+
+</body>
+</html>
