@@ -4,17 +4,29 @@
     <meta charset="UTF-8">
     <title>The White Castle Die Tile Setting Automation</title>
     <style>
+        /* 设置 html 和 body 的高度，移除默认边距 */
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+        /* 使用 Flex 布局，让内容区域撑开，footer 在页面底部 */
         body {
+            display: flex;
+            flex-direction: column;
             font-family: Arial, sans-serif;
-            margin: 20px;
-            text-align: center; /* 将内容居中 */
+            text-align: center;
+        }
+        /* 内容区域，占据剩余空间 */
+        #game-board {
+            flex: 1;
         }
         h1 {
             color: #2e6da4;
+            margin-top: 20px;
         }
         .room-row {
             display: flex;
-            justify-content: center; /* 水平居中 */
+            justify-content: center;
             margin-bottom: 20px;
         }
         .room {
@@ -45,6 +57,14 @@
             margin: 0 10px;
             background-color: #f9f9f9;
         }
+        /* footer 样式 */
+        footer {
+            background-color: #f1f1f1;
+            padding: 10px 0;
+        }
+        footer p, footer a {
+            margin: 5px;
+        }
     </style>
 </head>
 <body>
@@ -64,22 +84,22 @@
             {color: 'Red', label: 'Food'},
             {color: 'Red', label: 'Coin'},
             {color: 'Red', label: 'Choose one from Pearl/Iron/Food'},
-            {color: 'Red', label: 'Daimyo'}, //promo1
-            {color: 'Red', label: 'Chasen'}, //promo4
+            {color: 'Red', label: 'Daimyo'}, // promo1
+            {color: 'Red', label: 'Chasen'}, // promo4
             {color: 'White', label: 'Pearl'},
             {color: 'White', label: 'Iron'},
             {color: 'White', label: 'Food'},
             {color: 'White', label: 'Coin'},
             {color: 'White', label: 'Choose one from Pearl/Iron/Food'},
-            {color: 'White', label: 'Clan Point'}, //promo1
-            {color: 'White', label: 'Chasen'}, //promo4
+            {color: 'White', label: 'Clan Point'}, // promo1
+            {color: 'White', label: 'Chasen'}, // promo4
             {color: 'Black', label: 'Pearl'},
             {color: 'Black', label: 'Iron'},
             {color: 'Black', label: 'Food'},
             {color: 'Black', label: 'Coin'},
             {color: 'Black', label: 'Choose one from Pearl/Iron/Food'},
-            {color: 'Black', label: 'Influence'}, //promo1
-            {color: 'Black', label: 'Chasen'}, //promo4
+            {color: 'Black', label: 'Influence'}, // promo1
+            {color: 'Black', label: 'Chasen'}, // promo4
         ];
 
         function setupGame() {
@@ -107,7 +127,8 @@
             // 随机分配星标配件到下方三个房间
             const bottomRooms = ['Bottom Left', 'Bottom Middle', 'Bottom Right'];
             bottomRooms.sort(() => Math.random() - 0.5); // 随机排序房间
-            // 将选定的配件放置在下方房间的'*'位置
+
+            // 定义房间
             const rooms = {
                 'Top Left': {grids: [1, 6], tokens: []},
                 'Top Right': {grids: [2, 7], tokens: []},
@@ -116,6 +137,7 @@
                 'Bottom Right': {grids: ['*3', 5, 10], tokens: []},
             };
 
+            // 将选定的配件放置在下方房间的'*'位置
             for (let i = 0; i < bottomRooms.length; i++) {
                 const roomName = bottomRooms[i];
                 const token = starTokens[i];
@@ -217,12 +239,7 @@
                     tokenDiv.textContent = `${token.color}`;
                     // 设置背景色
                     tokenDiv.style.backgroundColor = colorMap[token.color];
-                    // 如果背景色是白色，文字颜色设置为黑色
-                    if (token.color === 'White') {
-                        tokenDiv.style.color = 'black';
-                    } else {
-                        tokenDiv.style.color = 'black';
-                    }
+                    tokenDiv.style.color = 'black';
                     roomDiv.appendChild(tokenDiv);
                 }
 
@@ -249,11 +266,7 @@
                     tokenDiv.textContent = `${token.color}`;
                     // 设置背景色
                     tokenDiv.style.backgroundColor = colorMap[token.color];
-                    if (token.color === 'White') {
-                        tokenDiv.style.color = 'black';
-                    } else {
-                        tokenDiv.style.color = 'black';
-                    }
+                    tokenDiv.style.color = 'black';
                     roomDiv.appendChild(tokenDiv);
                 }
 
