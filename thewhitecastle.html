@@ -6,7 +6,6 @@
     <!-- 添加 viewport 元标签 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <style>
-        /* 现有的样式 */
         html, body {
             height: 100%;
             margin: 0;
@@ -49,10 +48,10 @@
         }
         .main-content {
             display: flex;
-            justify-content: center;
+            justify-content: flex-start; /* 改为左对齐 */
             align-items: flex-start;
             margin-bottom: 20px;
-            min-width: 850px; /* 设置最小宽度，防止内容被压缩 */
+            width: max-content; /* 使容器宽度适应内容 */
         }
         .castle-area {
             margin-right: 20px;
