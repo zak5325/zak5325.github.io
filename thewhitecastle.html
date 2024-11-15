@@ -3,29 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <title>The White Castle Die Tile Setting Automation</title>
-    <!-- 添加 viewport 元标签 -->
+    <!-- Viewport 元标签 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <style>
+        /* 全局样式 */
         html, body {
-            height: 100%;
             margin: 0;
             padding: 0;
-            overflow-x: hidden; /* 防止整个页面出现水平滚动 */
+            font-family: Arial, sans-serif;
+            height: 100%;
         }
+
         body {
+            text-align: center;
             display: flex;
             flex-direction: column;
-            font-family: Arial, sans-serif;
-            text-align: center;
+            min-height: 100vh;
         }
-        #game-board {
-            flex: 1;
-        }
+
         h1 {
             color: #2e6da4;
             margin-top: 20px;
             margin-bottom: 10px;
         }
+
+        /* 选项区域 */
         .options {
             margin: 10px auto;
             display: flex;
@@ -33,56 +35,69 @@
             justify-content: center;
             align-items: center;
             max-width: 800px;
+            padding: 0 10px;
         }
+
         .checkboxes {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             align-items: center;
             margin-bottom: 10px;
-            flex: 1 1 auto;
         }
+
         .checkboxes label {
             display: flex;
             align-items: center;
             margin: 5px 10px;
+            white-space: nowrap; /* 防止内容换行 */
         }
+
         .checkboxes input[type="checkbox"] {
             margin-right: 5px;
         }
+
         #reset-button {
             padding: 8px 16px;
             font-size: 16px;
-            margin-left: 10px;
-            flex-shrink: 0;
         }
+
+        /* 主内容区域 */
+        #game-board {
+            margin: 0 auto;
+            max-width: 1000px;
+            padding: 0 10px;
+            flex: 1; /* 占据剩余空间 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
         .main-content {
             display: flex;
-            flex-wrap: wrap; /* 允许换行 */
+            flex-wrap: wrap;
             justify-content: center;
             align-items: flex-start;
             margin-bottom: 20px;
         }
+
+        /* Castle 区域 */
         .castle-area {
-            flex: 1 1 600px; /* 设置足够的宽度 */
-            margin: 10px;
-        }
-        .castle-area h2 {
-            margin-top: 0;
-        }
-        .training-yards {
             flex: 1 1 600px;
             margin: 10px;
         }
-        .training-yards h2 {
+
+        .castle-area h2 {
             margin-top: 0;
         }
+
         .room-row {
             display: flex;
             justify-content: center;
             margin-bottom: 20px;
-            flex-wrap: nowrap; /* 防止房间换行 */
+            flex-wrap: wrap; /* 允许换行 */
         }
+
         .room {
             border: 2px solid #2e6da4;
             border-radius: 8px;
@@ -92,9 +107,11 @@
             box-sizing: border-box;
             flex-shrink: 0;
         }
+
         .room h3 {
             margin-top: 0;
         }
+
         .token {
             margin: 5px 0;
             padding: 5px;
@@ -106,47 +123,62 @@
             overflow-wrap: break-word;
             font-size: 14px;
         }
+
         /* Water Well 区域样式 */
         .water-well {
             margin: 20px auto;
         }
+
         .well {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             margin-top: 10px;
         }
+
         .well .token {
             margin: 10px;
             background-color: #f9f9f9;
         }
+
         footer {
             background-color: #f1f1f1;
             padding: 10px 0;
         }
+
         footer p, footer a {
             margin: 5px;
+            color: #000;
+            text-decoration: none;
         }
+
         /* 修改 Training Yards 的样式 */
         .training-yards {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            flex: 1 1 600px;
+            margin: 10px;
         }
+
+        .training-yards h2 {
+            margin-top: 0;
+        }
+
         .training-columns {
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            flex-wrap: nowrap; /* 防止换行 */
+            flex-wrap: wrap; /* 允许换行 */
         }
+
         .training-column {
             display: flex;
             flex-direction: column;
             align-items: center;
             margin: 10px;
-            width: 260px; /* 固定宽度，防止缩小 */
+            width: 260px;
+            box-sizing: border-box;
             flex-shrink: 0;
         }
+
         .training-area {
             border: 2px solid #2e6da4;
             border-radius: 8px;
@@ -155,9 +187,11 @@
             width: 100%;
             box-sizing: border-box;
         }
+
         .training-area h3 {
             margin-top: 0;
         }
+
         .slot {
             margin: 5px 0;
             padding: 5px;
@@ -170,12 +204,15 @@
             white-space: normal;
             font-size: 14px;
         }
+
         .yellow {
             background-color: #ffffcc;
         }
+
         .blue {
             background-color: #ccf2ff;
         }
+
         /* 新增的样式 */
         .additional-areas {
             display: flex;
@@ -184,14 +221,17 @@
             align-items: flex-start;
             margin-top: 20px;
         }
+
         .pond-container, .tea-house-container {
             margin: 10px;
             flex: 1 1 300px;
             box-sizing: border-box;
         }
+
         .pond-container h2, .tea-house-container h2 {
             margin-bottom: 10px;
         }
+
         .pond .pond-content {
             display: flex;
             flex-wrap: wrap;
@@ -200,21 +240,25 @@
             padding: 10px;
             box-sizing: border-box;
         }
+
         .water-lily-tiles, .pond-ceremony {
             flex: 1 1 100px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
+
         .pond-ceremony {
             border-left: 1px solid #2e6da4;
             padding-left: 10px;
             margin-top: 10px;
         }
+
         .water-lily-tiles {
             padding-right: 10px;
             margin-top: 10px;
         }
+
         .pond .tile-slot, .tea-house .tile-slot {
             margin: 5px 0;
             padding: 5px;
@@ -228,58 +272,90 @@
             font-size: 14px;
             background-color: #f9f9f9;
         }
+
         .pond .tile-slot {
             background-color: #e0f7fa;
         }
+
         .tea-house {
             border: 2px solid #2e6da4;
             border-radius: 8px;
             padding: 10px;
             box-sizing: border-box;
         }
+
         .tea-house .tile-slot {
             background-color: #fff9c4;
             width: 90%;
         }
+
         /* 错误消息的样式 */
         .error {
             color: red;
             font-weight: bold;
             margin-top: 20px;
         }
+
         /* 媒体查询，针对小屏幕优化 */
         @media (max-width: 600px) {
             h1 {
                 font-size: 24px;
             }
+
             .options {
-                flex-wrap: wrap;
+                flex-direction: column;
+                align-items: center;
             }
+
             .checkboxes {
-                flex-wrap: nowrap;
-                flex: 1 1 auto;
+                flex-direction: column;
+                align-items: center;
             }
+
+            .checkboxes label {
+                margin: 5px 0;
+            }
+
             #reset-button {
                 margin-top: 10px;
             }
-            /* 保持 Castle 区域的布局 */
-            .room-row {
-                flex-wrap: nowrap;
-                overflow-x: auto; /* 允许水平滚动 */
-            }
+
+            /* 调整 Castle 区域的布局 */
             .castle-area, .training-yards {
                 flex: 1 1 100%;
             }
-            /* 保持 Training Yards 的布局 */
+
+            .room-row {
+                flex-wrap: wrap;
+            }
+
+            .room {
+                width: calc(50% - 40px); /* 减去左右 margin 的宽度 */
+                margin: 10px 20px;
+            }
+
+            /* 确保第二行有三个房间 */
+            .room-row.bottom .room {
+                width: calc(33.333% - 40px);
+            }
+
+            /* Training Yards 的布局调整 */
             .training-columns {
-                flex-wrap: nowrap;
-                overflow-x: auto; /* 允许水平滚动 */
+                flex-wrap: wrap;
             }
+
             .training-column {
-                flex: 0 0 auto;
+                width: calc(50% - 20px);
             }
+
+            /* 额外区域 */
             .additional-areas {
                 flex-direction: column;
+                align-items: center;
+            }
+
+            .pond-container, .tea-house-container {
+                flex: 1 1 100%;
             }
         }
     </style>
@@ -288,7 +364,7 @@
 
 <h1>The White Castle Die Tile Setting Automation</h1>
 
-<!-- 添加选项和按钮 -->
+<!-- 选项和按钮 -->
 <div class="options">
     <div class="checkboxes">
         <label><input type="checkbox" id="matcha">Include Matcha Expansion</label>
@@ -299,12 +375,12 @@
 </div>
 
 <div id="game-board">
-    <!-- 游戏设置将在这里生成 -->
+    <!-- 游戏内容将在这里生成 -->
 </div>
 
 <footer>
     <p>&copy; 2024 Boardgame Tools</p>
-    <a href="index.html" class="back-button">Back to Home</a>
+    <a href="index.html">Back to Home</a>
 </footer>
 
 <script>
