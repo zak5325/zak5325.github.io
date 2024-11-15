@@ -48,10 +48,10 @@
         }
         .main-content {
             display: flex;
-            justify-content: flex-start; /* 改为左对齐 */
+            justify-content: flex-start; /* 左对齐 */
             align-items: flex-start;
             margin-bottom: 20px;
-            width: max-content; /* 使容器宽度适应内容 */
+            width: max-content; /* 容器宽度适应内容 */
         }
         .castle-area {
             margin-right: 20px;
@@ -93,6 +93,11 @@
             word-wrap: break-word;
             overflow-wrap: break-word;
             font-size: 14px;
+        }
+        /* Water Well 区域样式 */
+        .water-well {
+            width: max-content; /* 宽度适应内容 */
+            margin: 20px auto; /* 上下居中 */
         }
         .well {
             display: flex;
@@ -154,11 +159,14 @@
         /* 新增的样式 */
         .additional-areas {
             display: flex;
-            justify-content: center;
+            justify-content: flex-start; /* 左对齐 */
+            align-items: flex-start;
             margin-top: 20px;
+            width: max-content; /* 宽度适应内容 */
         }
         .pond-container, .tea-house-container {
-            margin: 0 10px;
+            margin: 0 20px;
+            flex-shrink: 0; /* 防止收缩 */
         }
         .pond-container h2, .tea-house-container h2 {
             margin-bottom: 10px;
@@ -168,7 +176,7 @@
             border: 2px solid #2e6da4;
             border-radius: 8px;
             padding: 10px;
-            width: 100%;
+            width: 380px; /* 设置固定宽度 */
             box-sizing: border-box;
         }
         .water-lily-tiles, .pond-ceremony {
@@ -204,6 +212,8 @@
             border: 2px solid #2e6da4;
             border-radius: 8px;
             padding: 10px;
+            width: 240px; /* 设置固定宽度 */
+            box-sizing: border-box;
         }
         .tea-house .tile-slot {
             background-color: #fff9c4;
@@ -242,6 +252,8 @@
 
 <script>
     (function() {
+        // 您的 JavaScript 代码保持不变
+
         // 定义基础的游戏配件
         const mainComponents = [
             {color: 'Red', label: 'Pearl'},
@@ -664,9 +676,12 @@
             outputDiv.appendChild(mainContentDiv);
 
             // 创建 "Water Well" 标题
+            let waterWellContainer = document.createElement('div');
+            waterWellContainer.className = 'water-well';
+
             let waterWellTitle = document.createElement('h2');
             waterWellTitle.textContent = 'Water Well';
-            outputDiv.appendChild(waterWellTitle);
+            waterWellContainer.appendChild(waterWellTitle);
 
             // 水井旁位置
             let wellDiv = document.createElement('div');
@@ -680,7 +695,8 @@
                     wellDiv.appendChild(tokenDiv);
                 }
             }
-            outputDiv.appendChild(wellDiv);
+            waterWellContainer.appendChild(wellDiv);
+            outputDiv.appendChild(waterWellContainer);
 
             // 如果勾选了 Matcha Expansion，添加 Pond 和 Tea House
             if (includeMatcha) {
@@ -795,6 +811,7 @@
         }
 
         // 初始页面不执行 setupGame，等待用户点击 "Reset" 按钮
+
     })();
 </script>
 
