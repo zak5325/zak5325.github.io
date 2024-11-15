@@ -11,7 +11,7 @@
             height: 100%;
             margin: 0;
             padding: 0;
-            overflow-x: auto; /* 允许横向滚动 */
+            overflow-x: hidden; /* 防止整个页面出现水平滚动 */
         }
         body {
             display: flex;
@@ -21,6 +21,7 @@
         }
         #game-board {
             flex: 1;
+            overflow-x: auto; /* 允许在该容器内水平滚动 */
         }
         h1 {
             color: #2e6da4;
@@ -51,15 +52,18 @@
             justify-content: center;
             align-items: flex-start;
             margin-bottom: 20px;
+            min-width: 850px; /* 设置最小宽度，防止内容被压缩 */
         }
         .castle-area {
             margin-right: 20px;
+            flex-shrink: 0; /* 防止收缩 */
         }
         .castle-area h2 {
             margin-top: 0;
         }
         .training-yards {
             margin-top: 20px;
+            flex-shrink: 0; /* 防止收缩 */
         }
         .training-yards h2 {
             margin-top: 0;
