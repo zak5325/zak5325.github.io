@@ -40,6 +40,7 @@
             justify-content: center;
             align-items: center;
             margin-bottom: 10px;
+            flex: 1 1 auto;
         }
         .checkboxes label {
             display: flex;
@@ -52,6 +53,8 @@
         #reset-button {
             padding: 8px 16px;
             font-size: 16px;
+            margin-left: 10px;
+            flex-shrink: 0;
         }
         .main-content {
             display: flex;
@@ -61,14 +64,14 @@
             margin-bottom: 20px;
         }
         .castle-area {
-            flex: 1 1 300px; /* 允许在小屏幕下缩小 */
+            flex: 1 1 600px; /* 设置足够的宽度 */
             margin: 10px;
         }
         .castle-area h2 {
             margin-top: 0;
         }
         .training-yards {
-            flex: 1 1 300px;
+            flex: 1 1 600px;
             margin: 10px;
         }
         .training-yards h2 {
@@ -76,17 +79,18 @@
         }
         .room-row {
             display: flex;
-            flex-wrap: wrap;
             justify-content: center;
             margin-bottom: 20px;
+            flex-wrap: nowrap; /* 防止房间换行 */
         }
         .room {
             border: 2px solid #2e6da4;
             border-radius: 8px;
             padding: 10px;
             margin: 10px;
-            flex: 1 1 120px;
+            width: 180px;
             box-sizing: border-box;
+            flex-shrink: 0;
         }
         .room h3 {
             margin-top: 0;
@@ -131,16 +135,17 @@
         }
         .training-columns {
             display: flex;
-            flex-wrap: wrap;
             justify-content: center;
             align-items: flex-start;
+            flex-wrap: nowrap; /* 防止换行 */
         }
         .training-column {
             display: flex;
             flex-direction: column;
             align-items: center;
             margin: 10px;
-            flex: 1 1 240px;
+            width: 260px; /* 固定宽度，防止缩小 */
+            flex-shrink: 0;
         }
         .training-area {
             border: 2px solid #2e6da4;
@@ -248,28 +253,30 @@
                 font-size: 24px;
             }
             .options {
-                flex-direction: column;
-                align-items: center;
+                flex-wrap: wrap;
             }
             .checkboxes {
-                flex-direction: column;
-                align-items: center;
+                flex-wrap: nowrap;
+                flex: 1 1 auto;
             }
-            .main-content {
-                flex-direction: column;
+            #reset-button {
+                margin-top: 10px;
             }
-            .castle-area, .training-yards, .pond-container, .tea-house-container {
+            /* 保持 Castle 区域的布局 */
+            .room-row {
+                flex-wrap: nowrap;
+                overflow-x: auto; /* 允许水平滚动 */
+            }
+            .castle-area, .training-yards {
                 flex: 1 1 100%;
-                margin: 10px 0;
             }
-            .room {
-                width: 100%;
+            /* 保持 Training Yards 的布局 */
+            .training-columns {
+                flex-wrap: nowrap;
+                overflow-x: auto; /* 允许水平滚动 */
             }
             .training-column {
-                width: 100%;
-            }
-            .training-area {
-                width: 100%;
+                flex: 0 0 auto;
             }
             .additional-areas {
                 flex-direction: column;
