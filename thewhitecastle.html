@@ -20,55 +20,63 @@
         }
         #game-board {
             flex: 1;
-            overflow-x: auto; /* 允许在该容器内水平滚动 */
         }
         h1 {
             color: #2e6da4;
             margin-top: 20px;
+            margin-bottom: 10px;
         }
         .options {
-            margin: 20px 0;
+            margin: 10px auto;
             display: flex;
-            flex-direction: column;
+            flex-wrap: wrap;
+            justify-content: center;
             align-items: center;
+            max-width: 800px;
         }
         .checkboxes {
             display: flex;
-            flex-direction: column;
-            align-items: flex-start;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
             margin-bottom: 10px;
         }
         .checkboxes label {
             display: flex;
             align-items: center;
-            margin-bottom: 5px;
+            margin: 5px 10px;
         }
         .checkboxes input[type="checkbox"] {
             margin-right: 5px;
         }
+        #reset-button {
+            padding: 8px 16px;
+            font-size: 16px;
+        }
         .main-content {
             display: flex;
-            justify-content: flex-start; /* 左对齐 */
+            flex-wrap: wrap; /* 允许换行 */
+            justify-content: center;
             align-items: flex-start;
             margin-bottom: 20px;
-            width: max-content; /* 容器宽度适应内容 */
         }
         .castle-area {
-            margin-right: 20px;
-            flex-shrink: 0; /* 防止收缩 */
+            flex: 1 1 300px; /* 允许在小屏幕下缩小 */
+            margin: 10px;
         }
         .castle-area h2 {
             margin-top: 0;
         }
         .training-yards {
-            margin-top: 20px;
-            flex-shrink: 0; /* 防止收缩 */
+            flex: 1 1 300px;
+            margin: 10px;
         }
         .training-yards h2 {
             margin-top: 0;
         }
         .room-row {
             display: flex;
+            flex-wrap: wrap;
             justify-content: center;
             margin-bottom: 20px;
         }
@@ -76,8 +84,8 @@
             border: 2px solid #2e6da4;
             border-radius: 8px;
             padding: 10px;
-            margin: 0 10px;
-            width: 180px;
+            margin: 10px;
+            flex: 1 1 120px;
             box-sizing: border-box;
         }
         .room h3 {
@@ -96,16 +104,16 @@
         }
         /* Water Well 区域样式 */
         .water-well {
-            width: max-content; /* 宽度适应内容 */
-            margin: 20px auto; /* 上下居中 */
+            margin: 20px auto;
         }
         .well {
             display: flex;
+            flex-wrap: wrap;
             justify-content: center;
             margin-top: 10px;
         }
         .well .token {
-            margin: 0 10px;
+            margin: 10px;
             background-color: #f9f9f9;
         }
         footer {
@@ -118,6 +126,12 @@
         /* 修改 Training Yards 的样式 */
         .training-yards {
             display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .training-columns {
+            display: flex;
+            flex-wrap: wrap;
             justify-content: center;
             align-items: flex-start;
         }
@@ -125,14 +139,15 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin: 0 10px;
+            margin: 10px;
+            flex: 1 1 240px;
         }
         .training-area {
             border: 2px solid #2e6da4;
             border-radius: 8px;
             padding: 10px;
             margin-bottom: 20px;
-            width: 240px;
+            width: 100%;
             box-sizing: border-box;
         }
         .training-area h3 {
@@ -159,28 +174,29 @@
         /* 新增的样式 */
         .additional-areas {
             display: flex;
-            justify-content: flex-start; /* 左对齐 */
+            flex-wrap: wrap;
+            justify-content: center;
             align-items: flex-start;
             margin-top: 20px;
-            width: max-content; /* 宽度适应内容 */
         }
         .pond-container, .tea-house-container {
-            margin: 0 20px;
-            flex-shrink: 0; /* 防止收缩 */
+            margin: 10px;
+            flex: 1 1 300px;
+            box-sizing: border-box;
         }
         .pond-container h2, .tea-house-container h2 {
             margin-bottom: 10px;
         }
         .pond .pond-content {
             display: flex;
+            flex-wrap: wrap;
             border: 2px solid #2e6da4;
             border-radius: 8px;
             padding: 10px;
-            width: 380px; /* 设置固定宽度 */
             box-sizing: border-box;
         }
         .water-lily-tiles, .pond-ceremony {
-            flex: 1;
+            flex: 1 1 100px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -188,9 +204,11 @@
         .pond-ceremony {
             border-left: 1px solid #2e6da4;
             padding-left: 10px;
+            margin-top: 10px;
         }
         .water-lily-tiles {
             padding-right: 10px;
+            margin-top: 10px;
         }
         .pond .tile-slot, .tea-house .tile-slot {
             margin: 5px 0;
@@ -212,7 +230,6 @@
             border: 2px solid #2e6da4;
             border-radius: 8px;
             padding: 10px;
-            width: 240px; /* 设置固定宽度 */
             box-sizing: border-box;
         }
         .tea-house .tile-slot {
@@ -224,6 +241,39 @@
             color: red;
             font-weight: bold;
             margin-top: 20px;
+        }
+        /* 媒体查询，针对小屏幕优化 */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 24px;
+            }
+            .options {
+                flex-direction: column;
+                align-items: center;
+            }
+            .checkboxes {
+                flex-direction: column;
+                align-items: center;
+            }
+            .main-content {
+                flex-direction: column;
+            }
+            .castle-area, .training-yards, .pond-container, .tea-house-container {
+                flex: 1 1 100%;
+                margin: 10px 0;
+            }
+            .room {
+                width: 100%;
+            }
+            .training-column {
+                width: 100%;
+            }
+            .training-area {
+                width: 100%;
+            }
+            .additional-areas {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -598,6 +648,10 @@
             // 放置 Tiles 到 Training Yards
             let usedTrainingTiles = [];
 
+            // 创建训练场列的容器
+            let trainingColumnsDiv = document.createElement('div');
+            trainingColumnsDiv.className = 'training-columns';
+
             // 创建左右两列
             let leftColumn = document.createElement('div');
             leftColumn.className = 'training-column';
@@ -660,9 +714,12 @@
 
             rightColumn.appendChild(area3Div);
 
-            // 将左右列添加到 Training Yards
-            trainingDiv.appendChild(leftColumn);
-            trainingDiv.appendChild(rightColumn);
+            // 将左右列添加到训练场列容器
+            trainingColumnsDiv.appendChild(leftColumn);
+            trainingColumnsDiv.appendChild(rightColumn);
+
+            // 将训练场列容器添加到 Training Yards
+            trainingDiv.appendChild(trainingColumnsDiv);
 
             // 创建主内容区域，包含 Castle 和 Training Yards
             let mainContentDiv = document.createElement('div');
