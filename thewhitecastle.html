@@ -80,26 +80,46 @@
             align-items: center;
         }
 
-        .main-content {
+        /* 上方区域：Castle 和 Training Yard */
+        .top-content {
+            display: flex;
+            width: 100%;
+            flex-wrap: wrap; /* 允许换行 */
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .castle-area,
+        .training-yards {
+            flex: 1 1 50%;
+            margin: 10px;
+            box-sizing: border-box;
+        }
+
+        /* Water Well 区域 */
+        .water-well {
+            margin: 20px auto;
+            width: 100%;
+        }
+
+        /* 下方区域：Pond 和 Tea House */
+        .additional-areas {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             align-items: flex-start;
-            margin-bottom: 20px;
+            margin-top: 20px;
             width: 100%;
         }
 
-        /* Castle 区域 */
-        .castle-area {
-            flex: 1 1 600px;
+        .pond-container,
+        .tea-house-container {
+            flex: 1 1 50%;
             margin: 10px;
-            width: 100%;
+            box-sizing: border-box;
         }
 
-        .castle-area h2 {
-            margin-top: 0;
-        }
-
+        /* 其他样式保持不变 */
         .room-row {
             display: flex;
             justify-content: center;
@@ -134,44 +154,10 @@
             font-size: 14px;
         }
 
-        /* Water Well 区域样式 */
-        .water-well {
-            margin: 20px auto;
-            width: 100%;
-        }
-
-        .well {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-top: 10px;
-        }
-
-        .well .token {
-            margin: 10px;
-            background-color: #f9f9f9;
-        }
-
-        footer {
-            background-color: #f1f1f1;
-            padding: 10px 0;
-            width: 100%;
-        }
-
-        footer p, footer a {
-            margin: 5px;
-            color: #000;
-            text-decoration: none;
-        }
-
-        /* 修改 Training Yards 的样式 */
-        .training-yards {
-            flex: 1 1 600px;
-            margin: 10px;
-            width: 100%;
-        }
-
-        .training-yards h2 {
+        .training-yards h2,
+        .castle-area h2,
+        .pond-container h2,
+        .tea-house-container h2 {
             margin-top: 0;
         }
 
@@ -227,31 +213,8 @@
             background-color: #ccf2ff;
         }
 
-        /* 新增的样式 */
-        .additional-areas {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: flex-start;
-            margin-top: 20px;
-            width: 100%;
-        }
-
-        .pond-container, .tea-house-container {
-            margin: 10px;
-            flex: 1 1 300px;
-            box-sizing: border-box;
-            width: 100%;
-            max-width: 600px;
-        }
-
-        .pond-container h2, .tea-house-container h2 {
-            margin-bottom: 10px;
-        }
-
-        .pond .pond-content {
-            display: flex;
-            flex-wrap: wrap;
+        .pond .pond-content,
+        .tea-house {
             border: 2px solid #2e6da4;
             border-radius: 8px;
             padding: 10px;
@@ -259,26 +222,24 @@
             width: 100%;
         }
 
-        .water-lily-tiles, .pond-ceremony {
-            flex: 1 1 100px;
+        .pond-content {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .water-lily-tiles,
+        .pond-ceremony {
+            flex: 1 1 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
             width: 100%;
         }
 
-        .pond-ceremony {
-            border-left: 1px solid #2e6da4;
-            padding-left: 10px;
-            margin-top: 10px;
-        }
-
-        .water-lily-tiles {
-            padding-right: 10px;
-            margin-top: 10px;
-        }
-
-        .pond .tile-slot, .tea-house .tile-slot {
+        .pond .tile-slot,
+        .tea-house .tile-slot {
             margin: 5px 0;
             padding: 5px;
             border: 1px dashed #ccc;
@@ -296,17 +257,21 @@
             background-color: #e0f7fa;
         }
 
-        .tea-house {
-            border: 2px solid #2e6da4;
-            border-radius: 8px;
-            padding: 10px;
-            box-sizing: border-box;
+        .tea-house .tile-slot {
+            background-color: #fff9c4;
+        }
+
+        footer {
+            background-color: #f1f1f1;
+            padding: 10px 0;
             width: 100%;
         }
 
-        .tea-house .tile-slot {
-            background-color: #fff9c4;
-            width: 90%;
+        footer p,
+        footer a {
+            margin: 5px;
+            color: #000;
+            text-decoration: none;
         }
 
         /* 错误消息的样式 */
@@ -340,44 +305,26 @@
                 margin-top: 10px;
             }
 
-            /* 调整 Castle 区域的布局 */
-            .castle-area, .training-yards {
+            /* 调整上方区域布局 */
+            .castle-area,
+            .training-yards {
                 flex: 1 1 100%;
                 width: 100%;
             }
 
-            .room-row {
-                flex-wrap: wrap;
+            /* 下方区域调整为上下排列 */
+            .pond-container,
+            .tea-house-container {
+                flex: 1 1 100%;
+                width: 100%;
             }
 
-            .room {
-                width: calc(50% - 40px); /* 减去左右 margin 的宽度 */
-                margin: 10px 20px;
-            }
-
-            /* 确保第二行有三个房间 */
-            .room-row.bottom .room {
-                width: calc(33.333% - 40px);
-            }
-
-            /* Training Yards 的布局调整 */
             .training-columns {
                 flex-wrap: wrap;
             }
 
             .training-column {
                 width: calc(50% - 20px);
-            }
-
-            /* 额外区域 */
-            .additional-areas {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .pond-container, .tea-house-container {
-                flex: 1 1 100%;
-                max-width: 100%;
             }
         }
     </style>
@@ -407,8 +354,6 @@
 
 <script>
     (function() {
-        // 您的 JavaScript 代码保持不变
-
         // 定义基础的游戏配件
         const mainComponents = [
             {color: 'Red', label: 'Pearl'},
@@ -700,7 +645,7 @@
 
             // 下方房间
             let bottomRoomsDiv = document.createElement('div');
-            bottomRoomsDiv.className = 'room-row';
+            bottomRoomsDiv.className = 'room-row bottom';
             for (let roomName of ['Bottom Left', 'Bottom Middle', 'Bottom Right']) {
                 let room = rooms[roomName];
                 let roomDiv = document.createElement('div');
@@ -826,16 +771,16 @@
             // 将训练场列容器添加到 Training Yards
             trainingDiv.appendChild(trainingColumnsDiv);
 
-            // 创建主内容区域，包含 Castle 和 Training Yards
-            let mainContentDiv = document.createElement('div');
-            mainContentDiv.className = 'main-content';
+            // 创建主内容区域的容器
+            let topContentDiv = document.createElement('div');
+            topContentDiv.className = 'top-content';
 
-            // 将 Castle 区域和 Training Yards 区域添加到主内容区域
-            mainContentDiv.appendChild(castleDiv);
-            mainContentDiv.appendChild(trainingDiv);
+            // 将 Castle 区域和 Training Yards 区域添加到 top-content
+            topContentDiv.appendChild(castleDiv);
+            topContentDiv.appendChild(trainingDiv);
 
-            // 将主内容区域添加到输出区域
-            outputDiv.appendChild(mainContentDiv);
+            // 将 top-content 添加到输出区域
+            outputDiv.appendChild(topContentDiv);
 
             // 创建 "Water Well" 标题
             let waterWellContainer = document.createElement('div');
@@ -858,11 +803,13 @@
                 }
             }
             waterWellContainer.appendChild(wellDiv);
+
+            // 将 Water Well 区域添加到输出区域
             outputDiv.appendChild(waterWellContainer);
 
             // 如果勾选了 Matcha Expansion，添加 Pond 和 Tea House
             if (includeMatcha) {
-                // 创建一个容器来包含新增的区域
+                // 创建一个容器来包含新增的区域（Pond 和 Tea House）
                 const additionalAreasDiv = document.createElement('div');
                 additionalAreasDiv.className = 'additional-areas';
 
@@ -877,7 +824,7 @@
 
                 // 创建 Pond 区域的内容容器
                 const pondDiv = document.createElement('div');
-                pondDiv.className = 'area pond';
+                pondDiv.className = 'pond';
 
                 // 创建 Pond 内容
                 const pondContentDiv = document.createElement('div');
@@ -935,7 +882,7 @@
 
                 // 创建 Tea House 区域
                 const teaHouseDiv = document.createElement('div');
-                teaHouseDiv.className = 'area tea-house';
+                teaHouseDiv.className = 'tea-house';
 
                 // 随机选择 3 个 Ceremony Tiles（黄色面）用于 Tea House
                 const teaHouseCeremonyTiles = shuffledCeremonyTiles.slice(0, 3);
