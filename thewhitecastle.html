@@ -4,19 +4,17 @@
     <meta charset="UTF-8">
     <title>The White Castle Die Tile Setting Automation</title>
     <style>
-        /* 设置 html 和 body 的高度，移除默认边距 */
+        /* 现有的样式 */
         html, body {
             height: 100%;
             margin: 0;
         }
-        /* 使用 Flex 布局，让内容区域撑开，footer 在页面底部 */
         body {
             display: flex;
             flex-direction: column;
             font-family: Arial, sans-serif;
             text-align: center;
         }
-        /* 内容区域，占据剩余空间 */
         #game-board {
             flex: 1;
         }
@@ -26,6 +24,41 @@
         }
         .options {
             margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .checkboxes {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        .checkboxes label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .checkboxes input[type="checkbox"] {
+            margin-right: 5px;
+        }
+        .main-content {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        .castle-area {
+            margin-right: 20px;
+        }
+        .castle-area h2 {
+            margin-top: 0;
+        }
+        .training-yards {
+            margin-top: 20px;
+        }
+        .training-yards h2 {
+            margin-top: 0;
         }
         .room-row {
             display: flex;
@@ -37,7 +70,7 @@
             border-radius: 8px;
             padding: 10px;
             margin: 0 10px;
-            width: 150px;
+            width: 180px;
         }
         .room h3 {
             margin-top: 0;
@@ -47,26 +80,128 @@
             padding: 5px;
             border: 1px solid #ccc;
             border-radius: 4px;
-            /* 根据配件颜色设置背景色 */
             background-color: lightgray;
             color: black;
         }
         .well {
             display: flex;
             justify-content: center;
-            margin-top: 30px;
+            margin-top: 10px;
         }
         .well .token {
             margin: 0 10px;
             background-color: #f9f9f9;
         }
-        /* footer 样式 */
         footer {
             background-color: #f1f1f1;
             padding: 10px 0;
         }
         footer p, footer a {
             margin: 5px;
+        }
+        /* 修改 Training Yards 的样式 */
+        .training-yards {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .training-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 10px;
+        }
+        .training-area {
+            border: 2px solid #2e6da4;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 20px;
+            width: 240px;
+        }
+        .training-area h3 {
+            margin-top: 0;
+        }
+        .slot {
+            margin: 5px 0;
+            padding: 5px;
+            border: 1px dashed #ccc;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+            font-size: 14px;
+        }
+        .yellow {
+            background-color: #ffffcc;
+        }
+        .blue {
+            background-color: #ccf2ff;
+        }
+        /* 新增的样式 */
+        .additional-areas {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .pond-container, .tea-house-container {
+            margin: 0 10px;
+        }
+        .pond-container h2, .tea-house-container h2 {
+            margin-bottom: 10px;
+        }
+        .pond .pond-content {
+            display: flex;
+            border: 2px solid #2e6da4;
+            border-radius: 8px;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .water-lily-tiles, .pond-ceremony {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .pond-ceremony {
+            border-left: 1px solid #2e6da4;
+            padding-left: 10px;
+        }
+        .water-lily-tiles {
+            padding-right: 10px;
+        }
+        .pond .tile-slot, .tea-house .tile-slot {
+            margin: 5px 0;
+            padding: 5px;
+            border: 1px dashed #ccc;
+            border-radius: 4px;
+            width: 90%;
+            box-sizing: border-box;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+            font-size: 14px;
+            background-color: #f9f9f9;
+        }
+        .pond .tile-slot {
+            background-color: #e0f7fa;
+        }
+        .tea-house {
+            border: 2px solid #2e6da4;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .tea-house .tile-slot {
+            background-color: #fff9c4;
+            width: 90%;
+        }
+        /* 错误消息的样式 */
+        .error {
+            color: red;
+            font-weight: bold;
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -76,15 +211,16 @@
 
 <!-- 添加选项和按钮 -->
 <div class="options">
-    <label><input type="checkbox" id="promo1"> Include Promo 1(Will replace 'Choose one from Pearl/Iron/Food')</label>
-    <br></br>
-    <label><input type="checkbox" id="promo4"> Include Promo 4(For Matcha expansion)</label>
-    <br></br>
+    <div class="checkboxes">
+        <label><input type="checkbox" id="matcha">Include Matcha Expansion</label>
+        <label><input type="checkbox" id="promo1">Include Promo 1 (Will replace 'Choose one from Pearl/Iron/Food' and add New Tile to Training Yard)</label>
+        <label><input type="checkbox" id="promo4">Include Promo 4 (For Matcha expansion)</label>
+    </div>
     <button id="reset-button">Reset</button>
 </div>
 
 <div id="game-board">
-    <!-- 初始页面，房间和水井内容为空 -->
+    <!-- 游戏设置将在这里生成 -->
 </div>
 
 <footer>
@@ -126,6 +262,57 @@
             {color: 'Black', label: 'Chasen'}
         ];
 
+        // 定义 Training Yards 的 Tiles
+        const trainingTiles = [
+            {yellow: '2 Clan Points', blue: 'Perform one of three die space action in Personal Domain'},
+            {yellow: '3 Food', blue: 'Gardener(Farm) action'},
+            {yellow: '3 Pearl', blue: 'Courtier(Castle) action'},
+            {yellow: '2 Influence', blue: 'Warrior(Training Yard) action'},
+            {yellow: '5 Coin', blue: 'Black Die action in the Castle'},
+            {yellow: '2 Daimyo', blue: 'White Die action in the Castle'},
+            {yellow: 'Water Well Action', blue: 'Red Die Action in the Castle'},
+            {yellow: 'Light Background action in the Castle', blue: 'Any Die action in the Castle'}
+        ];
+
+        // Promo1 的 Training Tiles
+        const promo1TrainingTile = [
+            {yellow: 'Choose 2 from Pearl/Iron/Food', blue: 'Choose one action from Gardener(Farm)/Courtier(Castle)/Warrior(Training Yard) action'}
+        ];
+
+        // Matcha Expansion 的 Training Tiles
+        const matchaTrainingTiles = [
+            {yellow: '1 Daimyo and 2 Coin', blue: 'Perform both actions from 1 of 2 cards in the Outskirts'},
+            {yellow: 'Perform 1 Yellow Curtain action in the Outskirts', blue: 'Perform 1 Blue Curtain action in the Outskirts without paying Daimyo'},
+            {yellow: '3 Chasen', blue: 'Geisha(Tea Field) Action'},
+            {yellow: '3 Water Lily rewards', blue: 'Dark Background action in the Castle'}
+        ];
+
+        // 定义 Water Lily Tiles
+        const waterLilyTiles = [
+            '1 Food',
+            '1 Iron',
+            '1 Pearl',
+            '1 Chasen',
+            '2 Coin',
+            '1 Daimyo',
+            '1 Influence',
+            '1 Clan Point'
+        ];
+
+        // 定义 Ceremony Tiles
+        const ceremonyTiles = [
+            {yellow: 'Perform 2 Different Yellow Curtain rewards in the Outskirts', blue: 'Perform 1 Blue Curtain action in the Outskirts without paying Daimyo'},
+            {yellow: 'Perform 2 Different Yellow Background rewards in the Training Yard', blue: 'Perform 1 Blue Background reward in the Training Yard'},
+            {yellow: '4 Daimyo', blue: 'Climb your Courtier 1 floor at the Castle without paying Pearl'},
+            {yellow: '7 Coin', blue: 'Warrior(Training Yard) action and 2 Coin'},
+            {yellow: '4 Clan Points', blue: 'Gardener(Farm) action and 1 Clan Point'},
+            {yellow: 'Lantern rewards and 1 Daimyo', blue: 'Courtier(Castle) action and 1 Influence'},
+            {yellow: '3 Water Lily rewards twice', blue: 'Any Die action in the Castle'},
+            {yellow: 'Water Well reward Twice', blue: 'Walk your Geisha 1 step at the Path of Tea without paying Chasen'},
+            {yellow: '2 Different Stone Garden Rewards', blue: 'Geisha(Tea Field) Action and Choose one from Pearl/Iron/Food'},
+            {yellow: '2 Different Light Background action in the Castle', blue: 'Dark Background action in the Castle and 1 Coin'}
+        ];
+
         // 定义颜色映射
         const colorMap = {
             'Red': '#ffcccc',
@@ -137,7 +324,24 @@
         const resetButton = document.getElementById('reset-button');
         const promo1Checkbox = document.getElementById('promo1');
         const promo4Checkbox = document.getElementById('promo4');
+        const matchaCheckbox = document.getElementById('matcha');
         const outputDiv = document.getElementById('game-board');
+
+        // 当 "Include Matcha Expansion" 复选框状态变化时，启用或禁用 "Include Promo 4" 复选框
+        matchaCheckbox.addEventListener('change', function() {
+            if (!matchaCheckbox.checked) {
+                promo4Checkbox.checked = false;
+                promo4Checkbox.disabled = true;
+            } else {
+                promo4Checkbox.disabled = false;
+            }
+        });
+
+        // 初始状态，如果未勾选 "Include Matcha Expansion"，禁用 "Include Promo 4"
+        if (!matchaCheckbox.checked) {
+            promo4Checkbox.checked = false;
+            promo4Checkbox.disabled = true;
+        }
 
         // 绑定按钮点击事件
         resetButton.addEventListener('click', setupGame);
@@ -148,6 +352,16 @@
             // 获取用户选择的选项
             const includePromo1 = promo1Checkbox.checked;
             const includePromo4 = promo4Checkbox.checked;
+            const includeMatcha = matchaCheckbox.checked;
+
+            // 检查选项组合是否有效
+            if (includePromo4 && !includeMatcha) {
+                const errorMessage = document.createElement('p');
+                errorMessage.className = 'error';
+                errorMessage.textContent = '错误：您必须先勾选 "Include Matcha Expansion" 才能选择 "Include Promo 4"。';
+                outputDiv.appendChild(errorMessage);
+                return; // 终止后续操作
+            }
 
             // 根据选项构建组件列表
             let components = mainComponents.slice(); // 复制主组件列表
@@ -271,6 +485,15 @@
 
             // 创建游戏板块
 
+            // 创建 Castle 区域
+            let castleDiv = document.createElement('div');
+            castleDiv.className = 'castle-area';
+
+            // 创建 "Castle" 标题
+            let castleTitle = document.createElement('h2');
+            castleTitle.textContent = 'Castle';
+            castleDiv.appendChild(castleTitle);
+
             // 上方房间
             let topRoomsDiv = document.createElement('div');
             topRoomsDiv.className = 'room-row';
@@ -288,7 +511,6 @@
                     let tokenDiv = document.createElement('div');
                     tokenDiv.className = 'token';
                     tokenDiv.textContent = `${token.color}`;
-                    // 设置背景色
                     tokenDiv.style.backgroundColor = colorMap[token.color];
                     tokenDiv.style.color = 'black';
                     roomDiv.appendChild(tokenDiv);
@@ -296,7 +518,6 @@
 
                 topRoomsDiv.appendChild(roomDiv);
             }
-            outputDiv.appendChild(topRoomsDiv);
 
             // 下方房间
             let bottomRoomsDiv = document.createElement('div');
@@ -315,7 +536,6 @@
                     let tokenDiv = document.createElement('div');
                     tokenDiv.className = 'token';
                     tokenDiv.textContent = `${token.color}`;
-                    // 设置背景色
                     tokenDiv.style.backgroundColor = colorMap[token.color];
                     tokenDiv.style.color = 'black';
                     roomDiv.appendChild(tokenDiv);
@@ -323,7 +543,118 @@
 
                 bottomRoomsDiv.appendChild(roomDiv);
             }
-            outputDiv.appendChild(bottomRoomsDiv);
+
+            // 将房间添加到 Castle 区域
+            castleDiv.appendChild(topRoomsDiv);
+            castleDiv.appendChild(bottomRoomsDiv);
+
+            // 创建 Training Yards 区域
+            let trainingDiv = document.createElement('div');
+            trainingDiv.className = 'training-yards';
+
+            // 创建 "Training Yards" 标题
+            let trainingTitle = document.createElement('h2');
+            trainingTitle.textContent = 'Training Yards';
+            trainingDiv.appendChild(trainingTitle);
+
+            // 构建可用的 Training Tiles 列表
+            let availableTrainingTiles = trainingTiles.slice();
+
+            if (includePromo1) {
+                availableTrainingTiles = availableTrainingTiles.concat(promo1TrainingTile);
+            }
+
+            if (includeMatcha) {
+                availableTrainingTiles = availableTrainingTiles.concat(matchaTrainingTiles);
+            }
+
+            // 洗混 Training Tiles
+            availableTrainingTiles.sort(() => Math.random() - 0.5);
+
+            // 放置 Tiles 到 Training Yards
+            let usedTrainingTiles = [];
+
+            // 创建左右两列
+            let leftColumn = document.createElement('div');
+            leftColumn.className = 'training-column';
+
+            let rightColumn = document.createElement('div');
+            rightColumn.className = 'training-column';
+
+            // 左侧列：First Row Left
+            let area1Div = document.createElement('div');
+            area1Div.className = 'training-area';
+            let area1Title = document.createElement('h3');
+            area1Title.textContent = 'First Row Left';
+            area1Div.appendChild(area1Title);
+
+            // 放置 Blue 面
+            let blueSlot1 = document.createElement('div');
+            blueSlot1.className = 'slot blue';
+            let blueTile1 = getTrainingTile('Blue');
+            blueSlot1.textContent = `${blueTile1.blue}`;
+            area1Div.appendChild(blueSlot1);
+
+            // 放置 Yellow 面
+            let yellowSlot1 = document.createElement('div');
+            yellowSlot1.className = 'slot yellow';
+            let yellowTile1 = getTrainingTile('Yellow');
+            yellowSlot1.textContent = `${yellowTile1.yellow}`;
+            area1Div.appendChild(yellowSlot1);
+
+            leftColumn.appendChild(area1Div);
+
+            // 右侧列：First Row Right
+            let area2Div = document.createElement('div');
+            area2Div.className = 'training-area';
+            let area2Title = document.createElement('h3');
+            area2Title.textContent = 'First Row Right';
+            area2Div.appendChild(area2Title);
+
+            // 放置 Blue 面
+            let blueSlot2 = document.createElement('div');
+            blueSlot2.className = 'slot blue';
+            let blueTile2 = getTrainingTile('Blue');
+            blueSlot2.textContent = `${blueTile2.blue}`;
+            area2Div.appendChild(blueSlot2);
+
+            rightColumn.appendChild(area2Div);
+
+            // 右侧列：Second Row Right（放在 First Row Right 的下面）
+            let area3Div = document.createElement('div');
+            area3Div.className = 'training-area';
+            let area3Title = document.createElement('h3');
+            area3Title.textContent = 'Second Row Right';
+            area3Div.appendChild(area3Title);
+
+            // 放置 Yellow 面
+            let yellowSlot2 = document.createElement('div');
+            yellowSlot2.className = 'slot yellow';
+            let yellowTile2 = getTrainingTile('Yellow');
+            yellowSlot2.textContent = `${yellowTile2.yellow}`;
+            area3Div.appendChild(yellowSlot2);
+
+            rightColumn.appendChild(area3Div);
+
+            // 将左右列添加到 Training Yards
+            trainingDiv.appendChild(leftColumn);
+            trainingDiv.appendChild(rightColumn);
+
+            // 创建主内容区域，包含 Castle 和 Training Yards
+            let mainContentDiv = document.createElement('div');
+            mainContentDiv.className = 'main-content';
+
+            // 将 Castle 区域和 Training Yards 区域添加到主内容区域
+            mainContentDiv.appendChild(castleDiv);
+            mainContentDiv.appendChild(trainingDiv);
+
+            // 将主内容区域添加到输出区域
+            outputDiv.appendChild(mainContentDiv);
+
+            // 创建 "Water Well" 标题
+            let waterWellTitle = document.createElement('h2');
+            waterWellTitle.textContent = 'Water Well';
+            outputDiv.appendChild(waterWellTitle);
 
             // 水井旁位置
             let wellDiv = document.createElement('div');
@@ -333,16 +664,125 @@
                 if (comp) {
                     let tokenDiv = document.createElement('div');
                     tokenDiv.className = 'token';
-                    tokenDiv.textContent = `Face Down (${comp.color}-${comp.label})`;
+                    tokenDiv.textContent = `Face Down (${comp.color} - ${comp.label})`;
                     wellDiv.appendChild(tokenDiv);
                 }
             }
             outputDiv.appendChild(wellDiv);
+
+            // 如果勾选了 Matcha Expansion，添加 Pond 和 Tea House
+            if (includeMatcha) {
+                // 创建一个容器来包含新增的区域
+                const additionalAreasDiv = document.createElement('div');
+                additionalAreasDiv.className = 'additional-areas';
+
+                // *** Pond 区域 ***
+                const pondContainer = document.createElement('div');
+                pondContainer.className = 'pond-container';
+
+                // 创建 Pond 标题
+                const pondTitle = document.createElement('h2');
+                pondTitle.textContent = 'Pond';
+                pondContainer.appendChild(pondTitle);
+
+                // 创建 Pond 区域的内容容器
+                const pondDiv = document.createElement('div');
+                pondDiv.className = 'area pond';
+
+                // 创建 Pond 内容
+                const pondContentDiv = document.createElement('div');
+                pondContentDiv.className = 'pond-content';
+
+                // 左侧：Water Lily Tiles
+                const waterLilyDiv = document.createElement('div');
+                waterLilyDiv.className = 'water-lily-tiles';
+
+                // 随机选择 3 个 Water Lily Tiles
+                const shuffledWaterLilyTiles = waterLilyTiles.slice();
+                shuffledWaterLilyTiles.sort(() => Math.random() - 0.5);
+                const selectedWaterLilyTiles = shuffledWaterLilyTiles.slice(0, 3);
+
+                // 显示 Water Lily Tiles
+                selectedWaterLilyTiles.forEach(tile => {
+                    const tileDiv = document.createElement('div');
+                    tileDiv.className = 'tile-slot';
+                    tileDiv.textContent = tile;
+                    waterLilyDiv.appendChild(tileDiv);
+                });
+
+                // 右侧：蓝色的 Ceremony 效果
+                const pondCeremonyDiv = document.createElement('div');
+                pondCeremonyDiv.className = 'pond-ceremony';
+
+                // 随机选择一个 Ceremony Tile（蓝色面）
+                const shuffledCeremonyTiles = ceremonyTiles.slice();
+                shuffledCeremonyTiles.sort(() => Math.random() - 0.5);
+                const pondCeremonyTile = shuffledCeremonyTiles.pop();
+
+                const ceremonyTileDiv = document.createElement('div');
+                ceremonyTileDiv.className = 'tile-slot';
+                ceremonyTileDiv.textContent = pondCeremonyTile.blue;
+                pondCeremonyDiv.appendChild(ceremonyTileDiv);
+
+                // 将左侧和右侧添加到 Pond 内容容器
+                pondContentDiv.appendChild(waterLilyDiv);
+                pondContentDiv.appendChild(pondCeremonyDiv);
+
+                // 将内容容器添加到 Pond 区域
+                pondDiv.appendChild(pondContentDiv);
+
+                // 将 Pond 区域添加到 Pond 容器
+                pondContainer.appendChild(pondDiv);
+
+                // *** Tea House 区域 ***
+                const teaHouseContainer = document.createElement('div');
+                teaHouseContainer.className = 'tea-house-container';
+
+                // 创建 Tea House 标题
+                const teaHouseTitle = document.createElement('h2');
+                teaHouseTitle.textContent = 'Tea House';
+                teaHouseContainer.appendChild(teaHouseTitle);
+
+                // 创建 Tea House 区域
+                const teaHouseDiv = document.createElement('div');
+                teaHouseDiv.className = 'area tea-house';
+
+                // 随机选择 3 个 Ceremony Tiles（黄色面）用于 Tea House
+                const teaHouseCeremonyTiles = shuffledCeremonyTiles.slice(0, 3);
+
+                teaHouseCeremonyTiles.forEach(tile => {
+                    const tileDiv = document.createElement('div');
+                    tileDiv.className = 'tile-slot';
+                    tileDiv.textContent = tile.yellow;
+                    teaHouseDiv.appendChild(tileDiv);
+                });
+
+                // 将 Tea House 区域添加到 Tea House 容器
+                teaHouseContainer.appendChild(teaHouseDiv);
+
+                // 将 Pond 和 Tea House 添加到新增区域容器
+                additionalAreasDiv.appendChild(pondContainer);
+                additionalAreasDiv.appendChild(teaHouseContainer);
+
+                // 将新增区域容器添加到输出区域
+                outputDiv.appendChild(additionalAreasDiv);
+            }
+
+            // 获取一个 Training Tile，指定显示的面
+            function getTrainingTile(side) {
+                for (let i = 0; i < availableTrainingTiles.length; i++) {
+                    let tile = availableTrainingTiles[i];
+                    if (!usedTrainingTiles.includes(tile)) {
+                        usedTrainingTiles.push(tile);
+                        return tile;
+                    }
+                }
+                outputDiv.innerHTML = `<p class="error">可用的 Training Tiles 不足。</p>`;
+                throw new Error('Not enough Training Tiles');
+            }
         }
 
         // 初始页面不执行 setupGame，等待用户点击 "Reset" 按钮
-        // 如果你希望页面加载时自动执行，可以取消注释以下行
-        // setupGame();
     })();
 </script>
 
