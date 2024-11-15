@@ -4,20 +4,20 @@
     <meta charset="UTF-8">
     <title>The White Castle Die Tile Setting Automation</title>
     <!-- 添加 viewport 元标签 -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <style>
         /* 现有的样式 */
         html, body {
             height: 100%;
             margin: 0;
-            padding: 0; /* 添加 padding: 0; */
+            padding: 0;
+            overflow-x: auto; /* 允许横向滚动 */
         }
         body {
             display: flex;
             flex-direction: column;
             font-family: Arial, sans-serif;
             text-align: center;
-            overflow-x: hidden; /* 防止横向滚动条 */
         }
         #game-board {
             flex: 1;
@@ -25,10 +25,9 @@
         h1 {
             color: #2e6da4;
             margin-top: 20px;
-            margin-bottom: 20px; /* 添加 margin-bottom */
         }
         .options {
-            margin: 0 20px 20px 20px;
+            margin: 20px 0;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -43,37 +42,30 @@
             display: flex;
             align-items: center;
             margin-bottom: 5px;
-            flex-wrap: wrap; /* 添加换行 */
         }
         .checkboxes input[type="checkbox"] {
             margin-right: 5px;
         }
         .main-content {
             display: flex;
-            flex-direction: row;
-            flex-wrap: wrap; /* 添加换行 */
             justify-content: center;
             align-items: flex-start;
             margin-bottom: 20px;
-            padding: 0 10px; /* 添加左右内边距 */
         }
         .castle-area {
-            margin: 10px;
-            flex: 1 1 300px; /* 修改为相对宽度 */
+            margin-right: 20px;
         }
         .castle-area h2 {
             margin-top: 0;
         }
         .training-yards {
-            margin: 10px;
-            flex: 1 1 300px; /* 修改为相对宽度 */
+            margin-top: 20px;
         }
         .training-yards h2 {
             margin-top: 0;
         }
         .room-row {
             display: flex;
-            flex-wrap: wrap; /* 添加换行 */
             justify-content: center;
             margin-bottom: 20px;
         }
@@ -81,9 +73,9 @@
             border: 2px solid #2e6da4;
             border-radius: 8px;
             padding: 10px;
-            margin: 10px;
-            flex: 1 1 140px; /* 修改为相对宽度 */
-            box-sizing: border-box; /* 包含内边距和边框 */
+            margin: 0 10px;
+            width: 180px;
+            box-sizing: border-box;
         }
         .room h3 {
             margin-top: 0;
@@ -97,17 +89,15 @@
             color: black;
             word-wrap: break-word;
             overflow-wrap: break-word;
-            font-size: 14px; /* 调整字体大小 */
+            font-size: 14px;
         }
         .well {
             display: flex;
-            flex-wrap: wrap; /* 添加换行 */
             justify-content: center;
             margin-top: 10px;
-            padding: 0 10px; /* 添加左右内边距 */
         }
         .well .token {
-            margin: 10px;
+            margin: 0 10px;
             background-color: #f9f9f9;
         }
         footer {
@@ -120,29 +110,22 @@
         /* 修改 Training Yards 的样式 */
         .training-yards {
             display: flex;
-            flex-direction: column; /* 修改为列方向 */
-            align-items: center;
-        }
-        .training-columns {
-            display: flex;
-            flex-wrap: wrap; /* 添加换行 */
             justify-content: center;
-            width: 100%;
+            align-items: flex-start;
         }
         .training-column {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin: 10px;
-            flex: 1 1 240px; /* 修改为相对宽度 */
+            margin: 0 10px;
         }
         .training-area {
             border: 2px solid #2e6da4;
             border-radius: 8px;
             padding: 10px;
             margin-bottom: 20px;
-            width: 100%; /* 修改为100%宽度 */
-            box-sizing: border-box; /* 包含内边距和边框 */
+            width: 240px;
+            box-sizing: border-box;
         }
         .training-area h3 {
             margin-top: 0;
@@ -168,22 +151,17 @@
         /* 新增的样式 */
         .additional-areas {
             display: flex;
-            flex-wrap: wrap; /* 添加换行 */
             justify-content: center;
             margin-top: 20px;
-            padding: 0 10px; /* 添加左右内边距 */
         }
         .pond-container, .tea-house-container {
-            margin: 10px;
-            flex: 1 1 300px; /* 修改为相对宽度 */
-            box-sizing: border-box;
+            margin: 0 10px;
         }
         .pond-container h2, .tea-house-container h2 {
             margin-bottom: 10px;
         }
         .pond .pond-content {
             display: flex;
-            flex-wrap: wrap; /* 添加换行 */
             border: 2px solid #2e6da4;
             border-radius: 8px;
             padding: 10px;
@@ -191,25 +169,24 @@
             box-sizing: border-box;
         }
         .water-lily-tiles, .pond-ceremony {
-            flex: 1 1 140px; /* 修改为相对宽度 */
+            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin: 5px; /* 添加外边距 */
         }
         .pond-ceremony {
-            border-left: none; /* 移除左边框 */
-            padding-left: 0;
+            border-left: 1px solid #2e6da4;
+            padding-left: 10px;
         }
         .water-lily-tiles {
-            padding-right: 0;
+            padding-right: 10px;
         }
         .pond .tile-slot, .tea-house .tile-slot {
             margin: 5px 0;
             padding: 5px;
             border: 1px dashed #ccc;
             border-radius: 4px;
-            width: 100%;
+            width: 90%;
             box-sizing: border-box;
             word-wrap: break-word;
             overflow-wrap: break-word;
@@ -227,28 +204,13 @@
         }
         .tea-house .tile-slot {
             background-color: #fff9c4;
-            width: 100%; /* 修改为100%宽度 */
+            width: 90%;
         }
         /* 错误消息的样式 */
         .error {
             color: red;
             font-weight: bold;
             margin-top: 20px;
-        }
-        /* 媒体查询，针对小屏幕优化 */
-        @media (max-width: 600px) {
-            h1 {
-                font-size: 24px;
-            }
-            .room {
-                flex: 1 1 100%;
-            }
-            .training-column {
-                flex: 1 1 100%;
-            }
-            .pond-container, .tea-house-container {
-                flex: 1 1 100%;
-            }
         }
     </style>
 </head>
@@ -621,15 +583,10 @@
             // 放置 Tiles 到 Training Yards
             let usedTrainingTiles = [];
 
-            // 创建左右两列的容器
-            let trainingColumnsDiv = document.createElement('div');
-            trainingColumnsDiv.className = 'training-columns';
-
-            // 左侧列
+            // 创建左右两列
             let leftColumn = document.createElement('div');
             leftColumn.className = 'training-column';
 
-            // 右侧列
             let rightColumn = document.createElement('div');
             rightColumn.className = 'training-column';
 
@@ -688,12 +645,9 @@
 
             rightColumn.appendChild(area3Div);
 
-            // 将左右列添加到 Training Columns 容器
-            trainingColumnsDiv.appendChild(leftColumn);
-            trainingColumnsDiv.appendChild(rightColumn);
-
-            // 将 Training Columns 添加到 Training Yards
-            trainingDiv.appendChild(trainingColumnsDiv);
+            // 将左右列添加到 Training Yards
+            trainingDiv.appendChild(leftColumn);
+            trainingDiv.appendChild(rightColumn);
 
             // 创建主内容区域，包含 Castle 和 Training Yards
             let mainContentDiv = document.createElement('div');
