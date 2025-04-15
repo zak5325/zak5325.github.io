@@ -236,17 +236,17 @@
             {color: 'Red', label: 'Iron'},
             {color: 'Red', label: 'Food'},
             {color: 'Red', label: 'Coin'},
-            {color: 'Red', label: 'Choose one from Pearl/Iron/Food'},
+            {color: 'Red', label: 'Gain one Pearl/Iron/Food'},
             {color: 'White', label: 'Pearl'},
             {color: 'White', label: 'Iron'},
             {color: 'White', label: 'Food'},
             {color: 'White', label: 'Coin'},
-            {color: 'White', label: 'Choose one from Pearl/Iron/Food'},
+            {color: 'White', label: 'Gain one Pearl/Iron/Food'},
             {color: 'Black', label: 'Pearl'},
             {color: 'Black', label: 'Iron'},
             {color: 'Black', label: 'Food'},
             {color: 'Black', label: 'Coin'},
-            {color: 'Black', label: 'Choose one from Pearl/Iron/Food'}
+            {color: 'Black', label: 'Gain one Pearl/Iron/Food'}
         ];
 
         // 定义 Promo1 和 Promo4 的配件
@@ -264,27 +264,27 @@
 
         // 定义 Training Yards 的 Tiles
         const trainingTiles = [
-            {yellow: '2 Clan Points', blue: 'Perform one of any die space action in Personal Domain'},
+            {yellow: '2 Clan Points', blue: 'Perform a Personal Domain action'},
             {yellow: '3 Food', blue: 'Perform Gardener(Farm) action'},
             {yellow: '3 Pearl', blue: 'Perform Courtier(Castle) action'},
             {yellow: '2 Influence', blue: 'Perform Warrior(Training Yard) action'},
             {yellow: '5 Coin', blue: 'Perform one of the Black Die action in the Castle'},
             {yellow: '2 Daimyo', blue: 'Perform one of the White Die action in the Castle'},
-            {yellow: 'Perform Water Well Action', blue: 'Perform one of theRed Die Action in the Castle'},
+            {yellow: 'Perform Water Well Action', blue: 'Perform one of the Red Die Action in the Castle'},
             {yellow: 'Perform one of any Light Background action in the Castle', blue: 'Perform one of any Die action in the Castle'}
         ];
 
         // Promo1 的 Training Tiles
         const promo1TrainingTile = [
-            {yellow: 'Choose 2 from Pearl/Iron/Food', blue: 'Choose one action from Gardener(Farm)/Courtier(Castle)/Warrior(Training Yard) action'}
+            {yellow: 'Gain 1 Pearl/Iron/Food twice', blue: 'Perform one Gardener(Farm)/Courtier(Castle)/Warrior(Training Yard) action'}
         ];
 
         // Matcha Expansion 的 Training Tiles
         const matchaTrainingTiles = [
-            {yellow: '1 Daimyo and 2 Coin', blue: 'Perform both actions from 1 of 2 cards in the Outskirts'},
+            {yellow: 'Gain 1 Daimyo and 2 Coin', blue: 'Perform both Yellow and Blue Curtain actions from 1 of 2 cards in the Outskirts'},
             {yellow: 'Perform 1 Yellow Curtain action in the Outskirts', blue: 'Perform 1 Blue Curtain action in the Outskirts without paying Daimyo'},
-            {yellow: '3 Chasen', blue: 'Geisha(Tea Field) Action'},
-            {yellow: '3 Water Lily rewards', blue: 'Dark Background action in the Castle'}
+            {yellow: 'Gain 3 Chasen', blue: 'Perform Geisha(Tea Field) Action'},
+            {yellow: '3 Water Lily rewards', blue: 'Perform one of any Dark Background action in the Castle'}
         ];
 
         // 定义 Water Lily Tiles
@@ -368,7 +368,7 @@
 
             if (includePromo1) {
                 // 移除 'Choose one from Pearl/Iron/Food' 配件
-                components = components.filter(comp => comp.label !== 'Choose one from Pearl/Iron/Food');
+                components = components.filter(comp => comp.label !== 'Gain one Pearl/Iron/Food');
                 // 添加 Promo1 的配件
                 components = components.concat(promo1Components);
             }
