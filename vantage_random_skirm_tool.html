@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>卡牌隨機抽選器（TXT / JSON / URL）</title>
+<style>
+  :root{--bg:#f7fbff;--card:#fff;--ink:#10324a;--muted:#5a7b91;--accent:#3a8ad8;--chip:#e6f2ff;--ok:#1f9d55;--err:#b00020}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans TC",Segoe UI,Roboto,Helvetica,Arial}
+  header{padding:24px 16px;text-align:center}
+  header h1{margin:0 0 6px}
+  header p{margin:0;color:var(--muted)}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 16px 60px}
+  .grid{display:grid;grid-template-columns:1.2fr 1fr;gap:16px}
+  .panel{background:var(--card);border:1px solid #e6eef7;border-radius:12px;box-shadow:0 2px 8px rgba(16,50,74,.06);padding:14px}
+  .panel h2{margin:0 0 8px;font-size:16px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
+  .btn{border:1px solid #cfe2f3;background:var(--chip);padding:8px 12px;border-radius:10px;cursor:pointer}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.ghost{background:transparent}
+  input[type="search"],select,input[type="number"],input[type="text"]{border:1px solid #cfe2f3;border-radius:10px;padding:8px;background:#fff}
+  textarea{width:100%;min-height:160px;border:1px solid #cfe2f3;border-radius:10px;padding:10px;background:#fafcff;font-family:ui-monospace,Consolas,Menlo,monospace}
+  .kpis{display:flex;gap:14px;flex-wrap:wrap}
+  .kpi{background:#f1f7ff;border:1px dashed #cfe2f3;border-radius:10px;padding:8px 10px}
+  .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+  .card{border:1px solid #e6eef7;border-radius:12px;padding:12px;background:#fff}
+  .pill{display:inline-block;background:#e6f2ff;padding:2px 8px;border-radius:999px;margin-right:6px;font-size:12px}
+  .tag{background:#eef7ff;border:1px solid #cfe2f3;border-radius:8px;padding:2px 6px;font-size:12px}
+  .sub{color:var(--muted);font-size:13px}
+  .hint{color:var(--muted);font-size:12px}
+  .ok{color:var(--ok)} .err{color:var(--err)}
+  .dropzone{border:2px dashed #9dc6f0;border-radius:12px;padding:14px;text-align:center;background:#f7fbff}
+  .dropzone.drag{background:#eef6ff;border-color:#3a8ad8}
+</style>
+</head>
+<body>
+<header>
+  <h1>卡牌隨機抽選器</h1>
+  <p>支援 TXT / JSON / URL 匯入，含容錯解析、搜尋篩選、種子洗牌及歷史匯出。</p>
+</header>
+
+<div class="wrap">
+  <div class="grid">
+    <section class="panel">
+      <h2>① 讀檔/匯入</h2>
+      <div class="row">
+        <input id="file" type="file" accept=".txt,.json" />
+        <button id="btnLoadDemo" class="btn">載入示例（12 行）</button>
+        <button id="btnImportText" class="btn primary">匯入貼上內容</button>
+      </div>
+      <div id="drop" class="dropzone">拖放 .txt 或 .json 到這裡也可以</div>
+      <div class="row">
+        <textarea id="raw" placeholder="可貼 TXT（每行一張）或 JSON（陣列或 {cards:[]}）。也可用 ?src=cards.json 自動載入。"></textarea>
+      </div>
+      <div class="row">
+        <input id="srcUrl" type="text" placeholder="https://你的站點/cards.json 或 cards.txt" style="flex:1" />
+        <button id="btnFetchUrl" class="btn">從 URL 載入</button>
+      </div>
+      <div id="importMsg" class="hint"></div>
+      <details style="margin-top:8px">
+        <summary>JSON / TXT 格式說明</summary>
+        <div class="hint">
+          <p><b>TXT</b>：每行 1 張卡，例如：<br>
+          <code>S001 - Speed 5 - [Take] [Help] CIRCUIT: Gain 1... - MASK: Set 2...</code></p>
+          <p><b>JSON（兩種皆可）</b>：</p>
+<pre>[
+  {"id":"S001","speed":5,"skills":["Take","Help"],
+   "element":"CIRCUIT","elementText":"Gain 1 point per tied skill type.",
+   "gear":"MASK","gearText":"Set 2 dice to match 1 or 2 opposing dice."}
+]</pre>
+<pre>{
+  "cards":[ { "id":"S001", ... }, { ... } ]
+}</pre>
+          <p>必要欄位：<code>id</code>、<code>speed</code>、<code>skills[]</code>、<code>element</code>、<code>elementText</code>、<code>gear</code>、<code>gearText</code></p>
+        </div>
+      </details>
+      <hr>
+      <h2>② 抽牌控制</h2>
+      <div class="kpis">
+        <div class="kpi"><b>牌庫</b>：<span id="deckCount">0</span></div>
+        <div class="kpi"><b>剩餘</b>：<span id="remainCount">0</span></div>
+        <div class="kpi"><b>已抽</b>：<span id="drawnCount">0</span></div>
+      </div>
+      <div class="row">
+        <button id="btnShuffle" class="btn">洗牌</button>
+        <button id="btnReset" class="btn ghost">重置（放回）</button>
+        <label class="pill"><input id="noReplace" type="checkbox" checked> 不放回抽牌</label>
+      </div>
+      <div class="row">
+        <button id="btnDraw1" class="btn primary">抽 1 張</button>
+        <input id="drawN" type="number" min="1" value="5">
+        <button id="btnDrawN" class="btn">抽 N 張</button>
+      </div>
+      <details>
+        <summary>進階：種子洗牌（可重現）</summary>
+        <div class="row">
+          <input id="seed" type="text" placeholder="例如: zack-seed">
+          <button id="btnSeedShuffle" class="btn">種子洗牌</button>
+        </div>
+      </details>
+    </section>
+
+    <section class="panel">
+      <h2>搜尋 / 篩選 / 匯出</h2>
+      <div class="row">
+        <input id="q" type="search" placeholder="關鍵字（ID/元素/裝備/效果片語）">
+        <select id="speedSel">
+          <option value="">Speed（全部）</option>
+          <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+          <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+        </select>
+        <select id="skillSel">
+          <option value="">技能（全部）</option>
+          <option>Take</option><option>Help</option><option>Engage</option><option>Move</option><option>Look</option><option>Overpower</option>
+        </select>
+        <select id="elemSel">
+          <option value="">元素（全部）</option>
+          <option>CIRCUIT</option><option>WIND</option><option>ENERGY</option><option>FIRE</option><option>GOLD</option><option>SINEW</option>
+          <option>METAL</option><option>SAND</option><option>STONE</option><option>LEAF</option><option>WATER</option><option>WOOD</option>
+        </select>
+        <select id="gearSel">
+          <option value="">裝備（全部）</option>
+          <option>MASK</option><option>HORN</option><option>GAUNTLET</option><option>SCEPTER</option><option>HELM</option><option>HARNESS</option>
+          <option>CLOAK</option><option>TOME</option><option>DODECAHEDRON</option><option>MANTLE</option><option>BLADE</option><option>TOOLS</option>
+        </select>
+        <button id="btnFilter" class="btn">套用</button>
+        <button id="btnClearFilter" class="btn ghost">清除</button>
+      </div>
+      <div class="row">
+        <button id="btnExportCSV" class="btn">匯出歷史 CSV</button>
+        <button id="btnCopyHistory" class="btn">複製歷史（文字）</button>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel" style="margin-top:16px">
+    <h2>最新抽到</h2>
+    <div id="last" class="card sub">尚未抽牌</div>
+  </section>
+
+  <section class="panel" style="margin-top:16px">
+    <h2>抽卡歷史</h2>
+    <div id="history" class="list"></div>
+    <div class="hint">提示：點卡片可複製原始描述。</div>
+  </section>
+
+  <section class="panel" style="margin-top:16px">
+    <h2>目前牌庫（可被篩選）</h2>
+    <div id="deckView" class="list"></div>
+  </section>
+</div>
+
+<script>
+/* ================== 資料/狀態 ================== */
+const ELEMENTS=["CIRCUIT","WIND","ENERGY","FIRE","GOLD","SINEW","METAL","SAND","STONE","LEAF","WATER","WOOD"];
+const GEARS=["MASK","HORN","GAUNTLET","SCEPTER","HELM","HARNESS","CLOAK","TOME","DODECAHEDRON","MANTLE","BLADE","TOOLS"];
+let FULL=[],DECK=[],DRAWN=[],RNG=Math.random;
+
+/* ================== DOM 快捷 ================== */
+const $=id=>document.getElementById(id);
+const deckCountEl=$("deckCount"),remainCountEl=$("remainCount"),drawnCountEl=$("drawnCount");
+const deckView=$("deckView"),historyView=$("history"),lastView=$("last"),importMsg=$("importMsg");
+
+/* ================== 工具/通用 ================== */
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function toast(msg,cls="ok"){importMsg.innerHTML=`<span class="${cls}">●</span> ${msg}`; setTimeout(()=>importMsg.textContent="",2500)}
+function mulberry32(a){return function(){let t=a+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,61);return ((t^t>>>14)>>>0)/4294967296}}
+function strSeedToInt(s){let h=2166136261>>>0;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function shuffleInPlace(a,rng=Math.random){for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+/* ================== 容錯清理 ================== */
+function sanitizeText(txt){
+  // 去 BOM
+  if (txt && txt.charCodeAt(0)===0xFEFF) txt = txt.slice(1);
+  // "dice pair.HORN:" -> "dice pair. - HORN:"
+  txt = txt.replace(/(\bpair)\.(\s*)(HORN:)/gi, '$1. - $3');
+  // ") -GEAR:" -> ") - GEAR:"
+  txt = txt.replace(/\)\s*-\s*(SCEPTER|MASK|HORN|GAUNTLET|HELM|HARNESS|CLOAK|TOME|DODECAHEDRON|MANTLE|BLADE|TOOLS):/g, ') - $1:');
+  // "fore" → "for"（少見）
+  txt = txt.replace(/\bfore\b/g, 'for');
+  return txt;
+}
+
+/* ================== 解析器 ================== */
+function parseLine(line){
+  const idMatch=line.match(/^S(\d{3})/i);
+  const speedMatch=line.match(/Speed\s+(\d{1,2})/i);
+  if(!idMatch||!speedMatch) return null;
+  const skills=Array.from(line.matchAll(/\[([^\]]+)\]/g)).map(m=>m[1].trim());
+
+  let elemName=null,elemIdx=-1;
+  for(const e of ELEMENTS){const idx=line.indexOf(e+":");if(idx!==-1&&(elemIdx===-1||idx<elemIdx)){elemIdx=idx;elemName=e}}
+  if(elemIdx===-1) return null;
+
+  let gearName=null,gearIdx=-1;
+  for(const g of GEARS){const idx=line.lastIndexOf(g+":");if(idx>gearIdx){gearIdx=idx;gearName=g}}
+  if(gearIdx===-1) return null;
+
+  const elemText=line.slice(elemIdx+(elemName.length+1),gearIdx).replace(/^\s*-\s*/,"").trim();
+  const gearText=line.slice(gearIdx+(gearName.length+1)).trim();
+
+  return {id:"S"+idMatch[1],speed:Number(speedMatch[1]),skills,element:elemName,elementText:elemText,gear:gearName,gearText:gearText,raw:line.trim()};
+}
+function parseTXT(text){
+  text = sanitizeText(text);
+  const lines=text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  const cards=[],errs=[];
+  lines.forEach((ln,i)=>{const c=parseLine(ln); c?cards.push(c):errs.push({line:i+1,text:ln})});
+  return {cards,errs};
+}
+function normalizeCard(o){
+  const need=["id","speed","skills","element","elementText","gear","gearText"];
+  for(const k of need){ if(o[k]===undefined||o[k]===null) return null; }
+  if(!Array.isArray(o.skills)) return null;
+  return {
+    id:String(o.id).toUpperCase(),
+    speed:Number(o.speed),
+    skills:o.skills.map(s=>String(s)),
+    element:String(o.element).toUpperCase(),
+    elementText:String(o.elementText),
+    gear:String(o.gear).toUpperCase(),
+    gearText:String(o.gearText),
+    raw:o.raw?String(o.raw):`${o.id} - Speed ${o.speed} - [${o.skills.join("] [")}] ${o.element}: ${o.elementText} - ${o.gear}: ${o.gearText}`
+  };
+}
+function parseJSON(text){
+  const clean = sanitizeText(text);
+  let data = JSON.parse(clean);
+  if (Array.isArray(data)){} else if (data && Array.isArray(data.cards)){ data = data.cards; } else { throw new Error("JSON 格式需為陣列或含 cards 陣列的物件"); }
+  const out=[]; for(const o of data){ const c=normalizeCard(o); if(!c) throw new Error("JSON 物件缺必要欄位或型別錯誤"); out.push(c); }
+  return out;
+}
+
+/* ================== Render ================== */
+function renderCard(c,copyable=false){
+  const el=document.createElement("div"); el.className="card";
+  el.innerHTML=`<h3>${c.id} · Speed ${c.speed}</h3>
+  <div class="sub">${c.skills.map(s=>`<span class="tag">${s}</span>`).join(" ")}</div>
+  <div style="margin-top:6px"><span class="pill">${c.element}</span> ${escapeHtml(c.elementText)}</div>
+  <div style="margin-top:4px"><span class="pill">${c.gear}</span> ${escapeHtml(c.gearText)}</div>
+  <div class="hint" style="margin-top:6px">${escapeHtml(c.raw)}</div>`;
+  if(copyable){ el.style.cursor="copy"; el.title="點擊複製原始描述"; el.onclick=()=>navigator.clipboard.writeText(c.raw); }
+  return el;
+}
+function renderDeck(list){ deckView.innerHTML=""; list.forEach(c=>deckView.appendChild(renderCard(c,false))); }
+function renderHistory(){ historyView.innerHTML=""; DRAWN.slice().reverse().forEach(c=>historyView.appendChild(renderCard(c,true))); }
+function setLast(c){ lastView.innerHTML=""; lastView.appendChild(renderCard(c,false)); }
+function refreshStats(){ deckCountEl.textContent=FULL.length; remainCountEl.textContent=DECK.length; drawnCountEl.textContent=DRAWN.length; }
+
+/* ================== Deck 操作 ================== */
+function resetDeck(keepOrder=false){ DECK=FULL.slice(); if(!keepOrder) shuffleInPlace(DECK,RNG); DRAWN=[]; renderDeck(DECK); renderHistory(); lastView.textContent="尚未抽牌"; refreshStats(); }
+async function ensureDeckReady(){
+  if (DECK && DECK.length) return true;
+
+  // 先嘗試從文字框自動匯入
+  const rawEl=$("raw"); const text=(rawEl?.value||"").trim();
+  if(text){
+    try{
+      try{ const cards=parseJSON(text); FULL=cards; RNG=Math.random; resetDeck(false); toast(`已從 JSON 匯入 ${cards.length} 張（自動）`); return true; }
+      catch{ const {cards,errs}=parseTXT(text); if(cards.length){ FULL=cards; RNG=Math.random; resetDeck(false); toast(`已從 TXT 匯入 ${cards.length} 張（自動）${errs.length?`，未解析 ${errs.length} 行`:''}`); return true; } }
+    }catch(e){ importMsg.textContent="❌ 自動匯入失敗："+e.message; }
+  }
+
+  // 再嘗試已選檔案
+  const fEl=$("file"); if(fEl && fEl.files && fEl.files[0]){ await handleFile(fEl.files[0], /*silent*/true); return (DECK&&DECK.length)|| (FULL&&FULL.length); }
+  return false;
+}
+async function drawOne(){
+  const ok = await ensureDeckReady();
+  if(!ok){ alert("沒有可抽的牌庫：請匯入 TXT/JSON 或貼上內容後匯入。"); return; }
+  if(DECK.length===0){ alert("牌庫已空"); return; }
+  const noReplace=$("noReplace").checked;
+  const idx=Math.floor(RNG()*DECK.length);
+  const card=DECK[idx];
+  if(noReplace) DECK.splice(idx,1);
+  DRAWN.push(card); setLast(card); renderHistory(); renderDeck(DECK); refreshStats();
+}
+function drawN(n){ for(let i=0;i<n;i++){ if(DECK.length===0) break; drawOne(); } }
+
+/* ================== 讀檔/URL ================== */
+async function handleFile(file, silent=false){
+  try{
+    let text=await file.text();
+    if(file.name.toLowerCase().endsWith(".json")){
+      const cards=parseJSON(text); FULL=cards; RNG=Math.random; resetDeck(false);
+      if(!silent) toast(`已從 JSON 匯入 ${cards.length} 張`);
+    }else{
+      const {cards,errs}=parseTXT(text);
+      if(!cards.length) throw new Error("TXT 解析失敗：請檢查格式（需包含 Sxxx / Speed / [技能] / 元素: / 裝備:）");
+      FULL=cards; RNG=Math.random; resetDeck(false);
+      if(!silent) toast(`已從 TXT 匯入 ${cards.length} 張${errs.length?`（未解析 ${errs.length} 行）`:``}`);
+    }
+  }catch(e){ importMsg.innerHTML=`<span class="err">✖</span> ${e.message}`; }
+}
+async function fetchFromUrl(url){
+  try{
+    const res = await fetch(url, {cache:"no-store"});
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const ct = (res.headers.get("content-type")||"").toLowerCase();
+    const text = await res.text();
+    if(ct.includes("application/json") || url.toLowerCase().endsWith(".json")){
+      const cards = parseJSON(text);
+      FULL=cards; RNG=Math.random; resetDeck(false);
+      toast(`已從 URL(JSON) 匯入 ${cards.length} 張`);
+    }else{
+      const {cards,errs}=parseTXT(text);
+      if(!cards.length) throw new Error("TXT 解析失敗（URL）");
+      FULL=cards; RNG=Math.random; resetDeck(false);
+      toast(`已從 URL(TXT) 匯入 ${cards.length} 張${errs.length?`（未解析 ${errs.length} 行）`:``}`);
+    }
+  }catch(e){
+    importMsg.innerHTML=`<span class="err">✖</span> 讀取 URL 失敗：${escapeHtml(e.message)}（若在本機 file:// 打開，瀏覽器可能禁止跨來源，請部署到靜態主機）`;
+  }
+}
+
+/* ================== 篩選/匯出 ================== */
+function applyFilters(){
+  const q=$("q").value.trim().toLowerCase();
+  const s=$("speedSel").value, skill=$("skillSel").value, el=$("elemSel").value, g=$("gearSel").value;
+  DECK=FULL.filter(c=>{
+    if(s && c.speed!==Number(s)) return false;
+    if(skill && !c.skills.includes(skill)) return false;
+    if(el && c.element!==el) return false;
+    if(g && c.gear!==g) return false;
+    if(q){
+      const hay=(c.id+" "+c.speed+" "+c.skills.join(" ")+" "+c.element+" "+c.elementText+" "+c.gear+" "+c.gearText+" "+c.raw).toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  renderDeck(DECK); refreshStats();
+}
+function exportCSV(){
+  const rows=[["ID","Speed","Skills","Element","ElementText","Gear","GearText","Raw"]];
+  for(const c of DRAWN){ rows.push([c.id,c.speed,c.skills.join(" / "),c.element,c.elementText,c.gear,c.gearText,c.raw]); }
+  const csv=rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(",")).join("\n");
+  const blob=new Blob([csv],{type:"text/csv;charset=utf-8"}); const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download="draw_history.csv"; a.click(); URL.revokeObjectURL(a.href);
+}
+
+/* ================== 綁定事件 ================== */
+$("btnImportText").onclick=()=>{
+  const raw=$("raw").value.trim(); if(!raw){ toast("沒有內容","err"); return; }
+  try{
+    const cards=parseJSON(raw); FULL=cards; RNG=Math.random; resetDeck(false); toast(`已從 JSON 匯入 ${cards.length} 張`);
+  }catch(_){
+    const {cards,errs}=parseTXT(raw);
+    if(!cards.length){ importMsg.innerHTML=`<span class="err">✖</span> 無法解析：不是有效 JSON，也不是可辨識 TXT`; return; }
+    FULL=cards; RNG=Math.random; resetDeck(false); toast(`已從 TXT 匯入 ${cards.length} 張${errs.length?`（未解析 ${errs.length} 行）`:``}`);
+  }
+};
+$("file").addEventListener("change",e=>{ const f=e.target.files?.[0]; if(f) handleFile(f); });
+const drop=$("drop");
+["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev,e=>{ e.preventDefault(); drop.classList.add("drag"); }));
+["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{ e.preventDefault(); drop.classList.remove("drag"); }));
+drop.addEventListener("drop",e=>{ const f=e.dataTransfer.files?.[0]; if(f) handleFile(f); });
+
+$("btnShuffle").onclick=()=>{ shuffleInPlace(DECK,RNG); renderDeck(DECK); toast("已洗牌") };
+$("btnSeedShuffle").onclick=()=>{ const s=$("seed").value.trim(); if(!s){alert("請輸入種子字串");return;} RNG=mulberry32(strSeedToInt(s)); resetDeck(false); toast("以種子洗牌（可重現）") };
+$("btnReset").onclick=()=>resetDeck(false);
+$("btnDraw1").onclick=()=>drawOne();
+$("btnDrawN").onclick=()=>drawN(Math.max(1,Number($("drawN").value||1)));
+
+$("btnFilter").onclick=applyFilters;
+$("btnClearFilter").onclick=()=>{ $("q").value=""; $("speedSel").value=""; $("skillSel").value=""; $("elemSel").value=""; $("gearSel").value=""; applyFilters(); };
+
+$("btnExportCSV").onclick=exportCSV;
+$("btnCopyHistory").onclick=()=>{ const text=DRAWN.map(c=>`${c.id} - Speed ${c.speed} - [${c.skills.join("] [")}] ${c.element}: ${c.elementText} - ${c.gear}: ${c.gearText}`).join("\n"); navigator.clipboard.writeText(text); toast("已複製歷史") };
+
+$("btnLoadDemo").onclick=()=>{ $("raw").value = `S001 - Speed 5 - [Take] [Help] CIRCUIT: Gain 1 point per tied skill type. - MASK: Set 2 dice to match 1 or 2 opposing dice.
+S014 - Speed 11 - [Engage] [Move] - WIND: Gain 1 point per [Move] skill. - HORN: Reroll each unmatching die until it matches a skill type you have.
+S048 - Speed 9 - [Move] [Look] - WOOD: Gain 1 point per different skill quantity (1+).- SCEPTER: Reroll 1 die, then set 1 die to match its skill type.
+S059 - Speed 4 - [Engage] [Overpower] - WATER: Gain +1 point per skill type you win. - HELM: Exchange 1 die for 1 opposing die. You may reroll the die you gain.
+S066 - Speed 2 - [Take] [Overpower] - SINEW: Gain 1 point per skill of your best skill type. - HARNESS: Reroll up to 6 dice (all at once).
+S073 - Speed 5 - [Take] [Help] CIRCUIT: Gain 1 point per tied skill type. - CLOAK: Reroll up to 2 dice, concealing them until final scoring.
+S089 - Speed 1 - [Help] [Engage] - GOLD: Gain 1 point per dice pair. - TOME: You may reroll each die once; choose the new or old result.
+S099 - Speed 10 - [Move] [Look] - ENERGY: Gain 1 point per skill of opponent's best type. - DODECAHEDRON: Reroll 1 of each player's dice. Choose 1 for each player to gain.
+S112 - Speed 6 - [Overpower] [Take] - FIRE: Gain 1 point per skill type you don't have. - MANTLE: Give 1 die to opponent, then set X dice (X is opponent's best skill type).
+S121 - Speed 5 - [Take] [Help] CIRCUIT: Gain 1 point per tied skill type. - BLADE: Cut the opposing dice into 2 groups; they choose 1 group to reroll.
+S136 - Speed 6 - [Overpower] [Take] - FIRE: Gain 1 point per skill type you don't have. - TOOLS: Set up to 3 dice to different faces (each unique).
+S144 - Speed 9 - [Move] [Look] - WOOD: Gain 1 point per different skill quantity (1+). - TOOLS: Set up to 3 dice to different faces (each unique).`; };
+
+$("btnFetchUrl").onclick=()=>{ const u=$("srcUrl").value.trim(); if(!u){alert("請輸入 URL");return;} fetchFromUrl(u); };
+
+/* ================== 全域錯誤攔截 ================== */
+window.addEventListener('error', e=>{ importMsg.innerHTML='❌ 執行錯誤：'+(e?.message||'未知錯誤'); });
+window.addEventListener('unhandledrejection', e=>{ importMsg.innerHTML='❌ Promise 錯誤：'+(e?.reason||'未知錯誤'); });
+
+/* ================== 啟動：支援 ?src= 參數 ================== */
+(function initFromQuery(){
+  const url=new URL(location.href);
+  const src=url.searchParams.get("src");
+  if(src){ $("srcUrl").value=src; fetchFromUrl(src); }
+})();
+</script>
+</body>
+</html>
