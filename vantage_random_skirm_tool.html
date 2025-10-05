@@ -27,27 +27,36 @@
   .excluded-item{display:flex;align-items:center;gap:8px;border:1px dashed #cfe2f3;border-radius:8px;padding:6px 8px;margin:6px 0;background:#f8fbff}
   .xbtn{margin-left:auto;border:1px solid #e4eaf2;border-radius:6px;background:#fff;cursor:pointer;padding:2px 6px}
   .row{display:flex;gap:8px;align-items:center}
+  /* 全域狀態列 */
+  .statusbar{max-width:900px;margin:0 auto;padding:0 16px}
+  .statusbar .panel{margin-top:0}
 </style>
 </head>
 <body>
 <header>
-  <h1>Vantage Skirm Card Pool</h1>
-  <p>Import TXT/JSON via GitHub URL. Excluded cards appear in Draw History.</p>
+  <h1>Vantage_Skirm_Card_Pool</h1>
+  <p>Card list auto-imports on load. Excluded cards show up in Draw History.</p>
 </header>
 
+<!-- 全域訊息列（沿用 importMsg 供 toast/錯誤顯示） -->
+<div class="statusbar">
+  <div class="panel"><div id="importMsg" class="hint"></div></div>
+</div>
+
 <div class="wrap">
-  <!-- 1) Import from URL -->
+  <!-- (A) Mark previously drawn (Exclude) -->
   <section class="panel">
-    <h2>Import from GitHub URL</h2>
-    <div class="hint">Use the <b>raw</b> link (e.g. <code>https://raw.githubusercontent.com/user/repo/branch/cards.txt</code>)</div>
-    <div class="row" style="margin-top:8px">
-      <input id="srcUrl" type="text" placeholder="Paste a raw GitHub URL of TXT or JSON">
-      <button id="btnFetchUrl" class="btn primary">Load from URL</button>
+    <h2>Mark Previously Drawn (Exclude)</h2>
+    <div class="mini">Enter card IDs; separate with commas or spaces, e.g. <code>S002, S006 S014</code></div>
+    <div style="margin-top:8px;display:flex;gap:8px">
+      <input id="excludeInput" type="text" placeholder="S002, S006, S014...">
+      <button id="btnExclude" class="btn">Add to Exclusions</button>
+      <button id="btnClearExcluded" class="btn">Clear Exclusions</button>
     </div>
-    <div id="importMsg" class="hint" style="margin-top:6px"></div>
+    <div id="excludedList" style="margin-top:8px"></div>
   </section>
 
-  <!-- 2) Draw controls -->
+  <!-- (B) Draw controls -->
   <section class="panel">
     <h2>Draw Controls</h2>
     <div>
@@ -62,19 +71,7 @@
     </div>
   </section>
 
-  <!-- 3) Mark previously drawn (exclude) -->
-  <section class="panel">
-    <h2>Mark Previously Drawn (Exclude)</h2>
-    <div class="mini">Enter card IDs; separate with commas or spaces, e.g. <code>S002, S006 S014</code></div>
-    <div style="margin-top:8px;display:flex;gap:8px">
-      <input id="excludeInput" type="text" placeholder="S002, S006, S014...">
-      <button id="btnExclude" class="btn">Add to Exclusions</button>
-      <button id="btnClearExcluded" class="btn">Clear Exclusions</button>
-    </div>
-    <div id="excludedList" style="margin-top:8px"></div>
-  </section>
-
-  <!-- 4) Views -->
+  <!-- (C) Views -->
   <section class="panel">
     <h2>Latest Draw</h2>
     <div id="last" class="card hint">No card drawn yet</div>
@@ -93,6 +90,9 @@ const GEARS=["MASK","HORN","GAUNTLET","SCEPTER","HELM","HARNESS","CLOAK","TOME",
 let FULL=[],DECK=[],DRAWN=[];
 const EXCLUDED=new Set(); // excluded IDs count as "previously drawn"
 
+// 固定資料來源（寫死），仍可用 ?src= 覆蓋
+const DEFAULT_SRC = "https://zak5325.github.io/skirm_cardlist.txt";
+
 const $=id=>document.getElementById(id);
 const deckCountEl=$("deckCount"),remainCountEl=$("remainCount"),drawnCountEl=$("drawnCount");
 const historyView=$("history"),lastView=$("last"),importMsg=$("importMsg");
@@ -100,22 +100,21 @@ const excludedListEl=$("excludedList");
 
 function toast(msg,cls="ok"){importMsg.innerHTML=`<span class="${cls}">●</span> ${msg}`;setTimeout(()=>{importMsg.textContent=""},4000);}
 
-// global error surfaces
+// 全域錯誤顯示
 window.addEventListener('error', e => { importMsg.innerHTML = `<span class="err">●</span> ${e.message||'Unknown error'}`; });
 window.addEventListener('unhandledrejection', e => { importMsg.innerHTML = `<span class="err">●</span> ${e.reason||'Promise rejected'}`; });
 
-// sanitize common data quirks
+// 清理常見資料小錯
 function sanitizeText(txt){
   if(txt && txt.charCodeAt(0)===0xFEFF) txt=txt.slice(1);                // strip BOM
   txt = txt.replace(/pair\.HORN:/g,"pair. - HORN:");                      // S017 glue
   txt = txt.replace(/\bfore each player\b/g,"for each player");           // S097-108 typo
-  // add " - " before element token if missing
   const elemPat = "(?:" + ELEMENTS.join("|") + ")";
   txt = txt.replace(new RegExp("(\\])\\s+("+elemPat+"):", "g"), "] - $2:");
   return txt;
 }
 
-// parsing
+// 解析
 function parseLine(line){
   const idMatch = line.match(/^S(\d{3})/i);
   const speedMatch = line.match(/Speed\s+(\d{1,2})/i);
@@ -135,7 +134,7 @@ function parseLine(line){
   }
   if(gearIdx === -1) return null;
 
-  // only capture [skills] before the element section (pure color tags; no emoji)
+  // 僅擷取元素區塊之前的 [skills]（只上色，不加符號）
   const skillRegion = line.slice(0, elemIdx);
   const rawSkills = Array.from(skillRegion.matchAll(/\[([^\]]+)\]/g)).map(m => m[1].trim());
 
@@ -170,10 +169,9 @@ function parseJSON(txt){
   return Array.isArray(data)?data:(data.cards||[]);
 }
 
-// render
-const GEAR_EMOJI = "⚡"; // gear resolves first
+// Render
+const GEAR_EMOJI = "⚡"; // Gear 先發動
 function renderSkills(skills){
-  // only colored chips, no emoji
   return skills.map((s)=>`<span class="tag ${s}" title="Card skill">${s}</span>`).join(" ");
 }
 function renderCard(c){
@@ -200,7 +198,7 @@ function resetDeck(){
   renderExcludedList();
 }
 
-// draw one
+// 抽牌
 function drawOne(){
   if(!DECK.length){toast("Deck is empty","err");return;}
   const idx=Math.floor(Math.random()*DECK.length);
@@ -211,7 +209,7 @@ function drawOne(){
   refreshStats();
 }
 
-// import via URL
+// 透過 URL 匯入（隱藏式，自動呼叫）
 async function fetchFromUrl(url){
   try{
     importMsg.innerHTML = "⏳ Loading…";
@@ -227,24 +225,14 @@ async function fetchFromUrl(url){
     }
     if(!cards.length) throw new Error("No cards parsed. Please check file format.");
     FULL = cards;
-    toast(`Imported ${cards.length} cards from URL`);
+    toast(`Imported ${cards.length} cards`);
     resetDeck();
   }catch(e){
-    importMsg.innerHTML = `<span class="err">●</span> Load failed: ${e.message}. If using GitHub, make sure to use a <b>raw</b> link.`;
+    importMsg.innerHTML = `<span class="err">●</span> Load failed: ${e.message}.`;
   }
 }
-$("btnFetchUrl").onclick = ()=>{
-  const url = $("srcUrl").value.trim();
-  if(!url){ toast("Please enter a URL","err"); return; }
-  fetchFromUrl(url);
-};
 
-// shuffle/reset
-$("btnShuffle").onclick=()=>{ DECK.sort(()=>Math.random()-0.5); toast("Shuffled"); };
-$("btnReset").onclick=resetDeck;
-$("btnDraw1").onclick=drawOne;
-
-// exclusions
+// Exclusions
 function normalizeIds(input){
   return input.split(/[,\s]+/).map(s=>s.trim().toUpperCase()).filter(Boolean);
 }
@@ -320,11 +308,12 @@ $("btnExclude").onclick = ()=>{
 };
 $("btnClearExcluded").onclick = clearExcluded;
 
-// auto-load if ?src= is present
-(function initFromQuery(){
-  const url=new URL(location.href);
-  const src=url.searchParams.get("src");
-  if(src){ $("srcUrl").value=src; fetchFromUrl(src); }
+// 啟動：若 URL 有 ?src= 用它；否則用 DEFAULT_SRC
+(function init(){
+  const urlObj=new URL(location.href);
+  const fromQuery=urlObj.searchParams.get("src");
+  const chosen = fromQuery || DEFAULT_SRC;
+  fetchFromUrl(chosen);
 })();
 </script>
 </body>
