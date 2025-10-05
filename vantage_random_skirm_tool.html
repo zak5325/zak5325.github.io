@@ -59,7 +59,7 @@
     </div>
   </section>
 
-  <!-- ✅ 新增：標記已抽過（排除） -->
+  <!-- 標記已抽過（排除） -->
   <section class="panel">
     <h2>標記已抽過（排除）</h2>
     <div class="mini">輸入卡牌編號，多個請用逗號或空白分隔，例如：S002, S006 S014</div>
@@ -87,16 +87,20 @@ const ELEMENTS=["CIRCUIT","WIND","ENERGY","FIRE","GOLD","SINEW","METAL","SAND","
 const GEARS=["MASK","HORN","GAUNTLET","SCEPTER","HELM","HARNESS","CLOAK","TOME","DODECAHEDRON","MANTLE","BLADE","TOOLS"];
 
 let FULL=[],DECK=[],DRAWN=[];
-const EXCLUDED=new Set(); // ✅ 被排除的 ID 集合
+const EXCLUDED=new Set(); // 被排除的 ID 集合
 
 const $=id=>document.getElementById(id);
 const deckCountEl=$("deckCount"),remainCountEl=$("remainCount"),drawnCountEl=$("drawnCount");
 const historyView=$("history"),lastView=$("last"),importMsg=$("importMsg");
 const excludedListEl=$("excludedList");
 
-function toast(msg,cls="ok"){importMsg.innerHTML=`<span class="${cls}">●</span> ${msg}`;setTimeout(()=>importMsg.textContent="",2000);}
+function toast(msg,cls="ok"){importMsg.innerHTML=`<span class="${cls}">●</span> ${msg}`;setTimeout(()=>importMsg.textContent="",3000);}
 
-// --- 輔助：清理常見小錯 ---
+// 全域錯誤提示（避免靜悄悄）
+window.addEventListener('error', e => { importMsg.innerHTML = `<span class="err">●</span> ${e.message||'未知錯誤'}`; });
+window.addEventListener('unhandledrejection', e => { importMsg.innerHTML = `<span class="err">●</span> ${e.reason||'Promise 錯誤'}`; });
+
+// --- 清理常見小錯 ---
 function sanitizeText(txt){
   if(txt && txt.charCodeAt(0)===0xFEFF) txt=txt.slice(1);          // 去 BOM
   txt = txt.replace(/pair\.HORN:/g,"pair. - HORN:");                 // S017 黏字
@@ -163,7 +167,7 @@ function parseJSON(txt){
 }
 
 // --- Render ---
-const PRIORITY_EMOJI = "⚡"; // ✅ 第二列（優先發動）標示
+const PRIORITY_EMOJI = "⚡"; // 第二列（優先發動）標示
 function renderSkills(skills){
   return skills.map((s,i)=>{
     const label = (i===1 ? `${PRIORITY_EMOJI} ${s}` : s);
@@ -184,7 +188,7 @@ function refreshStats(){
   drawnCountEl.textContent=DRAWN.length;
 }
 function resetDeck(){
-  // 用 FULL 建立新 DECK，扣掉 EXCLUDED
+  // 將 FULL 建立新 DECK，扣掉 EXCLUDED
   DECK = FULL.filter(c=>!EXCLUDED.has(c.id));
   DRAWN=[]; refreshStats();
   lastView.textContent="尚未抽牌";
@@ -206,8 +210,8 @@ function drawOne(){
 // --- 匯入 ---
 $("btnImportText").onclick=()=>{
   const raw=$("raw").value.trim(); if(!raw){ toast("無內容","err"); return; }
-  try{ FULL = parseJSON(raw); toast("JSON 匯入成功"); }
-  catch{ FULL = parseTXT(raw); if(!FULL.length){ toast("解析失敗","err"); return; } toast("TXT 匯入成功"); }
+  try{ FULL = parseJSON(raw); if(!FULL.length) throw new Error("空 JSON"); toast("JSON 匯入成功"); }
+  catch(_){ FULL = parseTXT(raw); if(!FULL.length){ toast("解析失敗","err"); return; } toast("TXT 匯入成功"); }
   resetDeck();
 };
 $("file").onchange=e=>{
@@ -282,14 +286,14 @@ function renderExcludedList(){
   });
 }
 
-// 綁定排除按鈕
-$("btnExclude").onclick=()=>{
+// 綁定排除按鈕（修正：拿掉多餘的右括號）
+$("btnExclude").onclick = ()=>{
   const ids = normalizeIds($("excludeInput").value);
   if(ids.length===0){ toast("請輸入卡牌編號","err"); return; }
   excludeByIds(ids);
   $("excludeInput").value="";
 };
-$("btnClearExcluded").onclick=clearExcluded);
+$("btnClearExcluded").onclick = clearExcluded;
 </script>
 </body>
 </html>
