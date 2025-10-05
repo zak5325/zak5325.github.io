@@ -99,7 +99,7 @@
       <button id="btnShuffle" class="btn">Shuffle</button>
       <button id="btnReset" class="btn">Reset</button>
       <button id="btnDraw1" class="btn primary">Draw 1 Card</button>
-      <button id="btnDownload" class="btn ghost" title="Download current big card as PNG">Download PNG</button>
+      <button id="btnDownload" class="btn ghost" title="Download current big card as JPG">Download JPG</button>
     </div>
   </section>
 
@@ -414,7 +414,7 @@ async function autoImport(){
 }
 document.addEventListener("DOMContentLoaded", autoImport);
 
-/* ===== PNG Download (SVG→Canvas) =====
+/* ===== JPG Download (SVG→Canvas) =====
  * 變更：整張卡面背景用 Element 色（不再使用頂部色帶）
  */
 function wrapWords(str,maxLine){const words=String(str||"").split(/\s+/);const lines=[];let cur="";for(const w of words){if((cur+w).length<=maxLine){cur+=(cur?" ":"")+w;}else{if(cur)lines.push(cur);cur=w;}}if(cur)lines.push(cur);return lines;}
