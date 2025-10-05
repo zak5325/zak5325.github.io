@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>卡牌隨機抽選器</title>
+<title>Vantage_Skirm_Card_Pool</title>
 <style>
   :root{--bg:#f7fbff;--card:#fff;--ink:#10324a;--muted:#5a7b91;--accent:#3a8ad8;--chip:#e6f2ff;--ok:#1f9d55;--err:#b00020}
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,"Noto Sans TC",sans-serif}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,sans-serif}
   header{padding:24px 16px;text-align:center}
   header h1{margin:0 0 6px}
   .wrap{max-width:900px;margin:0 auto;padding:0 16px 60px}
@@ -31,57 +31,57 @@
 </head>
 <body>
 <header>
-  <h1>卡牌隨機抽選器</h1>
-  <p>改用 GitHub 文字檔 URL 匯入；排除的卡會同步出現在「抽卡歷史」。</p>
+  <h1>Vantage_Skirm_Card_Pool</h1>
+  <p>Import TXT/JSON via GitHub URL. Excluded cards appear in Draw History.</p>
 </header>
 
 <div class="wrap">
-  <!-- 1) 從 URL 匯入 -->
+  <!-- 1) Import from URL -->
   <section class="panel">
-    <h2>從 GitHub URL 匯入卡表</h2>
-    <div class="hint">建議使用 raw 連結（例如：<code>https://raw.githubusercontent.com/用戶/倉庫/分支/cards.txt</code>）</div>
+    <h2>Import from GitHub URL</h2>
+    <div class="hint">Use the <b>raw</b> link (e.g. <code>https://raw.githubusercontent.com/user/repo/branch/cards.txt</code>)</div>
     <div class="row" style="margin-top:8px">
-      <input id="srcUrl" type="text" placeholder="貼上 TXT 或 JSON 的 raw GitHub URL">
-      <button id="btnFetchUrl" class="btn primary">從 URL 載入</button>
+      <input id="srcUrl" type="text" placeholder="Paste a raw GitHub URL of TXT or JSON">
+      <button id="btnFetchUrl" class="btn primary">Load from URL</button>
     </div>
     <div id="importMsg" class="hint" style="margin-top:6px"></div>
   </section>
 
-  <!-- 2) 抽牌控制 -->
+  <!-- 2) Draw controls -->
   <section class="panel">
-    <h2>抽牌控制</h2>
+    <h2>Draw Controls</h2>
     <div>
-      <span class="kpi">牌庫：<span id="deckCount">0</span></span>
-      <span class="kpi">剩餘：<span id="remainCount">0</span></span>
-      <span class="kpi">已抽：<span id="drawnCount">0</span></span>
+      <span class="kpi">Deck: <span id="deckCount">0</span></span>
+      <span class="kpi">Remaining: <span id="remainCount">0</span></span>
+      <span class="kpi">Drawn: <span id="drawnCount">0</span></span>
     </div>
     <div style="margin-top:10px">
-      <button id="btnShuffle" class="btn">洗牌</button>
-      <button id="btnReset" class="btn">重置</button>
-      <button id="btnDraw1" class="btn primary">抽一張</button>
+      <button id="btnShuffle" class="btn">Shuffle</button>
+      <button id="btnReset" class="btn">Reset</button>
+      <button id="btnDraw1" class="btn primary">Draw 1 Card</button>
     </div>
   </section>
 
-  <!-- 3) 標記已抽過（排除） -->
+  <!-- 3) Mark previously drawn (exclude) -->
   <section class="panel">
-    <h2>標記已抽過（排除）</h2>
-    <div class="mini">輸入卡牌編號，多個請用逗號或空白分隔，例如：S002, S006 S014</div>
+    <h2>Mark Previously Drawn (Exclude)</h2>
+    <div class="mini">Enter card IDs; separate with commas or spaces, e.g. <code>S002, S006 S014</code></div>
     <div style="margin-top:8px;display:flex;gap:8px">
       <input id="excludeInput" type="text" placeholder="S002, S006, S014...">
-      <button id="btnExclude" class="btn">加入排除</button>
-      <button id="btnClearExcluded" class="btn">清空排除</button>
+      <button id="btnExclude" class="btn">Add to Exclusions</button>
+      <button id="btnClearExcluded" class="btn">Clear Exclusions</button>
     </div>
     <div id="excludedList" style="margin-top:8px"></div>
   </section>
 
-  <!-- 4) 顯示 -->
+  <!-- 4) Views -->
   <section class="panel">
-    <h2>最新抽到</h2>
-    <div id="last" class="card hint">尚未抽牌</div>
+    <h2>Latest Draw</h2>
+    <div id="last" class="card hint">No card drawn yet</div>
   </section>
 
   <section class="panel">
-    <h2>抽卡歷史</h2>
+    <h2>Draw History</h2>
     <div id="history"></div>
   </section>
 </div>
@@ -91,7 +91,7 @@ const ELEMENTS=["CIRCUIT","WIND","ENERGY","FIRE","GOLD","SINEW","METAL","SAND","
 const GEARS=["MASK","HORN","GAUNTLET","SCEPTER","HELM","HARNESS","CLOAK","TOME","DODECAHEDRON","MANTLE","BLADE","TOOLS"];
 
 let FULL=[],DECK=[],DRAWN=[];
-const EXCLUDED=new Set(); // 被排除的 ID 集合（會視為已抽）
+const EXCLUDED=new Set(); // excluded IDs count as "previously drawn"
 
 const $=id=>document.getElementById(id);
 const deckCountEl=$("deckCount"),remainCountEl=$("remainCount"),drawnCountEl=$("drawnCount");
@@ -100,22 +100,22 @@ const excludedListEl=$("excludedList");
 
 function toast(msg,cls="ok"){importMsg.innerHTML=`<span class="${cls}">●</span> ${msg}`;setTimeout(()=>{importMsg.textContent=""},4000);}
 
-// 全域錯誤提示
-window.addEventListener('error', e => { importMsg.innerHTML = `<span class="err">●</span> ${e.message||'未知錯誤'}`; });
-window.addEventListener('unhandledrejection', e => { importMsg.innerHTML = `<span class="err">●</span> ${e.reason||'Promise 錯誤'}`; });
+// global error surfaces
+window.addEventListener('error', e => { importMsg.innerHTML = `<span class="err">●</span> ${e.message||'Unknown error'}`; });
+window.addEventListener('unhandledrejection', e => { importMsg.innerHTML = `<span class="err">●</span> ${e.reason||'Promise rejected'}`; });
 
-// --- 清理常見小錯 ---
+// sanitize common data quirks
 function sanitizeText(txt){
-  if(txt && txt.charCodeAt(0)===0xFEFF) txt=txt.slice(1);          // 去 BOM
-  txt = txt.replace(/pair\.HORN:/g,"pair. - HORN:");                 // S017 黏字
-  txt = txt.replace(/\bfore each player\b/g,"for each player");      // S097-108 fore -> for
-  // 元素前若缺 " - "：補上
+  if(txt && txt.charCodeAt(0)===0xFEFF) txt=txt.slice(1);                // strip BOM
+  txt = txt.replace(/pair\.HORN:/g,"pair. - HORN:");                      // S017 glue
+  txt = txt.replace(/\bfore each player\b/g,"for each player");           // S097-108 typo
+  // add " - " before element token if missing
   const elemPat = "(?:" + ELEMENTS.join("|") + ")";
   txt = txt.replace(new RegExp("(\\])\\s+("+elemPat+"):", "g"), "] - $2:");
   return txt;
 }
 
-// --- 解析 ---
+// parsing
 function parseLine(line){
   const idMatch = line.match(/^S(\d{3})/i);
   const speedMatch = line.match(/Speed\s+(\d{1,2})/i);
@@ -135,7 +135,7 @@ function parseLine(line){
   }
   if(gearIdx === -1) return null;
 
-  // 只在元素段「之前」擷取技能
+  // only capture [skills] before the element section (pure color tags; no emoji)
   const skillRegion = line.slice(0, elemIdx);
   const rawSkills = Array.from(skillRegion.matchAll(/\[([^\]]+)\]/g)).map(m => m[1].trim());
 
@@ -170,21 +170,19 @@ function parseJSON(txt){
   return Array.isArray(data)?data:(data.cards||[]);
 }
 
-// --- Render ---
-const PRIORITY_EMOJI = "⚡"; // 第二列（優先發動）標示
+// render
+const GEAR_EMOJI = "⚡"; // gear resolves first
 function renderSkills(skills){
-  return skills.map((s,i)=>{
-    const label = (i===1 ? `${PRIORITY_EMOJI} ${s}` : s);
-    return `<span class="tag ${s}" title="${i===1?'優先發動':'計分技能'}">${label}</span>`;
-  }).join(" ");
+  // only colored chips, no emoji
+  return skills.map((s)=>`<span class="tag ${s}" title="Card skill">${s}</span>`).join(" ");
 }
 function renderCard(c){
   const el=document.createElement("div"); el.className="card";
   el.innerHTML=`<h3>${c.id} · Speed ${c.speed}</h3>
   <div>${renderSkills(c.skills)}</div>
-  <div><span class="pill">${c.element}</span> ${c.elementText}</div>
-  <div><span class="pill">${c.gear}</span> ${c.gearText}</div>`;
-  if(c._excluded) el.innerHTML += `<div class="badge">先前已抽（排除）</div>`;
+  <div><span class="pill" title="Element · extra scoring">${c.element}</span> ${c.elementText}</div>
+  <div><span class="pill" title="Gear · resolves first">${GEAR_EMOJI} ${c.gear}</span> ${c.gearText}</div>`;
+  if(c._excluded) el.innerHTML += `<div class="badge">Previously drawn (excluded)</div>`;
   return el;
 }
 function refreshStats(){
@@ -193,21 +191,18 @@ function refreshStats(){
   drawnCountEl.textContent=DRAWN.length;
 }
 function resetDeck(){
-  // 將 FULL 建立新 DECK，扣掉 EXCLUDED
   DECK = FULL.filter(c=>!EXCLUDED.has(c.id));
-  // 從 DRAWN 中移除目前不在 EXCLUDED 且非實際抽出的「歷史（排除來源）」項
   DRAWN = DRAWN.filter(c => !c._excluded || EXCLUDED.has(c.id));
   refreshStats();
-  lastView.textContent="尚未抽牌";
+  lastView.textContent="No card drawn yet";
   historyView.innerHTML="";
-  // 重新渲染歷史
   DRAWN.forEach(c=>historyView.prepend(renderCard(c)));
   renderExcludedList();
 }
 
-// --- 抽牌 ---
+// draw one
 function drawOne(){
-  if(!DECK.length){toast("牌庫空","err");return;}
+  if(!DECK.length){toast("Deck is empty","err");return;}
   const idx=Math.floor(Math.random()*DECK.length);
   const c=DECK.splice(idx,1)[0];
   DRAWN.push(c);
@@ -216,10 +211,10 @@ function drawOne(){
   refreshStats();
 }
 
-// ========== 從 URL 匯入 ==========
+// import via URL
 async function fetchFromUrl(url){
   try{
-    importMsg.innerHTML = "⏳ 嘗試載入中…";
+    importMsg.innerHTML = "⏳ Loading…";
     const res = await fetch(url, {cache:"no-store"});
     if(!res.ok) throw new Error(`HTTP ${res.status}`);
     const ct = (res.headers.get("content-type")||"").toLowerCase();
@@ -230,26 +225,26 @@ async function fetchFromUrl(url){
     }else{
       cards = parseTXT(text);
     }
-    if(!cards.length) throw new Error("解析不到卡牌資料，請確認檔案內容格式");
+    if(!cards.length) throw new Error("No cards parsed. Please check file format.");
     FULL = cards;
-    toast(`已從 URL 匯入 ${cards.length} 張`);
+    toast(`Imported ${cards.length} cards from URL`);
     resetDeck();
   }catch(e){
-    importMsg.innerHTML = `<span class="err">●</span> 載入失敗：${e.message}（若是 GitHub，一般需使用 <b>raw</b> 連結）`;
+    importMsg.innerHTML = `<span class="err">●</span> Load failed: ${e.message}. If using GitHub, make sure to use a <b>raw</b> link.`;
   }
 }
 $("btnFetchUrl").onclick = ()=>{
   const url = $("srcUrl").value.trim();
-  if(!url){ toast("請輸入 URL","err"); return; }
+  if(!url){ toast("Please enter a URL","err"); return; }
   fetchFromUrl(url);
 };
 
-// --- 洗牌/重置 ---
-$("btnShuffle").onclick=()=>{ DECK.sort(()=>Math.random()-0.5); toast("已洗牌"); };
+// shuffle/reset
+$("btnShuffle").onclick=()=>{ DECK.sort(()=>Math.random()-0.5); toast("Shuffled"); };
 $("btnReset").onclick=resetDeck;
 $("btnDraw1").onclick=drawOne;
 
-// ================== 排除功能 ==================
+// exclusions
 function normalizeIds(input){
   return input.split(/[,\s]+/).map(s=>s.trim().toUpperCase()).filter(Boolean);
 }
@@ -257,18 +252,16 @@ function excludeByIds(ids){
   let added=0, notFound=[];
   const fullIds=new Set(FULL.map(c=>c.id));
   ids.forEach(id=>{
-    if(!/^S\d{3}$/.test(id)) return; // 格式不合跳過
+    if(!/^S\d{3}$/.test(id)) return;
     if(!fullIds.has(id)) { notFound.push(id); return; }
     if(!EXCLUDED.has(id)){
       EXCLUDED.add(id);
-      // 從牌庫移除
       const idx = DECK.findIndex(c=>c.id===id);
       if(idx>-1) DECK.splice(idx,1);
-      // 若尚未在歷史，加入一筆「先前已抽（排除）」的記錄
       if(!DRAWN.some(c=>c.id===id)){
         const base = FULL.find(c=>c.id===id);
         if(base){
-          const ghost = {...base, _excluded:true}; // 標記
+          const ghost = {...base, _excluded:true};
           DRAWN.push(ghost);
           historyView.prepend(renderCard(ghost));
         }
@@ -276,22 +269,21 @@ function excludeByIds(ids){
       added++;
     }
   });
-  if(added>0){ toast(`已排除 ${added} 張`); }
-  if(notFound.length){ importMsg.innerHTML = `<span class="err">●</span> 找不到：${notFound.join(", ")}`; }
+  if(added>0){ toast(`Excluded ${added} card(s)`); }
+  if(notFound.length){ importMsg.innerHTML = `<span class="err">●</span> Not found: ${notFound.join(", ")}`; }
   refreshStats();
   renderExcludedList();
 }
 function clearExcluded(){
-  // 從歷史中移除 _excluded 的項目
   DRAWN = DRAWN.filter(c=>!c._excluded);
   EXCLUDED.clear();
-  toast("已清空排除");
+  toast("Exclusions cleared");
   resetDeck();
 }
 function renderExcludedList(){
   excludedListEl.innerHTML="";
   if(EXCLUDED.size===0){
-    excludedListEl.innerHTML = `<div class="hint">目前沒有被排除的卡牌。</div>`;
+    excludedListEl.innerHTML = `<div class="hint">No excluded cards.</div>`;
     return;
   }
   const byId = new Map(FULL.map(c=>[c.id,c]));
@@ -300,41 +292,35 @@ function renderExcludedList(){
     const div = document.createElement("div");
     div.className = "excluded-item";
     div.innerHTML = `<strong>${id}</strong> <span class="mini">${c? `Speed ${c.speed} · ${c.skills.join(" / ")}` : ""}</span>
-                     <button class="xbtn" data-id="${id}" title="取消排除">✖</button>`;
+                     <button class="xbtn" data-id="${id}" title="Remove from exclusions">✖</button>`;
     excludedListEl.appendChild(div);
   });
-  // 綁定取消排除
   excludedListEl.querySelectorAll(".xbtn").forEach(btn=>{
     btn.onclick = ()=>{
       const id = btn.getAttribute("data-id");
       if(!EXCLUDED.has(id)) return;
       EXCLUDED.delete(id);
-      // 從歷史中移除對應的「排除來源」紀錄
       const idxHist = DRAWN.findIndex(x=>x.id===id && x._excluded);
       if(idxHist>-1) DRAWN.splice(idxHist,1);
-      // 放回牌庫（未抽出的狀態）
       const c = FULL.find(x=>x.id===id);
       if(c) DECK.push(c);
-      toast(`已取消排除 ${id}`);
+      toast(`Removed ${id} from exclusions`);
       refreshStats();
       renderExcludedList();
-      // 重新渲染歷史
       historyView.innerHTML="";
       DRAWN.forEach(x=>historyView.prepend(renderCard(x)));
     };
   });
 }
-
-// 綁定排除按鈕
 $("btnExclude").onclick = ()=>{
   const ids = normalizeIds($("excludeInput").value);
-  if(ids.length===0){ toast("請輸入卡牌編號","err"); return; }
+  if(ids.length===0){ toast("Please enter card IDs","err"); return; }
   excludeByIds(ids);
   $("excludeInput").value="";
 };
 $("btnClearExcluded").onclick = clearExcluded;
 
-// ===== 啟動：若網址有 ?src= 也自動載入 =====
+// auto-load if ?src= is present
 (function initFromQuery(){
   const url=new URL(location.href);
   const src=url.searchParams.get("src");
