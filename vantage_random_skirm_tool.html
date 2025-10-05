@@ -78,14 +78,53 @@ const deckView=$("deckView"),historyView=$("history"),lastView=$("last"),importM
 function toast(msg,cls="ok"){importMsg.innerHTML=`<span class="${cls}">●</span> ${msg}`;setTimeout(()=>importMsg.textContent="",2000);}
 function sanitizeText(txt){if(txt.charCodeAt(0)===0xFEFF)txt=txt.slice(1);txt=txt.replace(/pair\.HORN:/g,"pair. - HORN:");return txt;}
 function parseLine(line){
-  const id=line.match(/^S\d{3}/i);const sp=line.match(/Speed\s+(\d{1,2})/i);
-  if(!id||!sp)return null;
-  const skills=Array.from(line.matchAll(/\[([^\]]+)\]/g)).map(x=>x[1]);
-  let elem=ELEMENTS.find(e=>line.includes(e+":"))||"",gear=GEARS.find(g=>line.includes(g+":"))||"";
-  if(!elem||!gear)return null;
-  const elemText=line.split(elem+":")[1].split(gear+":")[0].replace(/^-|-/,"").trim();
-  const gearText=line.split(gear+":")[1].trim();
-  return {id:id[0],speed:+sp[1],skills,element:elem,elementText:elemText,gear:gear,gearText:gearText,raw:line.trim()};
+  const idMatch = line.match(/^S(\d{3})/i);
+  const speedMatch = line.match(/Speed\s+(\d{1,2})/i);
+  if(!idMatch || !speedMatch) return null;
+
+  // 先找元素與裝備位置
+  const ELEMENTS = ["CIRCUIT","WIND","ENERGY","FIRE","GOLD","SINEW","METAL","SAND","STONE","LEAF","WATER","WOOD"];
+  const GEARS = ["MASK","HORN","GAUNTLET","SCEPTER","HELM","HARNESS","CLOAK","TOME","DODECAHEDRON","MANTLE","BLADE","TOOLS"];
+
+  let elemName = null, elemIdx = -1;
+  for(const e of ELEMENTS){
+    const idx = line.indexOf(e + ":");
+    if(idx !== -1 && (elemIdx === -1 || idx < elemIdx)){ elemIdx = idx; elemName = e; }
+  }
+  if(elemIdx === -1) return null;
+
+  let gearName = null, gearIdx = -1;
+  for(const g of GEARS){
+    const idx = line.lastIndexOf(g + ":");
+    if(idx > gearIdx){ gearIdx = idx; gearName = g; }
+  }
+  if(gearIdx === -1) return null;
+
+  // ✅ 只在元素段「之前」擷取技能，避免撈到元素敘述裡的 [Move]
+  const skillRegion = line.slice(0, elemIdx);
+  const rawSkills = Array.from(skillRegion.matchAll(/\[([^\]]+)\]/g)).map(m => m[1].trim());
+
+  // 正規化 + 過濾 + 去重（只允許 6 種技能）
+  const SKILL_SET = new Set(["Move","Look","Engage","Help","Take","Overpower"]);
+  const skills = Array.from(new Set(
+    rawSkills.map(s => s[0].toUpperCase() + s.slice(1).toLowerCase()) // 轉成首字大寫
+             .filter(s => SKILL_SET.has(s))
+  ));
+
+  // 元素/裝備文字
+  const elementText = line.slice(elemIdx + (elemName.length + 1), gearIdx).replace(/^\s*-\s*/,'').trim();
+  const gearText = line.slice(gearIdx + (gearName.length + 1)).trim();
+
+  return {
+    id: "S" + idMatch[1],
+    speed: Number(speedMatch[1]),
+    skills,
+    element: elemName,
+    elementText,
+    gear: gearName,
+    gearText,
+    raw: line.trim()
+  };
 }
 function parseTXT(txt){txt=sanitizeText(txt);const lines=txt.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
   const cards=[];for(const ln of lines){const c=parseLine(ln);if(c)cards.push(c);}return cards;}
