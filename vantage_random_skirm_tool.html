@@ -467,18 +467,51 @@ function buildCardSVG(card){
   ${excludedBadge}
 </svg>`;
 }
+//function downloadCurrentBigCard(){
+//  if(!CURRENT_BIG_CARD){console.warn("No card");return;}
+//  const svgText=buildCardSVG(CURRENT_BIG_CARD);
+//  const svgBlob=new Blob([svgText],{type:"image/svg+xml"});
+//  const url=URL.createObjectURL(svgBlob);
+//  const img=new Image();
+//  img.onload=()=>{
+//    const canvas=document.createElement("canvas"); canvas.width=img.width; canvas.height=img.height;
+//    const ctx=canvas.getContext("2d"); ctx.drawImage(img,0,0); URL.revokeObjectURL(url);
+//    const png=canvas.toDataURL("image/png"); const a=document.createElement("a"); a.href=png; a.download=`${CURRENT_BIG_CARD.id}.png`; document.body.appendChild(a); a.click(); a.remove();
+//  };
+//  img.src=url;
+//}
+// 取代原本的 downloadCurrentBigCard()
 function downloadCurrentBigCard(){
-  if(!CURRENT_BIG_CARD){console.warn("No card");return;}
-  const svgText=buildCardSVG(CURRENT_BIG_CARD);
-  const svgBlob=new Blob([svgText],{type:"image/svg+xml"});
-  const url=URL.createObjectURL(svgBlob);
-  const img=new Image();
-  img.onload=()=>{
-    const canvas=document.createElement("canvas"); canvas.width=img.width; canvas.height=img.height;
-    const ctx=canvas.getContext("2d"); ctx.drawImage(img,0,0); URL.revokeObjectURL(url);
-    const png=canvas.toDataURL("image/png"); const a=document.createElement("a"); a.href=png; a.download=`${CURRENT_BIG_CARD.id}.png`; document.body.appendChild(a); a.click(); a.remove();
+  if(!CURRENT_BIG_CARD){ console.warn("No card"); return; }
+
+  const svgText = buildCardSVG(CURRENT_BIG_CARD);
+  const svgBlob = new Blob([svgText], { type: "image/svg+xml" });
+  const url = URL.createObjectURL(svgBlob);
+
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = img.width;
+    canvas.height = img.height;
+
+    const ctx = canvas.getContext("2d");
+    // SVG 已畫滿背景色；若你未來改成透明背景，可在這裡先鋪底色：
+    // ctx.fillStyle = "#ffffff"; ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    ctx.drawImage(img, 0, 0);
+    URL.revokeObjectURL(url);
+
+    // 轉成 JPG；第二個參數是品質(0~1)，建議 0.92~0.98
+    const jpgDataUrl = canvas.toDataURL("image/jpeg", 0.95);
+
+    const a = document.createElement("a");
+    a.href = jpgDataUrl;
+    a.download = `${CURRENT_BIG_CARD.id}.jpg`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   };
-  img.src=url;
+  img.src = url;
 }
 $("btnDownload").onclick=downloadCurrentBigCard;
 </script>
