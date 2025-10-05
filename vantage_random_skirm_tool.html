@@ -180,18 +180,33 @@ function renderCard(c){
   if(c._excluded) el.innerHTML += `<div class="badge">Previously drawn (excluded)</div>`;
   return el;
 }
+
+// ===== Modified: stats show only actually drawn (non-excluded) =====
 function refreshStats(){
-  deckCountEl.textContent=FULL.length;
-  remainCountEl.textContent=DECK.length;
-  drawnCountEl.textContent=DRAWN.length;
+  const drawnActual = DRAWN.filter(c => !c._excluded).length;
+  deckCountEl.textContent = FULL.length;
+  remainCountEl.textContent = DECK.length;
+  drawnCountEl.textContent = drawnActual;
 }
+
+// ===== Modified Reset behavior =====
+// After reset: history cleared and rebuilt with excluded ghosts only; Drew resets to 0
 function resetDeck(){
-  DECK = FULL.filter(c=>!EXCLUDED.has(c.id));
-  DRAWN = DRAWN.filter(c => !c._excluded || EXCLUDED.has(c.id));
+  // Deck = FULL minus excluded
+  DECK = FULL.filter(c => !EXCLUDED.has(c.id));
+
+  // DRAWN = rebuild with excluded ghosts only (no actual draws kept)
+  const byId = new Map(FULL.map(c => [c.id, c]));
+  DRAWN = Array.from(EXCLUDED)
+    .map(id => byId.get(id))
+    .filter(Boolean)
+    .map(c => ({ ...c, _excluded: true }));
+
+  // UI refresh
   refreshStats();
-  lastView.textContent="No card drawn yet";
-  historyView.innerHTML="";
-  DRAWN.forEach(c=>historyView.prepend(renderCard(c)));
+  lastView.textContent = "No card drawn yet";
+  historyView.innerHTML = "";
+  DRAWN.forEach(c => historyView.prepend(renderCard(c)));
   renderExcludedList();
 }
 
@@ -240,6 +255,7 @@ function excludeByIds(ids){
   renderExcludedList();
 }
 function clearExcluded(){
+  // remove ghost records from history, clear EXCLUDED, rebuild deck+history
   DRAWN = DRAWN.filter(c=>!c._excluded);
   EXCLUDED.clear();
   toast("Exclusions cleared");
@@ -265,13 +281,16 @@ function renderExcludedList(){
       const id = btn.getAttribute("data-id");
       if(!EXCLUDED.has(id)) return;
       EXCLUDED.delete(id);
+      // remove ghost from DRAWN
       const idxHist = DRAWN.findIndex(x=>x.id===id && x._excluded);
       if(idxHist>-1) DRAWN.splice(idxHist,1);
+      // put back to deck if exists
       const c = FULL.find(x=>x.id===id);
       if(c) DECK.push(c);
       toast(`Removed ${id} from exclusions`);
       refreshStats();
       renderExcludedList();
+      // rerender history (only ghosts preserved)
       historyView.innerHTML="";
       DRAWN.forEach(x=>historyView.prepend(renderCard(x)));
     };
@@ -291,17 +310,14 @@ function buildRawFromPages(urlStr){
   try{
     const u=new URL(urlStr);
     if(!u.hostname.endsWith("github.io")) return null;
-    // e.g. https://USER.github.io/path/file.txt  -> repo: USER/USER.github.io
     const user = u.hostname.split(".")[0];
     const repo = `${user}.github.io`;
-    const path = u.pathname.replace(/^\/+/,""); // "skirm_cardlist.txt"
-    // try main then master
+    const path = u.pathname.replace(/^\/+/,"");
     const rawMain = `https://raw.githubusercontent.com/${user}/${repo}/main/${path}`;
     const rawMaster = `https://raw.githubusercontent.com/${user}/${repo}/master/${path}`;
     return {rawMain, rawMaster};
   }catch{ return null; }
 }
-
 async function fetchFromUrl(url){
   try{
     toast("⏳ Loading…");
@@ -310,12 +326,10 @@ async function fetchFromUrl(url){
     const ct = (res.headers.get("content-type")||"").toLowerCase();
     let text = await res.text();
 
-    // If page looks like HTML (e.g., 404 page) or no cards parsed, try raw fallback for github.io
     let cards = [];
     if(ct.includes("application/json") || url.toLowerCase().endsWith(".json")){
-      try{ cards = parseJSON(text); }catch{ /* ignore */ }
+      try{ cards = parseJSON(text); }catch{}
     }else{
-      // guard against HTML
       if(!isLikelyHTML(text)) cards = parseTXT(text);
     }
 
@@ -330,18 +344,14 @@ async function fetchFromUrl(url){
               const t2 = await r2.text();
               if(candidate.endsWith(".json")) cards = parseJSON(t2);
               else if(!isLikelyHTML(t2)) cards = parseTXT(t2);
-              if(cards.length>0){ 
-                toast(`Imported ${cards.length} cards (via raw)`); 
-                FULL = cards; resetDeck(); return; 
-              }
+              if(cards.length>0){ FULL=cards; toast(`Imported ${cards.length} cards (via raw)`); resetDeck(); return; }
             }
-          }catch{ /* continue */ }
+          }catch{}
         }
       }
     }
 
     if(!cards.length) throw new Error("No cards parsed. Please verify the source file is a plain TXT/JSON, not an HTML page.");
-
     FULL = cards;
     toast(`Imported ${cards.length} cards`);
     resetDeck();
