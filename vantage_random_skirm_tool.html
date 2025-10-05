@@ -23,6 +23,9 @@
   .Help{background:#27ae60} .Take{background:#f1c40f;color:#000} .Overpower{background:#c0392b}
   .hint{color:var(--muted);font-size:13px}
   .ok{color:var(--ok)} .err{color:var(--err)}
+  .mini{font-size:12px;color:var(--muted)}
+  .excluded-item{display:flex;align-items:center;gap:8px;border:1px dashed #cfe2f3;border-radius:8px;padding:6px 8px;margin:6px 0;background:#f8fbff}
+  .xbtn{margin-left:auto;border:1px solid #e4eaf2;border-radius:6px;background:#fff;cursor:pointer;padding:2px 6px}
 </style>
 </head>
 <body>
@@ -56,6 +59,18 @@
     </div>
   </section>
 
+  <!-- ✅ 新增：標記已抽過（排除） -->
+  <section class="panel">
+    <h2>標記已抽過（排除）</h2>
+    <div class="mini">輸入卡牌編號，多個請用逗號或空白分隔，例如：S002, S006 S014</div>
+    <div style="margin-top:8px;display:flex;gap:8px">
+      <input id="excludeInput" type="text" placeholder="S002, S006, S014..." style="flex:1;border:1px solid #cfe2f3;border-radius:10px;padding:8px;background:#fff">
+      <button id="btnExclude" class="btn">加入排除</button>
+      <button id="btnClearExcluded" class="btn">清空排除</button>
+    </div>
+    <div id="excludedList" style="margin-top:8px"></div>
+  </section>
+
   <section class="panel">
     <h2>最新抽到</h2>
     <div id="last" class="card hint">尚未抽牌</div>
@@ -70,21 +85,33 @@
 <script>
 const ELEMENTS=["CIRCUIT","WIND","ENERGY","FIRE","GOLD","SINEW","METAL","SAND","STONE","LEAF","WATER","WOOD"];
 const GEARS=["MASK","HORN","GAUNTLET","SCEPTER","HELM","HARNESS","CLOAK","TOME","DODECAHEDRON","MANTLE","BLADE","TOOLS"];
+
 let FULL=[],DECK=[],DRAWN=[];
+const EXCLUDED=new Set(); // ✅ 被排除的 ID 集合
+
 const $=id=>document.getElementById(id);
 const deckCountEl=$("deckCount"),remainCountEl=$("remainCount"),drawnCountEl=$("drawnCount");
-const deckView=$("deckView"),historyView=$("history"),lastView=$("last"),importMsg=$("importMsg");
+const historyView=$("history"),lastView=$("last"),importMsg=$("importMsg");
+const excludedListEl=$("excludedList");
 
 function toast(msg,cls="ok"){importMsg.innerHTML=`<span class="${cls}">●</span> ${msg}`;setTimeout(()=>importMsg.textContent="",2000);}
-function sanitizeText(txt){if(txt.charCodeAt(0)===0xFEFF)txt=txt.slice(1);txt=txt.replace(/pair\.HORN:/g,"pair. - HORN:");return txt;}
+
+// --- 輔助：清理常見小錯 ---
+function sanitizeText(txt){
+  if(txt && txt.charCodeAt(0)===0xFEFF) txt=txt.slice(1);          // 去 BOM
+  txt = txt.replace(/pair\.HORN:/g,"pair. - HORN:");                 // S017 黏字
+  txt = txt.replace(/\bfore each player\b/g,"for each player");      // S097-108 fore -> for
+  // 元素前若缺 " - "：補上
+  const elemPat = "(?:" + ELEMENTS.join("|") + ")";
+  txt = txt.replace(new RegExp("(\\])\\s+("+elemPat+"):", "g"), "] - $2:");
+  return txt;
+}
+
+// --- 解析 ---
 function parseLine(line){
   const idMatch = line.match(/^S(\d{3})/i);
   const speedMatch = line.match(/Speed\s+(\d{1,2})/i);
   if(!idMatch || !speedMatch) return null;
-
-  // 先找元素與裝備位置
-  const ELEMENTS = ["CIRCUIT","WIND","ENERGY","FIRE","GOLD","SINEW","METAL","SAND","STONE","LEAF","WATER","WOOD"];
-  const GEARS = ["MASK","HORN","GAUNTLET","SCEPTER","HELM","HARNESS","CLOAK","TOME","DODECAHEDRON","MANTLE","BLADE","TOOLS"];
 
   let elemName = null, elemIdx = -1;
   for(const e of ELEMENTS){
@@ -100,18 +127,16 @@ function parseLine(line){
   }
   if(gearIdx === -1) return null;
 
-  // ✅ 只在元素段「之前」擷取技能，避免撈到元素敘述裡的 [Move]
+  // 只在元素段「之前」擷取技能
   const skillRegion = line.slice(0, elemIdx);
   const rawSkills = Array.from(skillRegion.matchAll(/\[([^\]]+)\]/g)).map(m => m[1].trim());
 
-  // 正規化 + 過濾 + 去重（只允許 6 種技能）
   const SKILL_SET = new Set(["Move","Look","Engage","Help","Take","Overpower"]);
   const skills = Array.from(new Set(
-    rawSkills.map(s => s[0].toUpperCase() + s.slice(1).toLowerCase()) // 轉成首字大寫
+    rawSkills.map(s => s[0].toUpperCase() + s.slice(1).toLowerCase())
              .filter(s => SKILL_SET.has(s))
   ));
 
-  // 元素/裝備文字
   const elementText = line.slice(elemIdx + (elemName.length + 1), gearIdx).replace(/^\s*-\s*/,'').trim();
   const gearText = line.slice(gearIdx + (gearName.length + 1)).trim();
 
@@ -126,32 +151,145 @@ function parseLine(line){
     raw: line.trim()
   };
 }
-function parseTXT(txt){txt=sanitizeText(txt);const lines=txt.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
-  const cards=[];for(const ln of lines){const c=parseLine(ln);if(c)cards.push(c);}return cards;}
-function parseJSON(txt){const data=JSON.parse(sanitizeText(txt));return Array.isArray(data)?data:data.cards||[];}
-function renderSkills(skills){return skills.map(s=>`<span class="tag ${s}">${s}</span>`).join(" ");}
-function renderCard(c){const el=document.createElement("div");el.className="card";
+function parseTXT(txt){
+  txt=sanitizeText(txt);
+  const lines=txt.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  const cards=[]; for(const ln of lines){ const c=parseLine(ln); if(c) cards.push(c); }
+  return cards;
+}
+function parseJSON(txt){
+  const data=JSON.parse(sanitizeText(txt));
+  return Array.isArray(data)?data:(data.cards||[]);
+}
+
+// --- Render ---
+const PRIORITY_EMOJI = "⚡"; // ✅ 第二列（優先發動）標示
+function renderSkills(skills){
+  return skills.map((s,i)=>{
+    const label = (i===1 ? `${PRIORITY_EMOJI} ${s}` : s);
+    return `<span class="tag ${s}" title="${i===1?'優先發動':'計分技能'}">${label}</span>`;
+  }).join(" ");
+}
+function renderCard(c){
+  const el=document.createElement("div"); el.className="card";
   el.innerHTML=`<h3>${c.id} · Speed ${c.speed}</h3>
   <div>${renderSkills(c.skills)}</div>
   <div><span class="pill">${c.element}</span> ${c.elementText}</div>
-  <div><span class="pill">${c.gear}</span> ${c.gearText}</div>`;return el;}
-function refreshStats(){deckCountEl.textContent=FULL.length;remainCountEl.textContent=DECK.length;drawnCountEl.textContent=DRAWN.length;}
-function resetDeck(){DECK=FULL.slice();DRAWN=[];refreshStats();lastView.textContent="尚未抽牌";historyView.innerHTML="";}
+  <div><span class="pill">${c.gear}</span> ${c.gearText}</div>`;
+  return el;
+}
+function refreshStats(){
+  deckCountEl.textContent=FULL.length;
+  remainCountEl.textContent=DECK.length;
+  drawnCountEl.textContent=DRAWN.length;
+}
+function resetDeck(){
+  // 用 FULL 建立新 DECK，扣掉 EXCLUDED
+  DECK = FULL.filter(c=>!EXCLUDED.has(c.id));
+  DRAWN=[]; refreshStats();
+  lastView.textContent="尚未抽牌";
+  historyView.innerHTML="";
+  renderExcludedList();
+}
+
+// --- 抽牌 ---
 function drawOne(){
   if(!DECK.length){toast("牌庫空","err");return;}
-  const idx=Math.floor(Math.random()*DECK.length);const c=DECK.splice(idx,1)[0];
-  DRAWN.push(c);lastView.innerHTML="";lastView.appendChild(renderCard(c));
-  const h=renderCard(c);historyView.prepend(h);refreshStats();
+  const idx=Math.floor(Math.random()*DECK.length);
+  const c=DECK.splice(idx,1)[0];
+  DRAWN.push(c);
+  lastView.innerHTML=""; lastView.appendChild(renderCard(c));
+  const h=renderCard(c); historyView.prepend(h);
+  refreshStats();
 }
+
+// --- 匯入 ---
 $("btnImportText").onclick=()=>{
-  const raw=$("raw").value.trim();if(!raw){toast("無內容","err");return;}
-  try{FULL=parseJSON(raw);resetDeck();toast("JSON 匯入成功");}
-  catch{FULL=parseTXT(raw);if(FULL.length)resetDeck(),toast("TXT 匯入成功");else toast("解析失敗","err");}
+  const raw=$("raw").value.trim(); if(!raw){ toast("無內容","err"); return; }
+  try{ FULL = parseJSON(raw); toast("JSON 匯入成功"); }
+  catch{ FULL = parseTXT(raw); if(!FULL.length){ toast("解析失敗","err"); return; } toast("TXT 匯入成功"); }
+  resetDeck();
 };
-$("file").onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{if(f.name.endsWith(".json"))FULL=parseJSON(t);else FULL=parseTXT(t);resetDeck();toast("匯入成功");});};
-$("btnShuffle").onclick=()=>{DECK.sort(()=>Math.random()-0.5);toast("已洗牌");};
+$("file").onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  f.text().then(t=>{
+    if(f.name.endsWith(".json")) FULL=parseJSON(t); else FULL=parseTXT(t);
+    if(!FULL.length){ toast("解析失敗","err"); return; }
+    toast("匯入成功"); resetDeck();
+  });
+};
+
+// --- 洗牌/重置 ---
+$("btnShuffle").onclick=()=>{ DECK.sort(()=>Math.random()-0.5); toast("已洗牌"); };
 $("btnReset").onclick=resetDeck;
 $("btnDraw1").onclick=drawOne;
+
+// ================== 排除功能 ==================
+function normalizeIds(input){
+  return input.split(/[,\s]+/).map(s=>s.trim().toUpperCase()).filter(Boolean);
+}
+function excludeByIds(ids){
+  let added=0, notFound=[];
+  const fullIds=new Set(FULL.map(c=>c.id));
+  ids.forEach(id=>{
+    if(!/^S\d{3}$/.test(id)) return; // 格式不合跳過
+    if(!fullIds.has(id)) { notFound.push(id); return; }
+    if(!EXCLUDED.has(id)){ EXCLUDED.add(id); added++; }
+  });
+  // 從 DECK 移除
+  if(added>0){
+    DECK = DECK.filter(c=>!EXCLUDED.has(c.id));
+    toast(`已排除 ${added} 張`);
+  }else{
+    toast(`沒有新增排除`, "err");
+  }
+  if(notFound.length){
+    importMsg.innerHTML = `<span class="err">●</span> 找不到：${notFound.join(", ")}`;
+  }
+  renderExcludedList(); refreshStats();
+}
+function clearExcluded(){
+  EXCLUDED.clear();
+  toast("已清空排除");
+  resetDeck();
+}
+function renderExcludedList(){
+  excludedListEl.innerHTML="";
+  if(EXCLUDED.size===0){
+    excludedListEl.innerHTML = `<div class="hint">目前沒有被排除的卡牌。</div>`;
+    return;
+  }
+  const byId = new Map(FULL.map(c=>[c.id,c]));
+  Array.from(EXCLUDED).sort().forEach(id=>{
+    const c = byId.get(id);
+    const div = document.createElement("div");
+    div.className = "excluded-item";
+    div.innerHTML = `<strong>${id}</strong> <span class="mini">${c? `Speed ${c.speed} · ${c.skills.join(" / ")}` : ""}</span>
+                     <button class="xbtn" data-id="${id}" title="取消排除">✖</button>`;
+    excludedListEl.appendChild(div);
+  });
+  // 綁定取消排除
+  excludedListEl.querySelectorAll(".xbtn").forEach(btn=>{
+    btn.onclick = ()=>{
+      const id = btn.getAttribute("data-id");
+      EXCLUDED.delete(id);
+      // 放回牌庫（未抽出的狀態）
+      const c = FULL.find(x=>x.id===id);
+      if(c) DECK.push(c);
+      toast(`已取消排除 ${id}`);
+      renderExcludedList(); refreshStats();
+    };
+  });
+}
+
+// 綁定排除按鈕
+$("btnExclude").onclick=()=>{
+  const ids = normalizeIds($("excludeInput").value);
+  if(ids.length===0){ toast("請輸入卡牌編號","err"); return; }
+  excludeByIds(ids);
+  $("excludeInput").value="";
+};
+$("btnClearExcluded").onclick=clearExcluded);
 </script>
 </body>
 </html>
