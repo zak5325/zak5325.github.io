@@ -13,7 +13,6 @@
   .panel{background:var(--card);border:1px solid #e6eef7;border-radius:12px;box-shadow:0 2px 8px rgba(16,50,74,.06);padding:14px;margin-top:14px}
   .btn{border:1px solid #cfe2f3;background:var(--chip);padding:8px 12px;border-radius:10px;cursor:pointer}
   .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-  input[type="text"]{width:100%;border:1px solid #cfe2f3;border-radius:10px;padding:10px;background:#fff}
   .kpi{background:#f1f7ff;border:1px dashed #cfe2f3;border-radius:10px;padding:8px 10px;display:inline-block;margin-right:10px}
   .card{position:relative;border:1px solid #e6eef7;border-radius:12px;padding:12px;background:#fff;margin-bottom:10px}
   .badge{position:absolute;right:10px;top:10px;font-size:12px;background:#fff3cd;border:1px solid #ffe08a;color:#8a6d3b;border-radius:999px;padding:2px 8px}
@@ -26,8 +25,6 @@
   .mini{font-size:12px;color:var(--muted)}
   .excluded-item{display:flex;align-items:center;gap:8px;border:1px dashed #cfe2f3;border-radius:8px;padding:6px 8px;margin:6px 0;background:#f8fbff}
   .xbtn{margin-left:auto;border:1px solid #e4eaf2;border-radius:6px;background:#fff;cursor:pointer;padding:2px 6px}
-  .row{display:flex;gap:8px;align-items:center}
-  /* 全域狀態列 */
   .statusbar{max-width:900px;margin:0 auto;padding:0 16px}
   .statusbar .panel{margin-top:0}
 </style>
@@ -38,7 +35,7 @@
   <p>Card list auto-imports on load. Excluded cards show up in Draw History.</p>
 </header>
 
-<!-- 全域訊息列（沿用 importMsg 供 toast/錯誤顯示） -->
+<!-- Global status / toasts -->
 <div class="statusbar">
   <div class="panel"><div id="importMsg" class="hint"></div></div>
 </div>
@@ -88,9 +85,9 @@ const ELEMENTS=["CIRCUIT","WIND","ENERGY","FIRE","GOLD","SINEW","METAL","SAND","
 const GEARS=["MASK","HORN","GAUNTLET","SCEPTER","HELM","HARNESS","CLOAK","TOME","DODECAHEDRON","MANTLE","BLADE","TOOLS"];
 
 let FULL=[],DECK=[],DRAWN=[];
-const EXCLUDED=new Set(); // excluded IDs count as "previously drawn"
+const EXCLUDED=new Set();
 
-// 固定資料來源（寫死），仍可用 ?src= 覆蓋
+// --- Fixed source (auto-load), can be overridden by ?src= ---
 const DEFAULT_SRC = "https://zak5325.github.io/skirm_cardlist.txt";
 
 const $=id=>document.getElementById(id);
@@ -98,23 +95,23 @@ const deckCountEl=$("deckCount"),remainCountEl=$("remainCount"),drawnCountEl=$("
 const historyView=$("history"),lastView=$("last"),importMsg=$("importMsg");
 const excludedListEl=$("excludedList");
 
-function toast(msg,cls="ok"){importMsg.innerHTML=`<span class="${cls}">●</span> ${msg}`;setTimeout(()=>{importMsg.textContent=""},4000);}
+function toast(msg,cls="ok"){importMsg.innerHTML=`<span class="${cls}">●</span> ${msg}`;}
 
-// 全域錯誤顯示
+// Error surfacing
 window.addEventListener('error', e => { importMsg.innerHTML = `<span class="err">●</span> ${e.message||'Unknown error'}`; });
 window.addEventListener('unhandledrejection', e => { importMsg.innerHTML = `<span class="err">●</span> ${e.reason||'Promise rejected'}`; });
 
-// 清理常見資料小錯
+// Sanitize common quirks
 function sanitizeText(txt){
-  if(txt && txt.charCodeAt(0)===0xFEFF) txt=txt.slice(1);                // strip BOM
-  txt = txt.replace(/pair\.HORN:/g,"pair. - HORN:");                      // S017 glue
-  txt = txt.replace(/\bfore each player\b/g,"for each player");           // S097-108 typo
+  if(txt && txt.charCodeAt(0)===0xFEFF) txt=txt.slice(1);
+  txt = txt.replace(/pair\.HORN:/g,"pair. - HORN:");
+  txt = txt.replace(/\bfore each player\b/g,"for each player");
   const elemPat = "(?:" + ELEMENTS.join("|") + ")";
   txt = txt.replace(new RegExp("(\\])\\s+("+elemPat+"):", "g"), "] - $2:");
   return txt;
 }
 
-// 解析
+// Parse one line into a card
 function parseLine(line){
   const idMatch = line.match(/^S(\d{3})/i);
   const speedMatch = line.match(/Speed\s+(\d{1,2})/i);
@@ -134,14 +131,13 @@ function parseLine(line){
   }
   if(gearIdx === -1) return null;
 
-  // 僅擷取元素區塊之前的 [skills]（只上色，不加符號）
+  // Skills only before Element section
   const skillRegion = line.slice(0, elemIdx);
   const rawSkills = Array.from(skillRegion.matchAll(/\[([^\]]+)\]/g)).map(m => m[1].trim());
 
   const SKILL_SET = new Set(["Move","Look","Engage","Help","Take","Overpower"]);
   const skills = Array.from(new Set(
-    rawSkills.map(s => s[0].toUpperCase() + s.slice(1).toLowerCase())
-             .filter(s => SKILL_SET.has(s))
+    rawSkills.map(s => s[0].toUpperCase() + s.slice(1).toLowerCase()).filter(s => SKILL_SET.has(s))
   ));
 
   const elementText = line.slice(elemIdx + (elemName.length + 1), gearIdx).replace(/^\s*-\s*/,'').trim();
@@ -159,10 +155,11 @@ function parseLine(line){
   };
 }
 function parseTXT(txt){
-  txt=sanitizeText(txt);
-  const lines=txt.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
-  const cards=[]; for(const ln of lines){ const c=parseLine(ln); if(c) cards.push(c); }
-  return cards;
+  txt = sanitizeText(txt);
+  const lines = txt.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  const out = [];
+  for(const ln of lines){ const c=parseLine(ln); if(c) out.push(c); }
+  return out;
 }
 function parseJSON(txt){
   const data=JSON.parse(sanitizeText(txt));
@@ -170,7 +167,7 @@ function parseJSON(txt){
 }
 
 // Render
-const GEAR_EMOJI = "⚡"; // Gear 先發動
+const GEAR_EMOJI = "⚡";
 function renderSkills(skills){
   return skills.map((s)=>`<span class="tag ${s}" title="Card skill">${s}</span>`).join(" ");
 }
@@ -198,7 +195,7 @@ function resetDeck(){
   renderExcludedList();
 }
 
-// 抽牌
+// Draw one
 function drawOne(){
   if(!DECK.length){toast("Deck is empty","err");return;}
   const idx=Math.floor(Math.random()*DECK.length);
@@ -208,29 +205,9 @@ function drawOne(){
   const h=renderCard(c); historyView.prepend(h);
   refreshStats();
 }
-
-// 透過 URL 匯入（隱藏式，自動呼叫）
-async function fetchFromUrl(url){
-  try{
-    importMsg.innerHTML = "⏳ Loading…";
-    const res = await fetch(url, {cache:"no-store"});
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    const ct = (res.headers.get("content-type")||"").toLowerCase();
-    const text = await res.text();
-    let cards = [];
-    if(ct.includes("application/json") || url.toLowerCase().endsWith(".json")){
-      cards = parseJSON(text);
-    }else{
-      cards = parseTXT(text);
-    }
-    if(!cards.length) throw new Error("No cards parsed. Please check file format.");
-    FULL = cards;
-    toast(`Imported ${cards.length} cards`);
-    resetDeck();
-  }catch(e){
-    importMsg.innerHTML = `<span class="err">●</span> Load failed: ${e.message}.`;
-  }
-}
+document.getElementById("btnShuffle").onclick=()=>{ DECK.sort(()=>Math.random()-0.5); toast("Shuffled","ok"); };
+document.getElementById("btnReset").onclick=resetDeck;
+document.getElementById("btnDraw1").onclick=drawOne;
 
 // Exclusions
 function normalizeIds(input){
@@ -300,15 +277,80 @@ function renderExcludedList(){
     };
   });
 }
-$("btnExclude").onclick = ()=>{
-  const ids = normalizeIds($("excludeInput").value);
+document.getElementById("btnExclude").onclick = ()=>{
+  const ids = normalizeIds(document.getElementById("excludeInput").value);
   if(ids.length===0){ toast("Please enter card IDs","err"); return; }
   excludeByIds(ids);
-  $("excludeInput").value="";
+  document.getElementById("excludeInput").value="";
 };
-$("btnClearExcluded").onclick = clearExcluded;
+document.getElementById("btnClearExcluded").onclick = clearExcluded;
 
-// 啟動：若 URL 有 ?src= 用它；否則用 DEFAULT_SRC
+// -------- Robust auto-import --------
+function isLikelyHTML(text){ return /<html|<!doctype/i.test(text); }
+function buildRawFromPages(urlStr){
+  try{
+    const u=new URL(urlStr);
+    if(!u.hostname.endsWith("github.io")) return null;
+    // e.g. https://USER.github.io/path/file.txt  -> repo: USER/USER.github.io
+    const user = u.hostname.split(".")[0];
+    const repo = `${user}.github.io`;
+    const path = u.pathname.replace(/^\/+/,""); // "skirm_cardlist.txt"
+    // try main then master
+    const rawMain = `https://raw.githubusercontent.com/${user}/${repo}/main/${path}`;
+    const rawMaster = `https://raw.githubusercontent.com/${user}/${repo}/master/${path}`;
+    return {rawMain, rawMaster};
+  }catch{ return null; }
+}
+
+async function fetchFromUrl(url){
+  try{
+    toast("⏳ Loading…");
+    const res = await fetch(url, {cache:"no-store"});
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const ct = (res.headers.get("content-type")||"").toLowerCase();
+    let text = await res.text();
+
+    // If page looks like HTML (e.g., 404 page) or no cards parsed, try raw fallback for github.io
+    let cards = [];
+    if(ct.includes("application/json") || url.toLowerCase().endsWith(".json")){
+      try{ cards = parseJSON(text); }catch{ /* ignore */ }
+    }else{
+      // guard against HTML
+      if(!isLikelyHTML(text)) cards = parseTXT(text);
+    }
+
+    if(cards.length===0){
+      const fallback = buildRawFromPages(url);
+      if(fallback){
+        for(const candidate of [fallback.rawMain, fallback.rawMaster]){
+          try{
+            toast(`⏳ Trying raw: ${candidate}`);
+            const r2 = await fetch(candidate, {cache:"no-store"});
+            if(r2.ok){
+              const t2 = await r2.text();
+              if(candidate.endsWith(".json")) cards = parseJSON(t2);
+              else if(!isLikelyHTML(t2)) cards = parseTXT(t2);
+              if(cards.length>0){ 
+                toast(`Imported ${cards.length} cards (via raw)`); 
+                FULL = cards; resetDeck(); return; 
+              }
+            }
+          }catch{ /* continue */ }
+        }
+      }
+    }
+
+    if(!cards.length) throw new Error("No cards parsed. Please verify the source file is a plain TXT/JSON, not an HTML page.");
+
+    FULL = cards;
+    toast(`Imported ${cards.length} cards`);
+    resetDeck();
+  }catch(e){
+    importMsg.innerHTML = `<span class="err">●</span> Load failed: ${e.message}`;
+  }
+}
+
+// Init: use ?src= override, else default
 (function init(){
   const urlObj=new URL(location.href);
   const fromQuery=urlObj.searchParams.get("src");
