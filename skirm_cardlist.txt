@@ -1,0 +1,144 @@
+S001 - Speed 5 - [Take] [Help] CIRCUIT: Gain 1 point per tied skill type. - MASK: Set 2 dice to match 1 or 2 opposing dice.
+S002 - Speed 11 - [Engage] [Move] - WIND: Gain 1 point per [Move] skill. - MASK: Set 2 dice to match 1 or 2 opposing dice.
+S003 - Speed 10 - [Move] [Look] - ENERGY: Gain 1 point per skill of opponent's best type. - MASK: Set 2 dice to match 1 or 2 opposing dice.
+S004 - Speed 6 - [Overpower] [Take] - FIRE: Gain 1 point per skill type you don't have. - MASK: Set 2 dice to match 1 or 2 opposing dice.
+S005 - Speed 1 - [Help] [Engage] - GOLD: Gain 1 point per dice pair. - MASK: Set 2 dice to match 1 or 2 opposing dice.
+S006 - Speed 2 - [Take] [Overpower] - SINEW: Gain 1 point per skill of your best skill type. - MASK: Set 2 dice to match 1 or 2 opposing dice.
+S007 - Speed 8 - [Look] [Take] - METAL: Gain 1 point per unique opponent skill type. - MASK: Set 2 dice to match 1 or 2 opposing dice.
+S008 - Speed 12 - [Help] [Move] - SAND: Gain 1 point per skill type that doesn't match this. - MASK: Set 2 dice to match 1 or 2 opposing dice.
+S009 - Speed 3 - [Overpower] [Engage] - STONE: Gain 3 points if you have all 6 skill types. - MASK: Set 2 dice to match 1 or 2 opposing dice.
+S010 - Speed 7 - [Look] [Help] - LEAF: Gain 1 point per skill type you lose. - MASK: Set 2 dice to match 1 or 2 opposing dice.
+S011 - Speed 4 - [Engage] [Overpower] - WATER: Gain +1 point per skill type you win. - MASK: Set 2 dice to match 1 or 2 opposing dice.
+S012 - Speed 9 - [Move] [Look] - WOOD: Gain 1 point per different skill quantity (1+). - MASK: Set 2 dice to match 1 or 2 opposing dice.
+S013 - Speed 5 - [Take] [Help] CIRCUIT: Gain 1 point per tied skill type. - HORN: Reroll each unmatching die until it matches a skill type you have.
+S014 - Speed 11 - [Engage] [Move] - WIND: Gain 1 point per [Move] skill. - HORN: Reroll each unmatching die until it matches a skill type you have.
+S015 - Speed 10 - [Move] [Look] - ENERGY: Gain 1 point per skill of opponent's best type. - HORN: Reroll each unmatching die until it matches a skill type you have.
+S016 - Speed 6 - [Overpower] [Take] - FIRE: Gain 1 point per skill type you don't have. - HORN: Reroll each unmatching die until it matches a skill type you have.
+S017 - Speed 1 - [Help] [Engage] - GOLD: Gain 1 point per dice pair.HORN: Reroll each unmatching die until it matches a skill type you have.
+S018 - Speed 2 - [Take] [Overpower] - SINEW: Gain 1 point per skill of your best skill type. - HORN: Reroll each unmatching die until it matches a skill type you have.
+S019 - Speed 8 - [Look] [Take] - METAL: Gain 1 point per unique opponent skill type. - HORN: Reroll each unmatching die until it matches a skill type you have.
+S020 - Speed 12 - [Help] [Move] - SAND: Gain 1 point per skill type that doesn't match this. - HORN: Reroll each unmatching die until it matches a skill type you have.
+S021 - Speed 3 - [Overpower] [Engage] - STONE: Gain 3 points if you have all 6 skill types. - HORN: Reroll each unmatching die until it matches a skill type you have.
+S022 - Speed 7 - [Look] [Help] - LEAF: Gain 1 point per skill type you lose. - HORN: Reroll each unmatching die until it matches a skill type you have.
+S023 - Speed 4 - [Engage] [Overpower] - WATER: Gain +1 point per skill type you win. - HORN: Reroll each unmatching die until it matches a skill type you have.
+S024 - Speed 9 - [Move] [Look] - WOOD: Gain 1 point per different skill quantity (1+).- HORN: Reroll each unmatching die until it matches a skill type you have.
+S025 - Speed 5 - [Take] [Help] CIRCUIT: Gain 1 point per tied skill type. - GAUNTLET: Steal 1 opposing die that does not match any of your dice.
+S026 - Speed 11 - [Engage] [Move] - WIND: Gain 1 point per [Move] skill. - GAUNTLET: Steal 1 opposing die that does not match any of your dice.
+S027 - Speed 10 - [Move] [Look] - ENERGY: Gain 1 point per skill of opponent's best type. - GAUNTLET: Steal 1 opposing die that does not match any of your dice.
+S028 - Speed 6 - [Overpower] [Take] - FIRE: Gain 1 point per skill type you don't have. - GAUNTLET: Steal 1 opposing die that does not match any of your dice.
+S029 - Speed 1 - [Help] [Engage] - GOLD: Gain 1 point per dice pair. - GAUNTLET: Steal 1 opposing die that does not match any of your dice.
+S030 - Speed 2 - [Take] [Overpower] - SINEW: Gain 1 point per skill of your best skill type. - GAUNTLET: Steal 1 opposing die that does not match any of your dice.
+S031 - Speed 8 - [Look] [Take] - METAL: Gain 1 point per unique opponent skill type. - GAUNTLET: Steal 1 opposing die that does not match any of your dice.
+S032 - Speed 12 - [Help] [Move] - SAND: Gain 1 point per skill type that doesn't match this. - GAUNTLET: Steal 1 opposing die that does not match any of your dice.
+S033 - Speed 3 - [Overpower] [Engage] - STONE: Gain 3 points if you have all 6 skill types. - GAUNTLET: Steal 1 opposing die that does not match any of your dice.
+S034 - Speed 7 - [Look] [Help] - LEAF: Gain 1 point per skill type you lose. - GAUNTLET: Steal 1 opposing die that does not match any of your dice.
+S035 - Speed 4 - [Engage] [Overpower] - WATER: Gain +1 point per skill type you win. - GAUNTLET: Steal 1 opposing die that does not match any of your dice.
+S036 - Speed 9 - [Move] [Look] - WOOD: Gain 1 point per different skill quantity (1+). - GAUNTLET: Steal 1 opposing die that does not match any of your dice.
+S037 - Speed 5 - [Take] [Help] CIRCUIT: Gain 1 point per tied skill type. - SCEPTER: Reroll 1 die, then set 1 die to match its skill type.
+S038 - Speed 11 - [Engage] [Move] - WIND: Gain 1 point per [Move] skill. - SCEPTER: Reroll 1 die, then set 1 die to match its skill type.
+S039 - Speed 10 - [Move] [Look] - ENERGY: Gain 1 point per skill of opponent's best type.- SCEPTER: Reroll 1 die, then set 1 die to match its skill type.
+S040 - Speed 6 - [Overpower] [Take] - FIRE: Gain 1 point per skill type you don't have. - SCEPTER: Reroll 1 die, then set 1 die to match its skill type.
+S041 - Speed 1 - [Help] [Engage] - GOLD: Gain 1 point per dice pair. - SCEPTER: Reroll 1 die, then set 1 die to match its skill type.
+S042 - Speed 2 - [Take] [Overpower] - SINEW: Gain 1 point per skill of your best skill type. - SCEPTER: Reroll 1 die, then set 1 die to match its skill type.
+S043 - Speed 8 - [Look] [Take] - METAL: Gain 1 point per unique opponent skill type. - SCEPTER: Reroll 1 die, then set 1 die to match its skill type.
+S044 - Speed 12 - [Help] [Move] - SAND: Gain 1 point per skill type that doesn't match this. - SCEPTER: Reroll 1 die, then set 1 die to match its skill type.
+S045 - Speed 3 - [Overpower] [Engage] - STONE: Gain 3 points if you have all 6 skill types. - SCEPTER: Reroll 1 die, then set 1 die to match its skill type.
+S046 - Speed 7 - [Look] [Help] - LEAF: Gain 1 point per skill type you lose. - SCEPTER: Reroll 1 die, then set 1 die to match its skill type.
+S047 - Speed 4 - [Engage] [Overpower] - WATER: Gain +1 point per skill type you win. - SCEPTER: Reroll 1 die, then set 1 die to match its skill type.
+S048 - Speed 9 - [Move] [Look] - WOOD: Gain 1 point per different skill quantity (1+).- SCEPTER: Reroll 1 die, then set 1 die to match its skill type.
+S049 - Speed 5 - [Take] [Help] CIRCUIT: Gain 1 point per tied skill type. - HELM: Exchange 1 die for 1 opposing die. You may reroll the die you gain.
+S050 - Speed 11 - [Engage] [Move] - WIND: Gain 1 point per [Move] skill. - HELM: Exchange 1 die for 1 opposing die. You may reroll the die you gain.
+S051 - Speed 10 - [Move] [Look] - ENERGY: Gain 1 point per skill of opponent's best type.- HELM: Exchange 1 die for 1 opposing die. You may reroll the die you gain.
+S052 - Speed 6 - [Overpower] [Take] - FIRE: Gain 1 point per skill type you don't have. - HELM: Exchange 1 die for 1 opposing die. You may reroll the die you gain.
+S053 - Speed 1 - [Help] [Engage] - GOLD: Gain 1 point per dice pair. - HELM: Exchange 1 die for 1 opposing die. You may reroll the die you gain.
+S054 - Speed 2 - [Take] [Overpower] - SINEW: Gain 1 point per skill of your best skill type. - HELM: Exchange 1 die for 1 opposing die. You may reroll the die you gain.
+S055 - Speed 8 - [Look] [Take] - METAL: Gain 1 point per unique opponent skill type. - HELM: Exchange 1 die for 1 opposing die. You may reroll the die you gain.
+S056 - Speed 12 - [Help] [Move] - SAND: Gain 1 point per skill type that doesn't match this. - HELM: Exchange 1 die for 1 opposing die. You may reroll the die you gain.
+S057 - Speed 3 - [Overpower] [Engage] - STONE: Gain 3 points if you have all 6 skill types. - HELM: Exchange 1 die for 1 opposing die. You may reroll the die you gain.
+S058 - Speed 7 - [Look] [Help] - LEAF: Gain 1 point per skill type you lose. - HELM: Exchange 1 die for 1 opposing die. You may reroll the die you gain.
+S059 - Speed 4 - [Engage] [Overpower] - WATER: Gain +1 point per skill type you win. - HELM: Exchange 1 die for 1 opposing die. You may reroll the die you gain.
+S060 - Speed 9 - [Move] [Look] - WOOD: Gain 1 point per different skill quantity (1+). - HELM: Exchange 1 die for 1 opposing die. You may reroll the die you gain.
+S061 - Speed 5 - [Take] [Help] CIRCUIT: Gain 1 point per tied skill type. - HARNESS: Reroll up to 6 dice (all at once).
+S062 - Speed 11 - [Engage] [Move] - WIND: Gain 1 point per [Move] skill. - HARNESS: Reroll up to 6 dice (all at once).
+S063 - Speed 10 - [Move] [Look] - ENERGY: Gain 1 point per skill of opponent's best type. - HARNESS: Reroll up to 6 dice (all at once).
+S064 - Speed 6 - [Overpower] [Take] - FIRE: Gain 1 point per skill type you don't have. - HARNESS: Reroll up to 6 dice (all at once).
+S065 - Speed 1 - [Help] [Engage] - GOLD: Gain 1 point per dice pair. - HARNESS: Reroll up to 6 dice (all at once).
+S066 - Speed 2 - [Take] [Overpower] - SINEW: Gain 1 point per skill of your best skill type. - HARNESS: Reroll up to 6 dice (all at once).
+S067 - Speed 8 - [Look] [Take] - METAL: Gain 1 point per unique opponent skill type. - HARNESS: Reroll up to 6 dice (all at once).
+S068 - Speed 12 - [Help] [Move] - SAND: Gain 1 point per skill type that doesn't match this. - HARNESS: Reroll up to 6 dice (all at once).
+S069 - Speed 3 - [Overpower] [Engage] - STONE: Gain 3 points if you have all 6 skill types. - HARNESS: Reroll up to 6 dice (all at once).
+S070 - Speed 7 - [Look] [Help] - LEAF: Gain 1 point per skill type you lose. - HARNESS: Reroll up to 6 dice (all at once).
+S071 - Speed 4 - [Engage] [Overpower] - WATER: Gain +1 point per skill type you win. - HARNESS: Reroll up to 6 dice (all at once).
+S072 - Speed 9 - [Move] [Look] - WOOD: Gain 1 point per different skill quantity (1+). - HARNESS: Reroll up to 6 dice (all at once).
+S073 - Speed 5 - [Take] [Help] CIRCUIT: Gain 1 point per tied skill type. - CLOAK: Reroll up to 2 dice, concealing them until final scoring.
+S074 - Speed 11 - [Engage] [Move] - WIND: Gain 1 point per [Move] skill. - CLOAK: Reroll up to 2 dice, concealing them until final scoring.
+S075 - Speed 10 - [Move] [Look] - ENERGY: Gain 1 point per skill of opponent's best type. - CLOAK: Reroll up to 2 dice, concealing them until final scoring.
+S076 - Speed 6 - [Overpower] [Take] - FIRE: Gain 1 point per skill type you don't have. - CLOAK: Reroll up to 2 dice, concealing them until final scoring.
+S077 - Speed 1 - [Help] [Engage] - GOLD: Gain 1 point per dice pair. - CLOAK: Reroll up to 2 dice, concealing them until final scoring.
+S078 - Speed 2 - [Take] [Overpower] - SINEW: Gain 1 point per skill of your best skill type. - CLOAK: Reroll up to 2 dice, concealing them until final scoring.
+S079 - Speed 8 - [Look] [Take] - METAL: Gain 1 point per unique opponent skill type. - CLOAK: Reroll up to 2 dice, concealing them until final scoring.
+S080 - Speed 12 - [Help] [Move] - SAND: Gain 1 point per skill type that doesn't match this. - CLOAK: Reroll up to 2 dice, concealing them until final scoring.
+S081 - Speed 3 - [Overpower] [Engage] - STONE: Gain 3 points if you have all 6 skill types. - CLOAK: Reroll up to 2 dice, concealing them until final scoring.
+S082 - Speed 7 - [Look] [Help] - LEAF: Gain 1 point per skill type you lose. - CLOAK: Reroll up to 2 dice, concealing them until final scoring.
+S083 - Speed 4 - [Engage] [Overpower] - WATER: Gain +1 point per skill type you win. - CLOAK: Reroll up to 2 dice, concealing them until final scoring.
+S084 - Speed 9 - [Move] [Look] - WOOD: Gain 1 point per different skill quantity (1+). - CLOAK: Reroll up to 2 dice, concealing them until final scoring.
+S085 - Speed 5 - [Take] [Help] CIRCUIT: Gain 1 point per tied skill type. - TOME: You may reroll each die once; choose the new or old result.
+S086 - Speed 11 - [Engage] [Move] - WIND: Gain 1 point per [Move] skill. - TOME: You may reroll each die once; choose the new or old result.
+S087 - Speed 10 - [Move] [Look] - ENERGY: Gain 1 point per skill of opponent's best type. - TOME: You may reroll each die once; choose the new or old result.
+S088 - Speed 6 - [Overpower] [Take] - FIRE: Gain 1 point per skill type you don't have. - TOME: You may reroll each die once; choose the new or old result.
+S089 - Speed 1 - [Help] [Engage] - GOLD: Gain 1 point per dice pair. - TOME: You may reroll each die once; choose the new or old result.
+S090 - Speed 2 - [Take] [Overpower] - SINEW: Gain 1 point per skill of your best skill type. - TOME: You may reroll each die once; choose the new or old result.
+S091 - Speed 8 - [Look] [Take] - METAL: Gain 1 point per unique opponent skill type. - TOME: You may reroll each die once; choose the new or old result.
+S092 - Speed 12 - [Help] [Move] - SAND: Gain 1 point per skill type that doesn't match this. - TOME: You may reroll each die once; choose the new or old result.
+S093 - Speed 3 - [Overpower] [Engage] - STONE: Gain 3 points if you have all 6 skill types. - TOME: You may reroll each die once; choose the new or old result.
+S094 - Speed 7 - [Look] [Help] - LEAF: Gain 1 point per skill type you lose. - TOME: You may reroll each die once; choose the new or old result.
+S095 - Speed 4 - [Engage] [Overpower] - WATER: Gain +1 point per skill type you win. - TOME: You may reroll each die once; choose the new or old result.
+S096 - Speed 9 - [Move] [Look] - WOOD: Gain 1 point per different skill quantity (1+). - TOME: You may reroll each die once; choose the new or old result.
+S097 - Speed 5 - [Take] [Help] CIRCUIT: Gain 1 point per tied skill type. - DODECAHEDRON: Reroll 1 of each player's dice. Choose 1 fore each player to gain.
+S098 - Speed 11 - [Engage] [Move] - WIND: Gain 1 point per [Move] skill. - DODECAHEDRON: Reroll 1 of each player's dice. Choose 1 fore each player to gain.
+S099 - Speed 10 - [Move] [Look] - ENERGY: Gain 1 point per skill of opponent's best type. - DODECAHEDRON: Reroll 1 of each player's dice. Choose 1 fore each player to gain.
+S100 - Speed 6 - [Overpower] [Take] - FIRE: Gain 1 point per skill type you don't have. - DODECAHEDRON: Reroll 1 of each player's dice. Choose 1 fore each player to gain.
+S101 - Speed 1 - [Help] [Engage] - GOLD: Gain 1 point per dice pair. - DODECAHEDRON: Reroll 1 of each player's dice. Choose 1 fore each player to gain.
+S102 - Speed 2 - [Take] [Overpower] - SINEW: Gain 1 point per skill of your best skill type. - DODECAHEDRON: Reroll 1 of each player's dice. Choose 1 fore each player to gain.
+S103 - Speed 8 - [Look] [Take] - METAL: Gain 1 point per unique opponent skill type. - DODECAHEDRON: Reroll 1 of each player's dice. Choose 1 fore each player to gain.
+S104 - Speed 12 - [Help] [Move] - SAND: Gain 1 point per skill type that doesn't match this. - DODECAHEDRON: Reroll 1 of each player's dice. Choose 1 fore each player to gain.
+S105 - Speed 3 - [Overpower] [Engage] - STONE: Gain 3 points if you have all 6 skill types. - DODECAHEDRON: Reroll 1 of each player's dice. Choose 1 fore each player to gain.
+S106 - Speed 7 - [Look] [Help] - LEAF: Gain 1 point per skill type you lose. - DODECAHEDRON: Reroll 1 of each player's dice. Choose 1 fore each player to gain.
+S107 - Speed 4 - [Engage] [Overpower] - WATER: Gain +1 point per skill type you win. - DODECAHEDRON: Reroll 1 of each player's dice. Choose 1 fore each player to gain.
+S108 - Speed 9 - [Move] [Look] - WOOD: Gain 1 point per different skill quantity (1+). - DODECAHEDRON: Reroll 1 of each player's dice. Choose 1 fore each player to gain.
+S109 - Speed 5 - [Take] [Help] CIRCUIT: Gain 1 point per tied skill type. - MANTLE: Give 1 die to opponent, then set X dice (X is opponent's best skill type).
+S110 - Speed 11 - [Engage] [Move] - WIND: Gain 1 point per [Move] skill. - MANTLE: Give 1 die to opponent, then set X dice (X is opponent's best skill type). 
+S111 - Speed 10 - [Move] [Look] - ENERGY: Gain 1 point per skill of opponent's best type. - MANTLE: Give 1 die to opponent, then set X dice (X is opponent's best skill type).
+S112 - Speed 6 - [Overpower] [Take] - FIRE: Gain 1 point per skill type you don't have. - MANTLE: Give 1 die to opponent, then set X dice (X is opponent's best skill type).
+S113 - Speed 1 - [Help] [Engage] - GOLD: Gain 1 point per dice pair. - MANTLE: Give 1 die to opponent, then set X dice (X is opponent's best skill type).
+S114 - Speed 2 - [Take] [Overpower] - SINEW: Gain 1 point per skill of your best skill type. - MANTLE: Give 1 die to opponent, then set X dice (X is opponent's best skill type).
+S115 - Speed 8 - [Look] [Take] - METAL: Gain 1 point per unique opponent skill type. - MANTLE: Give 1 die to opponent, then set X dice (X is opponent's best skill type).
+S116 - Speed 12 - [Help] [Move] - SAND: Gain 1 point per skill type that doesn't match this. - MANTLE: Give 1 die to opponent, then set X dice (X is opponent's best skill type).
+S117 - Speed 3 - [Overpower] [Engage] - STONE: Gain 3 points if you have all 6 skill types. - MANTLE: Give 1 die to opponent, then set X dice (X is opponent's best skill type).
+S118 - Speed 7 - [Look] [Help] - LEAF: Gain 1 point per skill type you lose. - MANTLE: Give 1 die to opponent, then set X dice (X is opponent's best skill type).
+S119 - Speed 4 - [Engage] [Overpower] - WATER: Gain +1 point per skill type you win. - MANTLE: Give 1 die to opponent, then set X dice (X is opponent's best skill type).
+S120 - Speed 9 - [Move] [Look] - WOOD: Gain 1 point per different skill quantity (1+). - MANTLE: Give 1 die to opponent, then set X dice (X is opponent's best skill type).
+S121 - Speed 5 - [Take] [Help] CIRCUIT: Gain 1 point per tied skill type. - BLADE: Cut the opposing dice into 2 groups; they choose 1 group to reroll.
+S122 - Speed 11 - [Engage] [Move] - WIND: Gain 1 point per [Move] skill. - BLADE: Cut the opposing dice into 2 groups; they choose 1 group to reroll.
+S123 - Speed 10 - [Move] [Look] - ENERGY: Gain 1 point per skill of opponent's best type. - BLADE: Cut the opposing dice into 2 groups; they choose 1 group to reroll.
+S124 - Speed 6 - [Overpower] [Take] - FIRE: Gain 1 point per skill type you don't have. - BLADE: Cut the opposing dice into 2 groups; they choose 1 group to reroll.
+S125 - Speed 1 - [Help] [Engage] - GOLD: Gain 1 point per dice pair. - BLADE: Cut the opposing dice into 2 groups; they choose 1 group to reroll.
+S126 - Speed 2 - [Take] [Overpower] - SINEW: Gain 1 point per skill of your best skill type. - BLADE: Cut the opposing dice into 2 groups; they choose 1 group to reroll.
+S127 - Speed 8 - [Look] [Take] - METAL: Gain 1 point per unique opponent skill type. - BLADE: Cut the opposing dice into 2 groups; they choose 1 group to reroll.
+S128 - Speed 12 - [Help] [Move] - SAND: Gain 1 point per skill type that doesn't match this. - BLADE: Cut the opposing dice into 2 groups; they choose 1 group to reroll.
+S129 - Speed 3 - [Overpower] [Engage] - STONE: Gain 3 points if you have all 6 skill types. - BLADE: Cut the opposing dice into 2 groups; they choose 1 group to reroll.
+S130 - Speed 7 - [Look] [Help] - LEAF: Gain 1 point per skill type you lose. - BLADE: Cut the opposing dice into 2 groups; they choose 1 group to reroll.
+S131 - Speed 4 - [Engage] [Overpower] - WATER: Gain +1 point per skill type you win. - BLADE: Cut the opposing dice into 2 groups; they choose 1 group to reroll.
+S132 - Speed 9 - [Move] [Look] - WOOD: Gain 1 point per different skill quantity (1+). - BLADE: Cut the opposing dice into 2 groups; they choose 1 group to reroll.
+S133 - Speed 5 - [Take] [Help] CIRCUIT: Gain 1 point per tied skill type. - TOOLS: Set up to 3 dice to different faces (each unique).
+S134 - Speed 11 - [Engage] [Move] - WIND: Gain 1 point per [Move] skill. - TOOLS: Set up to 3 dice to different faces (each unique).
+S135 - Speed 10 - [Move] [Look] - ENERGY: Gain 1 point per skill of opponent's best type. - TOOLS: Set up to 3 dice to different faces (each unique).
+S136 - Speed 6 - [Overpower] [Take] - FIRE: Gain 1 point per skill type you don't have. - TOOLS: Set up to 3 dice to different faces (each unique).
+S137 - Speed 1 - [Help] [Engage] - GOLD: Gain 1 point per dice pair. - TOOLS: Set up to 3 dice to different faces (each unique).
+S138 - Speed 2 - [Take] [Overpower] - SINEW: Gain 1 point per skill of your best skill type. - TOOLS: Set up to 3 dice to different faces (each unique).
+S139 - Speed 8 - [Look] [Take] - METAL: Gain 1 point per unique opponent skill type. - TOOLS: Set up to 3 dice to different faces (each unique).
+S140 - Speed 12 - [Help] [Move] - SAND: Gain 1 point per skill type that doesn't match this. - TOOLS: Set up to 3 dice to different faces (each unique).
+S141 - Speed 3 - [Overpower] [Engage] - STONE: Gain 3 points if you have all 6 skill types. - TOOLS: Set up to 3 dice to different faces (each unique).
+S142 - Speed 7 - [Look] [Help] - LEAF: Gain 1 point per skill type you lose. - TOOLS: Set up to 3 dice to different faces (each unique).
+S143 - Speed 4 - [Engage] [Overpower] - WATER: Gain +1 point per skill type you win. - TOOLS: Set up to 3 dice to different faces (each unique).
+S144 - Speed 9 - [Move] [Look] - WOOD: Gain 1 point per different skill quantity (1+). - TOOLS: Set up to 3 dice to different faces (each unique).
