@@ -8,10 +8,10 @@
   :root{
     --bg:#f7fbff;--card:#fff;--ink:#10324a;--muted:#5a7b91;--accent:#3a8ad8;--chip:#e6f2ff;
     --ok:#1f9d55;--err:#b00020;--radius:12px;
-    --bigW:280px;   /* Latest Draw 大卡寬度 */
-    --miniW:180px;  /* History 小卡寬度 */
+    --bigW:280px;   /* Latest Draw big card width */
+    --miniW:180px;  /* History mini card width */
   }
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,sans-serif}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,"Noto Sans TC",sans-serif}
   header{padding:24px 16px;text-align:center}
   header h1{margin:0 0 6px}
   .wrap{max-width:1100px;margin:0 auto;padding:0 16px 60px}
@@ -21,22 +21,25 @@
   .btn.ghost{background:#fff}
   .kpi{background:#f1f7ff;border:1px dashed #cfe2f3;border-radius:10px;padding:8px 10px;display:inline-block;margin-right:10px}
 
-  /* ===== 63:88 比例卡面 ===== */
+  /* ===== Card 63:88 ratio ===== */
   .card{
     position:relative; width:var(--bigW); aspect-ratio:63/88;
     border:1px solid #dfe7f1; border-radius:16px;
     background:#fff; padding:12px; box-shadow:0 6px 18px rgba(16,50,74,.08);
     display:flex; flex-direction:column; overflow:hidden;
   }
-  /* 顶部色帶（依元素色） */
   .card__band{position:absolute;inset:0 0 auto 0;height:16%; opacity:.20; pointer-events:none}
-  .card--mini{width:var(--miniW); aspect-ratio:63/88; padding:10px; border-radius:14px; box-shadow:0 3px 10px rgba(16,50,74,.06); cursor:pointer; transition:transform .05s ease}
+  .card--mini{
+    width:var(--miniW); aspect-ratio:63/88; padding:10px;
+    border-radius:14px; box-shadow:0 3px 10px rgba(16,50,74,.06);
+    display:flex; flex-direction:column; cursor:pointer; transition:transform .05s ease
+  }
   .card--mini:active{ transform:scale(0.99); }
   .card h3{margin:0;font-size:20px;line-height:1.2}
   .card--mini h3{font-size:14px}
   .badge{position:absolute;right:10px;top:10px;font-size:12px;background:#fff3cd;border:1px solid #ffe08a;color:#8a6d3b;border-radius:999px;padding:2px 8px}
 
-  /* 技能標籤（加大） */
+  /* Skills / pills (bigger) */
   .pill{display:inline-block;background:#e6f2ff;padding:3px 9px;border-radius:999px;margin-right:6px;font-size:13px}
   .tag{display:inline-block;border-radius:6px;padding:4px 8px;font-size:15px;color:#fff;margin-right:6px;white-space:nowrap}
   .card--mini .pill{font-size:11px;padding:2px 6px}
@@ -52,7 +55,7 @@
   .excluded-item{display:flex;align-items:center;gap:8px;border:1px dashed #cfe2f3;border-radius:8px;padding:6px 8px;margin:6px 0;background:#f8fbff}
   .xbtn{margin-left:auto;border:1px solid #e4eaf2;border-radius:6px;background:#fff;cursor:pointer;padding:2px 6px}
 
-  /* Draw History Grid */
+  /* Draw History grid */
   #history.history-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(var(--miniW), 1fr)); gap:12px}
 
   .clamp-2{-webkit-line-clamp:2} .clamp-3{-webkit-line-clamp:3}
@@ -60,22 +63,23 @@
 
   .spacer{flex:1 1 auto}
 
-  /* Element 圓徽章（HTML 顯示用；PNG 下載改 SVG 繪） */
+  /* Element badge (HTML only; PNG uses SVG) */
   .elem-badge{display:inline-flex;align-items:center;gap:8px}
   .elem-circle{width:26px;height:26px;border-radius:50%;display:inline-grid;place-items:center;color:#fff;font-weight:700;font-size:12px;flex:0 0 26px}
-  .elem-img{width:26px;height:26px;border-radius:50%;object-fit:cover;display:none} /* 如設定了 iconUrl 會顯示 */
+  .elem-img{width:26px;height:26px;border-radius:50%;object-fit:cover;display:none}
 </style>
 </head>
 <body>
 <header>
   <h1>Vantage_Skirm_Card_Pool</h1>
-  <p>Card list auto-imports on load. Excluded cards show up in Draw History.</p>
+  <p>Auto-imports on load. Excluded cards appear in Draw History.</p>
 </header>
 
 <div class="wrap">
+  <!-- Exclude block -->
   <section class="panel">
     <h2>Mark Previously Drawn (Exclude)</h2>
-    <div class="mini">Enter card IDs; separate with commas or spaces, e.g. <code>S002, S006 S014</code></div>
+    <div class="mini">Enter IDs; separate with commas or spaces (e.g. <code>S002, S006 S014</code>)</div>
     <div style="margin-top:8px;display:flex;gap:8px">
       <input id="excludeInput" type="text" placeholder="S002, S006, S014...">
       <button id="btnExclude" class="btn">Add to Exclusions</button>
@@ -84,6 +88,7 @@
     <div id="excludedList" style="margin-top:8px"></div>
   </section>
 
+  <!-- Draw controls -->
   <section class="panel">
     <h2>Draw Controls</h2>
     <div>
@@ -99,6 +104,7 @@
     </div>
   </section>
 
+  <!-- Views -->
   <section class="panel">
     <h2>Latest Draw</h2>
     <div id="last" class="hint">No card drawn yet</div>
@@ -111,15 +117,13 @@
 </div>
 
 <script>
+/* ===== Constants ===== */
 const ELEMENTS=["CIRCUIT","WIND","ENERGY","FIRE","GOLD","SINEW","METAL","SAND","STONE","LEAF","WATER","WOOD"];
 const GEARS=["MASK","HORN","GAUNTLET","SCEPTER","HELM","HARNESS","CLOAK","TOME","DODECAHEDRON","MANTLE","BLADE","TOOLS"];
 const SKILL_COLORS={ Move:"#3a8ad8", Look:"#8e44ad", Engage:"#e67e22", Help:"#27ae60", Take:"#f1c40f", Overpower:"#c0392b" };
 const GEAR_EMOJI="⚡";
 
-/* ===== Element 顏色 + （可選）icon URL =====
- * 將 iconUrl 改成你的 raw 檔案網址即可顯示圖示。
- * PNG 下載時不載入外部圖片（避免 CORS），改用同色圓徽章。
- */
+/* Element colors (+optional icons for HTML view) */
 const ELEMENT_STYLE={
   CIRCUIT:{color:"#7cc6ff", iconUrl:""},
   ENERGY :{color:"#b990ff", iconUrl:""},
@@ -134,22 +138,29 @@ const ELEMENT_STYLE={
   WIND   :{color:"#ff9dc8", iconUrl:""},
   WOOD   :{color:"#c48f62", iconUrl:""}
 };
-// 你可以用這種方式填：
-// ELEMENT_STYLE.CIRCUIT.iconUrl="https://raw.githubusercontent.com/<user>/<repo>/main/icons/circuit.png";
 
-/* ===== 狀態 ===== */
+/* Data state */
 let FULL=[],DECK=[],DRAWN=[];
 const EXCLUDED=new Set();
-const DEFAULT_SRC="https://zak5325.github.io/skirm_cardlist.txt";
+let CURRENT_BIG_CARD=null;
 
+/* Default source + fallbacks for robust auto-import */
+const DEFAULT_PRIMARY = "https://raw.githubusercontent.com/zak5325/zak5325.github.io/main/skirm_cardlist.txt";
+const DEFAULT_FALLBACKS = [
+  "https://raw.githubusercontent.com/zak5325/zak5325.github.io/master/skirm_cardlist.txt",
+  "https://zak5325.github.io/skirm_cardlist.txt",
+  "https://cdn.jsdelivr.net/gh/zak5325/zak5325.github.io@main/skirm_cardlist.txt",
+  "https://fastly.jsdelivr.net/gh/zak5325/zak5325.github.io@main/skirm_cardlist.txt"
+];
+const LS_KEY_SRC="skirm:lastSrc";
+const LS_KEY_CACHE="skirm:cardsCacheTxt";
+
+/* Shorthands */
 const $=id=>document.getElementById(id);
 const deckCountEl=$("deckCount"),remainCountEl=$("remainCount"),drawnCountEl=$("drawnCount");
 const historyView=$("history"),lastView=$("last"),excludedListEl=$("excludedList");
-const importMsg={ set(v){ /* 已移除顯示列，保留 debug 時可掛到 console */ console.info(v);} };
 
-let CURRENT_BIG_CARD=null;
-
-/* ===== 工具 ===== */
+/* ===== Sanitization & Parsing ===== */
 function sanitizeText(txt){
   if(txt && txt.charCodeAt(0)===0xFEFF) txt=txt.slice(1);
   txt=txt.replace(/pair\.HORN:/g,"pair. - HORN:");
@@ -162,25 +173,29 @@ function parseLine(line){
   const idMatch=line.match(/^S(\d{3})/i);
   const speedMatch=line.match(/Speed\s+(\d{1,2})/i);
   if(!idMatch||!speedMatch) return null;
+
   let elemName=null,elemIdx=-1;
   for(const e of ELEMENTS){const idx=line.indexOf(e+":");if(idx!==-1&&(elemIdx===-1||idx<elemIdx)){elemIdx=idx;elemName=e;}}
   if(elemIdx===-1) return null;
+
   let gearName=null,gearIdx=-1;
   for(const g of GEARS){const idx=line.lastIndexOf(g+":");if(idx>gearIdx){gearIdx=idx;gearName=g;}}
   if(gearIdx===-1) return null;
+
   const skillRegion=line.slice(0,elemIdx);
   const rawSkills=Array.from(skillRegion.matchAll(/\[([^\]]+)\]/g)).map(m=>m[1].trim());
   const SKILL_SET=new Set(["Move","Look","Engage","Help","Take","Overpower"]);
   const skills=Array.from(new Set(rawSkills.map(s=>s[0].toUpperCase()+s.slice(1).toLowerCase()).filter(s=>SKILL_SET.has(s))));
+
   const elementText=line.slice(elemIdx+(elemName.length+1),gearIdx).replace(/^\s*-\s*/,'').trim();
   const gearText=line.slice(gearIdx+(gearName.length+1)).trim();
+
   return {id:"S"+idMatch[1],speed:Number(speedMatch[1]),skills,element:elemName,elementText,gear:gearName,gearText,raw:line.trim()};
 }
 function parseTXT(txt){txt=sanitizeText(txt);return txt.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).map(parseLine).filter(Boolean);}
 function parseJSON(txt){const data=JSON.parse(sanitizeText(txt));return Array.isArray(data)?data:(data.cards||[]);}
-function toast(msg,_="ok"){console.log(msg);}
 
-/* ===== Render ===== */
+/* ===== Rendering ===== */
 function renderSkills(skills){return skills.map(s=>`<span class="tag ${s}" title="Card skill">${s}</span>`).join(" ");}
 
 function elementBadgeHTML(elemName){
@@ -208,7 +223,7 @@ function renderCard(c,{mini=false}={}){
       ${elementBadgeHTML(c.element)} ${c.elementText}
     </div>
     <div class="${mini?'clamp-3':''}" style="${mini?'':'font-size:15px'}">
-      <span class="pill" title="Gear · resolves first">⚡ ${c.gear}</span> ${c.gearText}
+      <span class="pill" title="Gear · resolves first">${GEAR_EMOJI} ${c.gear}</span> ${c.gearText}
     </div>
   `;
   if(c._excluded) el.innerHTML+=`<div class="badge">Previously drawn (excluded)</div>`;
@@ -216,29 +231,45 @@ function renderCard(c,{mini=false}={}){
   return el;
 }
 
-/* ===== Stats / Deck ===== */
-function refreshStats(){const drawnActual=DRAWN.filter(c=>!c._excluded).length; deckCountEl.textContent=FULL.length; remainCountEl.textContent=DECK.length; drawnCountEl.textContent=drawnActual;}
+/* ===== Stats & Deck ===== */
+function refreshStats(){
+  const drawnActual=DRAWN.filter(c=>!c._excluded).length;
+  deckCountEl.textContent=FULL.length;
+  remainCountEl.textContent=DECK.length;
+  drawnCountEl.textContent=drawnActual;
+}
 function resetDeck(){
   DECK=FULL.filter(c=>!EXCLUDED.has(c.id));
   const byId=new Map(FULL.map(c=>[c.id,c]));
   DRAWN=Array.from(EXCLUDED).map(id=>byId.get(id)).filter(Boolean).map(c=>({...c,_excluded:true}));
-  refreshStats(); CURRENT_BIG_CARD=null; lastView.textContent="No card drawn yet"; historyView.innerHTML="";
+  refreshStats();
+  CURRENT_BIG_CARD=null;
+  lastView.textContent="No card drawn yet";
+  historyView.innerHTML="";
   DRAWN.forEach(c=>historyView.prepend(renderCard(c,{mini:true})));
   renderExcludedList();
 }
 
 /* ===== Actions ===== */
-function showAsBigCard(card){ CURRENT_BIG_CARD=card; lastView.innerHTML=""; lastView.appendChild(renderCard(card,{mini:false})); }
-function drawOne(){
-  if(!DECK.length){toast("Deck is empty","err");return;}
-  const idx=Math.floor(Math.random()*DECK.length); const c=DECK.splice(idx,1)[0];
-  DRAWN.push(c); showAsBigCard(c); historyView.prepend(renderCard(c,{mini:true})); refreshStats();
+function showAsBigCard(card){
+  CURRENT_BIG_CARD=card;
+  lastView.innerHTML="";
+  lastView.appendChild(renderCard(card,{mini:false}));
 }
-document.getElementById("btnShuffle").onclick=()=>{DECK.sort(()=>Math.random()-0.5);toast("Shuffled");};
-document.getElementById("btnReset").onclick=resetDeck;
-document.getElementById("btnDraw1").onclick=drawOne;
+function drawOne(){
+  if(!DECK.length){console.warn("Deck is empty");return;}
+  const idx=Math.floor(Math.random()*DECK.length);
+  const c=DECK.splice(idx,1)[0];
+  DRAWN.push(c);
+  showAsBigCard(c);
+  historyView.prepend(renderCard(c,{mini:true}));
+  refreshStats();
+}
+$("btnShuffle").onclick=()=>{DECK.sort(()=>Math.random()-0.5);};
+$("btnReset").onclick=resetDeck;
+$("btnDraw1").onclick=drawOne;
 
-/* ===== Exclude ===== */
+/* ===== Exclusions ===== */
 function normalizeIds(input){return input.split(/[,\s]+/).map(s=>s.trim().toUpperCase()).filter(Boolean);}
 function excludeByIds(ids){
   let added=0, notFound=[];
@@ -249,15 +280,24 @@ function excludeByIds(ids){
     if(!EXCLUDED.has(id)){
       EXCLUDED.add(id);
       const di=DECK.findIndex(c=>c.id===id); if(di>-1) DECK.splice(di,1);
-      if(!DRAWN.some(c=>c.id===id)){ const base=FULL.find(c=>c.id===id); if(base){const ghost={...base,_excluded:true}; DRAWN.push(ghost); historyView.prepend(renderCard(ghost,{mini:true}));}}
+      if(!DRAWN.some(c=>c.id===id)){
+        const base=FULL.find(c=>c.id===id);
+        if(base){const ghost={...base,_excluded:true}; DRAWN.push(ghost); historyView.prepend(renderCard(ghost,{mini:true}));}
+      }
       added++;
     }
   });
-  if(added>0) toast(`Excluded ${added} card(s)`);
-  if(notFound.length) console.warn("Not found:",notFound.join(", "));
+  if(notFound.length){ console.warn("Not found:", notFound.join(", ")); }
+  if(added>0){ /* toast ok */ }
   refreshStats(); renderExcludedList();
 }
-function clearExcluded(){DRAWN=DRAWN.filter(c=>!c._excluded); EXCLUDED.clear(); toast("Exclusions cleared"); resetDeck();}
+function clearExcluded(){
+  DRAWN=DRAWN.filter(c=>!c._excluded);
+  EXCLUDED.clear();
+  resetDeck();
+}
+$("btnExclude").onclick=()=>{const ids=normalizeIds($("excludeInput").value); if(!ids.length){return;} excludeByIds(ids); $("excludeInput").value="";};
+$("btnClearExcluded").onclick=clearExcluded;
 function renderExcludedList(){
   const el=excludedListEl; el.innerHTML="";
   if(EXCLUDED.size===0){el.innerHTML=`<div class="mini">No excluded cards.</div>`;return;}
@@ -273,34 +313,115 @@ function renderExcludedList(){
   el.querySelectorAll(".xbtn").forEach(btn=>{
     btn.onclick=()=>{
       const id=btn.getAttribute("data-id"); if(!EXCLUDED.has(id)) return;
-      EXCLUDED.delete(id); const hi=DRAWN.findIndex(x=>x.id===id&&x._excluded); if(hi>-1) DRAWN.splice(hi,1);
+      EXCLUDED.delete(id);
+      const hi=DRAWN.findIndex(x=>x.id===id&&x._excluded); if(hi>-1) DRAWN.splice(hi,1);
       const c=FULL.find(x=>x.id===id); if(c) DECK.push(c);
-      toast(`Removed ${id} from exclusions`); refreshStats(); renderExcludedList();
+      refreshStats(); renderExcludedList();
       historyView.innerHTML=""; DRAWN.forEach(x=>historyView.prepend(renderCard(x,{mini:true})));
     };
   });
 }
-document.getElementById("btnExclude").onclick=()=>{const ids=normalizeIds(document.getElementById("excludeInput").value); if(!ids.length){toast("Please enter card IDs","err");return;} excludeByIds(ids); document.getElementById("excludeInput").value="";};
-document.getElementById("btnClearExcluded").onclick=clearExcluded;
 
-/* ===== 自動匯入 ===== */
-function isLikelyHTML(t){return /<html|<!doctype/i.test(t);}
-function buildRawFromPages(u0){try{const u=new URL(u0); if(!u.hostname.endsWith("github.io")) return null; const user=u.hostname.split(".")[0]; const repo=`${user}.github.io`; const path=u.pathname.replace(/^\/+/,""); return {rawMain:`https://raw.githubusercontent.com/${user}/${repo}/main/${path}`, rawMaster:`https://raw.githubusercontent.com/${user}/${repo}/master/${path}`};}catch{return null;}}
-async function fetchFromUrl(url){
+/* ===== Robust Auto-Import ===== */
+function isLikelyHTML(text){ return /<html|<!doctype/i.test(text); }
+function buildRawFromPages(urlStr){
   try{
-    const res=await fetch(url,{cache:"no-store"}); if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    const ct=(res.headers.get("content-type")||"").toLowerCase(); const text=await res.text();
-    let cards=[];
-    if(ct.includes("application/json")||url.toLowerCase().endsWith(".json")){ try{cards=parseJSON(text);}catch{} }
-    else{ if(!isLikelyHTML(text)) cards=parseTXT(text); }
-    if(cards.length===0){ const fb=buildRawFromPages(url); if(fb){for(const candidate of [fb.rawMain,fb.rawMaster]){try{const r2=await fetch(candidate,{cache:"no-store"}); if(r2.ok){const t2=await r2.text(); if(candidate.endsWith(".json")) cards=parseJSON(t2); else if(!isLikelyHTML(t2)) cards=parseTXT(t2); if(cards.length>0){FULL=cards; resetDeck(); return;}}}catch{}}}
-    if(!cards.length) throw new Error("No cards parsed.");
-    FULL=cards; resetDeck();
-  }catch(e){ console.error("Load failed:",e.message); }
+    const u=new URL(urlStr);
+    if(!u.hostname.endsWith("github.io")) return null;
+    const user = u.hostname.split(".")[0];
+    const repo = `${user}.github.io`;
+    const path = u.pathname.replace(/^\/+/,"");
+    return [
+      `https://raw.githubusercontent.com/${user}/${repo}/main/${path}`,
+      `https://raw.githubusercontent.com/${user}/${repo}/master/${path}`,
+    ];
+  }catch{ return null; }
 }
-(function init(){ const src=new URL(location.href).searchParams.get("src")||DEFAULT_SRC; fetchFromUrl(src); })();
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+async function fetchWithTimeout(url, timeoutMs=6000){
+  const ctrl = new AbortController();
+  const id = setTimeout(()=>ctrl.abort(), timeoutMs);
+  try{ return await fetch(url, {cache:"no-store", signal:ctrl.signal}); }
+  finally{ clearTimeout(id); }
+}
+async function tryLoadOnce(url){
+  try{
+    const res = await fetchWithTimeout(url, 6000);
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const ct = (res.headers.get("content-type")||"").toLowerCase();
+    const text = await res.text();
+    let cards = [];
+    if(ct.includes("application/json") || url.toLowerCase().endsWith(".json")){
+      try{ cards = parseJSON(text); }catch{}
+    }
+    if(cards.length===0){
+      if(isLikelyHTML(text)){
+        const raws = buildRawFromPages(url);
+        if(raws){
+          for(const r of raws){
+            const rRes = await fetchWithTimeout(r, 6000);
+            if(rRes.ok){
+              const rTxt = await rRes.text();
+              if(r.endsWith(".json")) { try{ cards = parseJSON(rTxt); }catch{} }
+              else if(!isLikelyHTML(rTxt)) { cards = parseTXT(rTxt); }
+              if(cards.length) { url = r; break; }
+            }
+          }
+        }
+      }else{
+        cards = parseTXT(text);
+      }
+    }
+    if(!cards.length) throw new Error("parsed 0 cards");
+    try{
+      localStorage.setItem(LS_KEY_SRC, url);
+      localStorage.setItem(LS_KEY_CACHE, text);
+    }catch{}
+    return {ok:true, cards, url};
+  }catch(e){
+    return {ok:false, error: `${url} → ${e.message}`};
+  }
+}
+async function tryLoadWithRetry(url){
+  for(let i=0;i<2;i++){
+    const r = await tryLoadOnce(url);
+    if(r.ok) return r;
+    await sleep(800 * (i+1));
+  }
+  return {ok:false, error:`${url} (retry failed)`};
+}
+async function autoImport(){
+  const urlObj = new URL(location.href);
+  const fromQuery = urlObj.searchParams.get("src");
+  const lastSrc = localStorage.getItem(LS_KEY_SRC);
+  const candidates = [fromQuery, lastSrc, DEFAULT_PRIMARY, ...DEFAULT_FALLBACKS].filter(Boolean);
+  for(const u of candidates){
+    const r = await tryLoadWithRetry(u);
+    if(r.ok){
+      FULL = r.cards;
+      resetDeck();
+      console.info(`[AutoImport] OK from: ${r.url} (cards=${FULL.length})`);
+      return;
+    }else{
+      console.warn("[AutoImport] fail:", r.error);
+    }
+  }
+  const cacheTxt = localStorage.getItem(LS_KEY_CACHE);
+  if(cacheTxt){
+    let cards = [];
+    try{ cards = parseJSON(cacheTxt); }catch{}
+    if(cards.length===0){ try{ cards = parseTXT(cacheTxt); }catch{} }
+    if(cards.length){
+      FULL = cards; resetDeck();
+      console.warn("[AutoImport] loaded from local cache");
+      return;
+    }
+  }
+  console.error("[AutoImport] No source available and no cache.");
+}
+document.addEventListener("DOMContentLoaded", autoImport);
 
-/* ===== PNG 下載（SVG 繪製，含 Element 顏色徽章與頂部色帶） ===== */
+/* ===== PNG Download (SVG→Canvas) ===== */
 function wrapWords(str,maxLine){const words=String(str||"").split(/\s+/);const lines=[];let cur="";for(const w of words){if((cur+w).length<=maxLine){cur+=(cur?" ":"")+w;}else{if(cur)lines.push(cur);cur=w;}}if(cur)lines.push(cur);return lines;}
 function skillPillsSVG(skills,x,y,maxW){const h=34,padX=12,gap=8,vgap=8;let cx=x,cy=y,out="";skills.forEach(s=>{const label=s;const w=18+label.length*10; if(cx+w>x+maxW){cx=x;cy+=h+vgap;} const color=SKILL_COLORS[s]||"#999"; const textColor=(s==="Take")?"#000":"#fff"; out+=`<rect x="${cx}" y="${cy}" rx="7" ry="7" width="${w}" height="${h}" fill="${color}" /> <text x="${cx+padX}" y="${cy+22}" font-size="15" font-family="system-ui, sans-serif" fill="${textColor}">${label}</text>`; cx+=w+gap;}); return {svg:out,lastY:cy+h};}
 function elementBadgeSVG(elemName,x,y){
@@ -350,7 +471,7 @@ function buildCardSVG(card){
   ${excludedBadge}
 </svg>`;
 }
-async function downloadCurrentBigCard(){
+function downloadCurrentBigCard(){
   if(!CURRENT_BIG_CARD){console.warn("No card");return;}
   const svgText=buildCardSVG(CURRENT_BIG_CARD);
   const svgBlob=new Blob([svgText],{type:"image/svg+xml"});
@@ -363,7 +484,7 @@ async function downloadCurrentBigCard(){
   };
   img.src=url;
 }
-document.getElementById("btnDownload").onclick=downloadCurrentBigCard;
+$("btnDownload").onclick=downloadCurrentBigCard;
 </script>
 </body>
 </html>
