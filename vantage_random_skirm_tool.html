@@ -7,10 +7,7 @@
 <style>
   :root{
     --bg:#f7fbff;--card:#fff;--ink:#10324a;--muted:#5a7b91;--accent:#3a8ad8;--chip:#e6f2ff;
-    --ok:#1f9d55;--err:#b00020;
-    --radius:12px;
-
-    /* 卡片尺寸（可依需求微調） */
+    --ok:#1f9d55;--err:#b00020;--radius:12px;
     --bigW:280px;   /* Latest Draw 大卡寬度 */
     --miniW:180px;  /* History 小卡寬度 */
   }
@@ -21,28 +18,22 @@
   .panel{background:var(--card);border:1px solid #e6eef7;border-radius:var(--radius);box-shadow:0 2px 8px rgba(16,50,74,.06);padding:14px;margin-top:14px}
   .btn{border:1px solid #cfe2f3;background:var(--chip);padding:8px 12px;border-radius:10px;cursor:pointer}
   .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.ghost{background:#fff}
   .kpi{background:#f1f7ff;border:1px dashed #cfe2f3;border-radius:10px;padding:8px 10px;display:inline-block;margin-right:10px}
 
-  /* ===== 卡片外觀：沿用 63:88 比例 ===== */
+  /* ===== 卡片外觀：63:88 比例 ===== */
   .card{
-    position:relative;
-    width:var(--bigW);
-    aspect-ratio:63/88;
-    border:1px solid #dfe7f1;
-    border-radius:calc(var(--radius) + 4px);
-    background:#fff;
-    padding:12px;
-    box-shadow:0 6px 18px rgba(16,50,74,.08);
-    display:flex;flex-direction:column;gap:8px;
+    position:relative; width:var(--bigW); aspect-ratio:63/88;
+    border:1px solid #dfe7f1; border-radius:calc(var(--radius) + 4px);
+    background:#fff; padding:12px; box-shadow:0 6px 18px rgba(16,50,74,.08);
+    display:flex; flex-direction:column;
   }
   .card--mini{
-    width:var(--miniW);
-    aspect-ratio:63/88;
-    padding:10px;
-    border-radius:calc(var(--radius) + 2px);
-    box-shadow:0 3px 10px rgba(16,50,74,.06);
-    gap:6px;
+    width:var(--miniW); aspect-ratio:63/88; padding:10px;
+    border-radius:calc(var(--radius) + 2px); box-shadow:0 3px 10px rgba(16,50,74,.06);
+    display:flex; flex-direction:column; cursor:pointer; transition:transform .05s ease;
   }
+  .card--mini:active{ transform:scale(0.99); }
   .card h3{margin:0;font-size:18px;line-height:1.2}
   .card--mini h3{font-size:14px}
   .badge{
@@ -69,7 +60,7 @@
   .statusbar{max-width:1100px;margin:0 auto;padding:0 16px}
   .statusbar .panel{margin-top:0}
 
-  /* Draw History 變成卡片磁貼排列 */
+  /* Draw History 磁貼排列 */
   #history.history-grid{
     display:grid;
     grid-template-columns:repeat(auto-fill, minmax(var(--miniW), 1fr));
@@ -79,6 +70,9 @@
   /* 文字裁切，確保卡面高度一致、好看 */
   .clamp-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .clamp-3{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+
+  /* 用於把 Element/Gear 往中下推的 spacer */
+  .spacer{flex:1 1 auto}
 </style>
 </head>
 <body>
@@ -113,10 +107,11 @@
       <span class="kpi">Remaining: <span id="remainCount">0</span></span>
       <span class="kpi">Drawn: <span id="drawnCount">0</span></span>
     </div>
-    <div style="margin-top:10px">
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
       <button id="btnShuffle" class="btn">Shuffle</button>
       <button id="btnReset" class="btn">Reset</button>
       <button id="btnDraw1" class="btn primary">Draw 1 Card</button>
+      <button id="btnDownload" class="btn ghost" title="Download current big card as PNG">Download PNG</button>
     </div>
   </section>
 
@@ -135,11 +130,15 @@
 <script>
 const ELEMENTS=["CIRCUIT","WIND","ENERGY","FIRE","GOLD","SINEW","METAL","SAND","STONE","LEAF","WATER","WOOD"];
 const GEARS=["MASK","HORN","GAUNTLET","SCEPTER","HELM","HARNESS","CLOAK","TOME","DODECAHEDRON","MANTLE","BLADE","TOOLS"];
+const SKILL_COLORS={
+  Move:"#3a8ad8", Look:"#8e44ad", Engage:"#e67e22",
+  Help:"#27ae60", Take:"#f1c40f", Overpower:"#c0392b"
+};
+const GEAR_EMOJI = "⚡";
 
 let FULL=[],DECK=[],DRAWN=[];
 const EXCLUDED=new Set();
 
-// --- Fixed source (auto-load), can be overridden by ?src= ---
 const DEFAULT_SRC = "https://zak5325.github.io/skirm_cardlist.txt";
 
 const $=id=>document.getElementById(id);
@@ -147,13 +146,16 @@ const deckCountEl=$("deckCount"),remainCountEl=$("remainCount"),drawnCountEl=$("
 const historyView=$("history"),lastView=$("last"),importMsg=$("importMsg");
 const excludedListEl=$("excludedList");
 
+// 目前「大卡展示」的卡，用於下載
+let CURRENT_BIG_CARD = null;
+
 function toast(msg,cls="ok"){importMsg.innerHTML=`<span class="${cls}">●</span> ${msg}`;}
 
-// Error surfacing
+// ---- Error surfacing
 window.addEventListener('error', e => { importMsg.innerHTML = `<span class="err">●</span> ${e.message||'Unknown error'}`; });
 window.addEventListener('unhandledrejection', e => { importMsg.innerHTML = `<span class="err">●</span> ${e.reason||'Promise rejected'}`; });
 
-// Sanitize common quirks
+// ---- Sanitize & Parse
 function sanitizeText(txt){
   if(txt && txt.charCodeAt(0)===0xFEFF) txt=txt.slice(1);
   txt = txt.replace(/pair\.HORN:/g,"pair. - HORN:");
@@ -162,8 +164,6 @@ function sanitizeText(txt){
   txt = txt.replace(new RegExp("(\\])\\s+("+elemPat+"):", "g"), "] - $2:");
   return txt;
 }
-
-// Parse one line into a card
 function parseLine(line){
   const idMatch = line.match(/^S(\d{3})/i);
   const speedMatch = line.match(/Speed\s+(\d{1,2})/i);
@@ -195,16 +195,7 @@ function parseLine(line){
   const elementText = line.slice(elemIdx + (elemName.length + 1), gearIdx).replace(/^\s*-\s*/,'').trim();
   const gearText = line.slice(gearIdx + (gearName.length + 1)).trim();
 
-  return {
-    id: "S" + idMatch[1],
-    speed: Number(speedMatch[1]),
-    skills,
-    element: elemName,
-    elementText,
-    gear: gearName,
-    gearText,
-    raw: line.trim()
-  };
+  return { id:"S"+idMatch[1], speed:Number(speedMatch[1]), skills, element:elemName, elementText, gear:gearName, gearText, raw:line.trim() };
 }
 function parseTXT(txt){
   txt = sanitizeText(txt);
@@ -218,8 +209,7 @@ function parseJSON(txt){
   return Array.isArray(data)?data:(data.cards||[]);
 }
 
-// Render
-const GEAR_EMOJI = "⚡";
+// ---- Render (HTML big/mini)
 function renderSkills(skills){
   return skills.map((s)=>`<span class="tag ${s}" title="Card skill">${s}</span>`).join(" ");
 }
@@ -227,68 +217,66 @@ function renderCard(c, {mini=false} = {}){
   const el=document.createElement("div");
   el.className = "card" + (mini ? " card--mini" : "");
 
+  // 使用 spacer 把 Element / Gear 推到中下
   el.innerHTML = `
     <h3>${c.id} · Speed ${c.speed}</h3>
     <div>${renderSkills(c.skills)}</div>
-    <div class="clamp-2"><span class="pill" title="Element · extra scoring">${c.element}</span> ${c.elementText}</div>
-    <div class="clamp-3"><span class="pill" title="Gear · resolves first">${GEAR_EMOJI} ${c.gear}</span> ${c.gearText}</div>
+    <div class="spacer"></div>
+    <div class="${mini?'clamp-2':''}"><span class="pill" title="Element · extra scoring">${c.element}</span> ${c.elementText}</div>
+    <div class="${mini?'clamp-3':''}"><span class="pill" title="Gear · resolves first">⚡ ${c.gear}</span> ${c.gearText}</div>
   `;
   if(c._excluded) el.innerHTML += `<div class="badge">Previously drawn (excluded)</div>`;
+
+  if(mini){
+    el.setAttribute("data-id", c.id);
+    el.title = "Click to show full card";
+    el.onclick = ()=> showAsBigCard(c);
+  }
   return el;
 }
 
-// ===== stats show only actually drawn (non-excluded) =====
+// ---- Stats & Reset
 function refreshStats(){
   const drawnActual = DRAWN.filter(c => !c._excluded).length;
   deckCountEl.textContent = FULL.length;
   remainCountEl.textContent = DECK.length;
   drawnCountEl.textContent = drawnActual;
 }
-
-// ===== Reset: keep only excluded ghosts in history; Drew resets to 0 =====
 function resetDeck(){
-  // Deck = FULL minus excluded
+  // deck = full - excluded
   DECK = FULL.filter(c => !EXCLUDED.has(c.id));
-
-  // DRAWN = only excluded ghosts
+  // history: only excluded ghosts
   const byId = new Map(FULL.map(c => [c.id, c]));
-  DRAWN = Array.from(EXCLUDED)
-    .map(id => byId.get(id))
-    .filter(Boolean)
-    .map(c => ({ ...c, _excluded: true }));
-
-  // UI refresh
+  DRAWN = Array.from(EXCLUDED).map(id => byId.get(id)).filter(Boolean).map(c => ({...c,_excluded:true}));
   refreshStats();
+  CURRENT_BIG_CARD = null;
   lastView.textContent = "No card drawn yet";
   historyView.innerHTML = "";
-  DRAWN.forEach(c => historyView.prepend(renderCard(c, {mini:true})));
+  DRAWN.forEach(c => historyView.prepend(renderCard(c,{mini:true})));
   renderExcludedList();
 }
 
-// Draw one
+// ---- Actions
+function showAsBigCard(card){
+  CURRENT_BIG_CARD = card;
+  lastView.innerHTML = "";
+  lastView.appendChild(renderCard(card,{mini:false}));
+}
 function drawOne(){
   if(!DECK.length){toast("Deck is empty","err");return;}
   const idx=Math.floor(Math.random()*DECK.length);
   const c=DECK.splice(idx,1)[0];
   DRAWN.push(c);
-
-  // Latest Draw：顯示大卡
-  lastView.innerHTML="";
-  lastView.appendChild(renderCard(c, {mini:false}));
-
-  // History：插入小卡
-  historyView.prepend(renderCard(c, {mini:true}));
-
+  showAsBigCard(c);
+  historyView.prepend(renderCard(c,{mini:true}));
   refreshStats();
 }
-document.getElementById("btnShuffle").onclick=()=>{ DECK.sort(()=>Math.random()-0.5); toast("Shuffled","ok"); };
-document.getElementById("btnReset").onclick=resetDeck;
-document.getElementById("btnDraw1").onclick=drawOne;
+$("btnShuffle").onclick=()=>{ DECK.sort(()=>Math.random()-0.5); toast("Shuffled","ok"); };
+$("btnReset").onclick=resetDeck;
+$("btnDraw1").onclick=drawOne;
 
-// Exclusions
-function normalizeIds(input){
-  return input.split(/[,\s]+/).map(s=>s.trim().toUpperCase()).filter(Boolean);
-}
+// ---- Exclusions
+function normalizeIds(input){ return input.split(/[,\s]+/).map(s=>s.trim().toUpperCase()).filter(Boolean); }
 function excludeByIds(ids){
   let added=0, notFound=[];
   const fullIds=new Set(FULL.map(c=>c.id));
@@ -299,13 +287,12 @@ function excludeByIds(ids){
       EXCLUDED.add(id);
       const idx = DECK.findIndex(c=>c.id===id);
       if(idx>-1) DECK.splice(idx,1);
-
       if(!DRAWN.some(c=>c.id===id)){
         const base = FULL.find(c=>c.id===id);
         if(base){
           const ghost = {...base, _excluded:true};
           DRAWN.push(ghost);
-          historyView.prepend(renderCard(ghost, {mini:true}));
+          historyView.prepend(renderCard(ghost,{mini:true}));
         }
       }
       added++;
@@ -324,10 +311,7 @@ function clearExcluded(){
 }
 function renderExcludedList(){
   excludedListEl.innerHTML="";
-  if(EXCLUDED.size===0){
-    excludedListEl.innerHTML = `<div class="hint">No excluded cards.</div>`;
-    return;
-  }
+  if(EXCLUDED.size===0){ excludedListEl.innerHTML = `<div class="hint">No excluded cards.</div>`; return; }
   const byId = new Map(FULL.map(c=>[c.id,c]));
   Array.from(EXCLUDED).sort().forEach(id=>{
     const c = byId.get(id);
@@ -342,30 +326,27 @@ function renderExcludedList(){
       const id = btn.getAttribute("data-id");
       if(!EXCLUDED.has(id)) return;
       EXCLUDED.delete(id);
-      // remove ghost from DRAWN
       const idxHist = DRAWN.findIndex(x=>x.id===id && x._excluded);
       if(idxHist>-1) DRAWN.splice(idxHist,1);
-      // put back to deck if exists
       const c = FULL.find(x=>x.id===id);
       if(c) DECK.push(c);
       toast(`Removed ${id} from exclusions`);
       refreshStats();
       renderExcludedList();
-      // rerender history (only mini cards)
       historyView.innerHTML="";
-      DRAWN.forEach(x=>historyView.prepend(renderCard(x, {mini:true})));
+      DRAWN.forEach(x=>historyView.prepend(renderCard(x,{mini:true})));
     };
   });
 }
-document.getElementById("btnExclude").onclick = ()=>{
-  const ids = normalizeIds(document.getElementById("excludeInput").value);
+$("btnExclude").onclick = ()=>{
+  const ids = normalizeIds($("excludeInput").value);
   if(ids.length===0){ toast("Please enter card IDs","err"); return; }
   excludeByIds(ids);
-  document.getElementById("excludeInput").value="";
+  $("excludeInput").value="";
 };
-document.getElementById("btnClearExcluded").onclick = clearExcluded;
+$("btnClearExcluded").onclick = clearExcluded;
 
-// -------- Robust auto-import --------
+// ---- Robust auto-import
 function isLikelyHTML(text){ return /<html|<!doctype/i.test(text); }
 function buildRawFromPages(urlStr){
   try{
@@ -420,14 +401,121 @@ async function fetchFromUrl(url){
     importMsg.innerHTML = `<span class="err">●</span> Load failed: ${e.message}`;
   }
 }
-
-// Init: use ?src= override, else default
 (function init(){
   const urlObj=new URL(location.href);
   const fromQuery=urlObj.searchParams.get("src");
   const chosen = fromQuery || DEFAULT_SRC;
   fetchFromUrl(chosen);
 })();
+
+/* =======================
+   PNG 下載：以 SVG 繪製 → Canvas → PNG
+   ======================= */
+function wrapWords(str, maxLineLen){
+  // 簡易斷行：依空白切，接近字數上限換行
+  const words = String(str||"").split(/\s+/);
+  const lines=[]; let cur="";
+  words.forEach(w=>{
+    if((cur+w).length <= maxLineLen){ cur += (cur? " ":"") + w; }
+    else{ if(cur) lines.push(cur); cur = w; }
+  });
+  if(cur) lines.push(cur);
+  return lines;
+}
+function skillPillsSVG(skills, x, y, maxWidth){
+  // 依序畫小色塊標籤（自動換行到下一列）
+  const h=26, padX=10, gap=6, vgap=6; let cx=x, cy=y; let out="";
+  skills.forEach(s=>{
+    const label=s;
+    const textLen = label.length;                 // 粗估寬（不精準，但夠用）
+    const w = 14 + textLen*8;                     // 標籤寬估算
+    if(cx + w > x + maxWidth){ cx = x; cy += h + vgap; }
+    const color = SKILL_COLORS[s] || "#999";
+    const textColor = (s==="Take")?"#000":"#fff";
+    out += `
+      <rect x="${cx}" y="${cy}" rx="5" ry="5" width="${w}" height="${h}" fill="${color}" />
+      <text x="${cx+padX}" y="${cy+18}" font-size="13" font-family="system-ui, sans-serif" fill="${textColor}">${label}</text>
+    `;
+    cx += w + gap;
+  });
+  return {svg:out, lastY:cy+h};
+}
+function buildCardSVG(card){
+  // 尺寸用 630x880（等比 63x88 放大 10 倍）
+  const W=630, H=880, pad=24, innerW=W-2*pad;
+  const title = `${card.id} · Speed ${card.speed}`;
+  // 技能標籤
+  const skills = card.skills||[];
+  const pills = skillPillsSVG(skills, pad, 120, innerW);
+  // 用 spacer 的概念：先給上方標題與技能，再把 Element/Gear 文字放在中下
+  const elLines = wrapWords(`${card.element}: ${card.elementText}`, 48);
+  const grLines = wrapWords(`⚡ ${card.gear}: ${card.gearText}`, 48);
+
+  // Element / Gear 區塊的頂部位置（中下）
+  const midY = Math.max(pills.lastY + 40, 380); // 至少 380 後再排
+  let yEl = midY, lineH=22;
+  let elTextSVG = elLines.map((t,i)=>`<text x="${pad+12}" y="${yEl + i*lineH}" font-size="16" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`).join("");
+  let yAfterEl = yEl + elLines.length*lineH + 14;
+  let grTextSVG = grLines.map((t,i)=>`<text x="${pad+12}" y="${yAfterEl + i*lineH}" font-size="16" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`).join("");
+
+  const excludedBadge = card._excluded
+    ? `<rect x="${W-180}" y="${16}" rx="14" ry="14" width="164" height="28" fill="#fff3cd" stroke="#ffe08a"/>
+       <text x="${W-98}" y="36" font-size="12" text-anchor="middle" font-family="system-ui, sans-serif" fill="#8a6d3b">Previously drawn (excluded)</text>`
+    : "";
+
+  const svg = `
+<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="rgba(16,50,74,.25)" />
+    </filter>
+  </defs>
+  <rect x="0" y="0" width="${W}" height="${H}" fill="none"/>
+  <g filter="url(#shadow)">
+    <rect x="10" y="10" width="${W-20}" height="${H-20}" rx="22" ry="22" fill="#fff" stroke="#dfe7f1"/>
+  </g>
+
+  <!-- Title -->
+  <text x="${pad}" y="70" font-size="28" font-weight="700" font-family="system-ui, sans-serif" fill="#10324a">${title}</text>
+
+  <!-- Skills label -->
+  <text x="${pad}" y="105" font-size="14" font-family="system-ui, sans-serif" fill="#5a7b91">Skills</text>
+  ${pills.svg}
+
+  <!-- Element & Gear 中下位置 -->
+  <text x="${pad}" y="${midY-16}" font-size="14" font-family="system-ui, sans-serif" fill="#5a7b91">Element</text>
+  ${elTextSVG}
+  <text x="${pad}" y="${yAfterEl-16}" font-size="14" font-family="system-ui, sans-serif" fill="#5a7b91">Gear</text>
+  ${grTextSVG}
+
+  ${excludedBadge}
+</svg>`;
+  return svg;
+}
+async function downloadCurrentBigCard(){
+  if(!CURRENT_BIG_CARD){ toast("No card to download","err"); return; }
+  const svgText = buildCardSVG(CURRENT_BIG_CARD);
+  // 轉成 PNG
+  const svgBlob = new Blob([svgText], {type: "image/svg+xml"});
+  const url = URL.createObjectURL(svgBlob);
+  const img = new Image();
+  img.onload = ()=>{
+    const canvas = document.createElement("canvas");
+    canvas.width = img.width; canvas.height = img.height;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0);
+    URL.revokeObjectURL(url);
+    const png = canvas.toDataURL("image/png");
+    const a = document.createElement("a");
+    a.href = png;
+    a.download = `${CURRENT_BIG_CARD.id}.png`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+  img.src = url;
+}
+$("btnDownload").onclick = downloadCurrentBigCard;
 </script>
 </body>
 </html>
