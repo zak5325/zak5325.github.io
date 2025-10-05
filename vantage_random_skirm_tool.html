@@ -423,45 +423,82 @@ function elementBadgeSVG(elemName,x,y){
   const st=ELEMENT_STYLE[elemName]||{color:"#cfe2f3"}; const bg=st.color; const letter=({CIRCUIT:"C",WIND:"Wi",ENERGY:"E",FIRE:"F",GOLD:"G",SINEW:"Si",METAL:"M",SAND:"Sa",STONE:"St",LEAF:"Le",WATER:"Wa",WOOD:"Wo"})[elemName]||elemName[0];
   return `<circle cx="${x+16}" cy="${y+16}" r="16" fill="${bg}"/><text x="${x+16}" y="${y+21}" font-size="14" text-anchor="middle" font-weight="700" font-family="system-ui, sans-serif" fill="#fff">${letter}</text>`;
 }
+// 取代原本的 buildCardSVG(card)
 function buildCardSVG(card){
-  const W=630,H=880,pad=24,innerW=W-2*pad;
+  const W=630, H=880, pad=24, innerW=W-2*pad;
   const title=`${card.id} · Speed ${card.speed}`;
-  const bgColor=(ELEMENT_STYLE[card.element]||{}).color||"#cfe2f3";  /* 整張背景色 */
+  const bgColor=(ELEMENT_STYLE[card.element]||{}).color||"#cfe2f3";  // 整張背景色
 
-  const pills=skillPillsSVG(card.skills||[],pad,130,innerW);
-  const elLines=wrapWords(`${card.element}: ${card.elementText}`,42);
-  const grLines=wrapWords(`⚡ ${card.gear}: ${card.gearText}`,42);
-  const midY=Math.max(pills.lastY+30,320); const lineH=24;
-  const yEl=midY, yAfterEl=yEl+elLines.length*lineH+20;
+  // ---- Title & Skills（固定在上方）----
+  const titleY = 78;
+  const skillsTopY = 116;
+  const pills = skillPillsSVG(card.skills||[], pad, 130, innerW);
 
-  const elTextSVG=elLines.map((t,i)=>`<text x="${pad+50}" y="${yEl+i*lineH}" font-size="18" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`).join("");
-  const grTextSVG=grLines.map((t,i)=>`<text x="${pad+12}" y="${yAfterEl+i*lineH}" font-size="18" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`).join("");
+  // ---- 文字排版參數 ----
+  const lineH = 24;
+  const labelH = 20;           // 小標高度（Element/Gear）
+  const blockGap = 16;         // Element 與 Gear 之間間距
+  const bottomPad = pad;       // 與底部距離
 
-  const excludedBadge=card._excluded?`<rect x="${W-200}" y="16" rx="14" ry="14" width="184" height="30" fill="#fff3cd" stroke="#ffe08a"/><text x="${W-108}" y="36" font-size="12" text-anchor="middle" font-family="system-ui, sans-serif" fill="#8a6d3b">Previously drawn (excluded)</text>`:"";
+  // ---- 將 Element / Gear 置底：先量測高度，再反推 y ----
+  const elLines = wrapWords(`${card.element}: ${card.elementText}`, 42);
+  const grLines = wrapWords(`⚡ ${card.gear}: ${card.gearText}`, 42);
+
+  const elBadgeH = 36; // Element 左側圓徽章大約高度
+  const elTextH  = elLines.length * lineH;
+  const elBlockH = labelH + Math.max(elTextH, elBadgeH) + 4; // +4 微調間距
+
+  const grTextH  = grLines.length * lineH;
+  const grBlockH = labelH + grTextH + 4;
+
+  // Gear 靠底，Element 在 Gear 之上
+  const gearStartY = H - bottomPad - grBlockH;
+  const elemStartY = gearStartY - blockGap - elBlockH;
+
+  // ---- 組合 SVG ----
+  const elTextSVG = elLines
+    .map((t,i)=>`<text x="${pad+50}" y="${elemStartY + labelH + i*lineH}" font-size="18" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`)
+    .join("");
+
+  const grTextSVG = grLines
+    .map((t,i)=>`<text x="${pad+12}"  y="${gearStartY + labelH + i*lineH}" font-size="18" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`)
+    .join("");
+
+  const excludedBadge = card._excluded
+    ? `<rect x="${W-200}" y="16" rx="14" ry="14" width="184" height="30" fill="#fff3cd" stroke="#ffe08a"/>
+       <text x="${W-108}" y="36" font-size="12" text-anchor="middle" font-family="system-ui, sans-serif" fill="#8a6d3b">Previously drawn (excluded)</text>`
+    : "";
 
   return `
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
-  <rect x="0" y="0" width="${W}" height="${H}" fill="${bgColor}"/>  <!-- 整張背景套 Element 色 -->
-  <defs><filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="rgba(16,50,74,.25)"/></filter></defs>
+  <!-- 整張背景 = Element 色 -->
+  <rect x="0" y="0" width="${W}" height="${H}" fill="${bgColor}"/>
+
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="rgba(16,50,74,.25)"/>
+    </filter>
+  </defs>
+
+  <!-- 內層卡片（同色，保留圓角與邊框） -->
   <g filter="url(#shadow)">
-    <!-- 內層卡片仍然是同色背景，保留圓角邊框 -->
     <rect x="10" y="10" width="${W-20}" height="${H-20}" rx="22" ry="22" fill="${bgColor}" stroke="#dfe7f1"/>
   </g>
 
   <!-- Title -->
-  <text x="${pad}" y="78" font-size="32" font-weight="700" font-family="system-ui, sans-serif" fill="#10324a">${title}</text>
+  <text x="${pad}" y="${titleY}" font-size="32" font-weight="700" font-family="system-ui, sans-serif" fill="#10324a">${title}</text>
 
   <!-- Skills -->
-  <text x="${pad}" y="116" font-size="16" font-family="system-ui, sans-serif" fill="#2b4a60">Skills</text>
+  <text x="${pad}" y="${skillsTopY}" font-size="16" font-family="system-ui, sans-serif" fill="#2b4a60">Skills</text>
   ${pills.svg}
 
-  <!-- Element -->
-  <text x="${pad}" y="${yEl-18}" font-size="16" font-family="system-ui, sans-serif" fill="#2b4a60">Element</text>
-  ${elementBadgeSVG(card.element, pad+12, yEl-8)}
+  <!-- Element（置底區塊的上方） -->
+  <text x="${pad}" y="${elemStartY}" font-size="16" font-family="system-ui, sans-serif" fill="#2b4a60">Element</text>
+  ${elementBadgeSVG(card.element, pad+12, elemStartY + 2)}   <!-- 圓徽章 -->
   ${elTextSVG}
 
-  <!-- Gear -->
-  <text x="${pad}" y="${yAfterEl-18}" font-size="16" font-family="system-ui, sans-serif" fill="#2b4a60">Gear</text>
+  <!-- Gear（最底部區塊） -->
+  <text x="${pad}" y="${gearStartY}" font-size="16" font-family="system-ui, sans-serif" fill="#2b4a60">Gear</text>
   ${grTextSVG}
 
   ${excludedBadge}
