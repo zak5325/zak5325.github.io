@@ -34,13 +34,14 @@
     display:flex; flex-direction:column; cursor:pointer; transition:transform .05s ease;
   }
   .card--mini:active{ transform:scale(0.99); }
-  .card h3{margin:0;font-size:18px;line-height:1.2}
+  .card h3{margin:0;font-size:20px;line-height:1.2}       /* ▲ 大卡標題稍加大 */
   .card--mini h3{font-size:14px}
   .badge{
     position:absolute;right:10px;top:10px;font-size:12px;background:#fff3cd;border:1px solid #ffe08a;color:#8a6d3b;border-radius:999px;padding:2px 8px
   }
-  .pill{display:inline-block;background:#e6f2ff;padding:2px 8px;border-radius:999px;margin-right:6px;font-size:12px}
-  .tag{display:inline-block;border-radius:6px;padding:2px 6px;font-size:13px;color:#fff;margin-right:4px;white-space:nowrap}
+  /* ▲ 大卡技能標籤與 Element/Gear 的 pill 放大 */
+  .pill{display:inline-block;background:#e6f2ff;padding:3px 9px;border-radius:999px;margin-right:6px;font-size:13px}
+  .tag{display:inline-block;border-radius:6px;padding:4px 8px;font-size:15px;color:#fff;margin-right:6px;white-space:nowrap}
   .card--mini .pill{font-size:11px;padding:2px 6px}
   .card--mini .tag{font-size:11px;padding:2px 5px}
 
@@ -222,8 +223,8 @@ function renderCard(c, {mini=false} = {}){
     <h3>${c.id} · Speed ${c.speed}</h3>
     <div>${renderSkills(c.skills)}</div>
     <div class="spacer"></div>
-    <div class="${mini?'clamp-2':''}"><span class="pill" title="Element · extra scoring">${c.element}</span> ${c.elementText}</div>
-    <div class="${mini?'clamp-3':''}"><span class="pill" title="Gear · resolves first">⚡ ${c.gear}</span> ${c.gearText}</div>
+    <div class="${mini?'clamp-2':''}" style="${mini?'':'font-size:15px'}"><span class="pill" title="Element · extra scoring">${c.element}</span> ${c.elementText}</div>
+    <div class="${mini?'clamp-3':''}" style="${mini?'':'font-size:15px'}"><span class="pill" title="Gear · resolves first">⚡ ${c.gear}</span> ${c.gearText}</div>
   `;
   if(c._excluded) el.innerHTML += `<div class="badge">Previously drawn (excluded)</div>`;
 
@@ -410,9 +411,9 @@ async function fetchFromUrl(url){
 
 /* =======================
    PNG 下載：以 SVG 繪製 → Canvas → PNG
+   已調大：標題/技能標籤/Element/Gear
    ======================= */
 function wrapWords(str, maxLineLen){
-  // 簡易斷行：依空白切，接近字數上限換行
   const words = String(str||"").split(/\s+/);
   const lines=[]; let cur="";
   words.forEach(w=>{
@@ -423,44 +424,46 @@ function wrapWords(str, maxLineLen){
   return lines;
 }
 function skillPillsSVG(skills, x, y, maxWidth){
-  // 依序畫小色塊標籤（自動換行到下一列）
-  const h=26, padX=10, gap=6, vgap=6; let cx=x, cy=y; let out="";
+  // 放大尺寸：高 34、字 15px、寬度估算上調
+  const h=34, padX=12, gap=8, vgap=8; let cx=x, cy=y; let out="";
   skills.forEach(s=>{
     const label=s;
-    const textLen = label.length;                 // 粗估寬（不精準，但夠用）
-    const w = 14 + textLen*8;                     // 標籤寬估算
+    const textLen = label.length;
+    const w = 18 + textLen*10;                  // ▲ 寬度估算更大
     if(cx + w > x + maxWidth){ cx = x; cy += h + vgap; }
     const color = SKILL_COLORS[s] || "#999";
     const textColor = (s==="Take")?"#000":"#fff";
     out += `
-      <rect x="${cx}" y="${cy}" rx="5" ry="5" width="${w}" height="${h}" fill="${color}" />
-      <text x="${cx+padX}" y="${cy+18}" font-size="13" font-family="system-ui, sans-serif" fill="${textColor}">${label}</text>
+      <rect x="${cx}" y="${cy}" rx="7" ry="7" width="${w}" height="${h}" fill="${color}" />
+      <text x="${cx+padX}" y="${cy+22}" font-size="15" font-family="system-ui, sans-serif" fill="${textColor}">${label}</text>
     `;
     cx += w + gap;
   });
   return {svg:out, lastY:cy+h};
 }
 function buildCardSVG(card){
-  // 尺寸用 630x880（等比 63x88 放大 10 倍）
+  // 630x880（等比 63x88 放大 10 倍）
   const W=630, H=880, pad=24, innerW=W-2*pad;
   const title = `${card.id} · Speed ${card.speed}`;
-  // 技能標籤
-  const skills = card.skills||[];
-  const pills = skillPillsSVG(skills, pad, 120, innerW);
-  // 用 spacer 的概念：先給上方標題與技能，再把 Element/Gear 文字放在中下
-  const elLines = wrapWords(`${card.element}: ${card.elementText}`, 48);
-  const grLines = wrapWords(`⚡ ${card.gear}: ${card.gearText}`, 48);
 
-  // Element / Gear 區塊的頂部位置（中下）
-  const midY = Math.max(pills.lastY + 40, 380); // 至少 380 後再排
-  let yEl = midY, lineH=22;
-  let elTextSVG = elLines.map((t,i)=>`<text x="${pad+12}" y="${yEl + i*lineH}" font-size="16" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`).join("");
-  let yAfterEl = yEl + elLines.length*lineH + 14;
-  let grTextSVG = grLines.map((t,i)=>`<text x="${pad+12}" y="${yAfterEl + i*lineH}" font-size="16" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`).join("");
+  // 技能標籤：更大
+  const skills = card.skills||[];
+  const pills = skillPillsSVG(skills, pad, 130, innerW);
+
+  // Element/Gear 文字放大；包裝行長稍微縮短，增加行數以填滿畫面
+  const elLines = wrapWords(`${card.element}: ${card.elementText}`, 42);   // ▲ 由 48 改為 42
+  const grLines = wrapWords(`⚡ ${card.gear}: ${card.gearText}`, 42);
+
+  // Element / Gear 區塊頂部位置：稍微上移，讓畫面更飽滿
+  const midY = Math.max(pills.lastY + 30, 320);  // ▲ 原本 380，改成 320
+  let yEl = midY, lineH=24;                       // ▲ 行高 24（原 22）
+  let elTextSVG = elLines.map((t,i)=>`<text x="${pad+12}" y="${yEl + i*lineH}" font-size="18" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`).join("");
+  let yAfterEl = yEl + elLines.length*lineH + 20; // ▲ 區塊之間間距加大
+  let grTextSVG = grLines.map((t,i)=>`<text x="${pad+12}" y="${yAfterEl + i*lineH}" font-size="18" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`).join("");
 
   const excludedBadge = card._excluded
-    ? `<rect x="${W-180}" y="${16}" rx="14" ry="14" width="164" height="28" fill="#fff3cd" stroke="#ffe08a"/>
-       <text x="${W-98}" y="36" font-size="12" text-anchor="middle" font-family="system-ui, sans-serif" fill="#8a6d3b">Previously drawn (excluded)</text>`
+    ? `<rect x="${W-200}" y="${16}" rx="14" ry="14" width="184" height="30" fill="#fff3cd" stroke="#ffe08a"/>
+       <text x="${W-108}" y="36" font-size="12" text-anchor="middle" font-family="system-ui, sans-serif" fill="#8a6d3b">Previously drawn (excluded)</text>`
     : "";
 
   const svg = `
@@ -476,16 +479,16 @@ function buildCardSVG(card){
   </g>
 
   <!-- Title -->
-  <text x="${pad}" y="70" font-size="28" font-weight="700" font-family="system-ui, sans-serif" fill="#10324a">${title}</text>
+  <text x="${pad}" y="78" font-size="32" font-weight="700" font-family="system-ui, sans-serif" fill="#10324a">${title}</text>
 
   <!-- Skills label -->
-  <text x="${pad}" y="105" font-size="14" font-family="system-ui, sans-serif" fill="#5a7b91">Skills</text>
+  <text x="${pad}" y="116" font-size="16" font-family="system-ui, sans-serif" fill="#5a7b91">Skills</text>
   ${pills.svg}
 
-  <!-- Element & Gear 中下位置 -->
-  <text x="${pad}" y="${midY-16}" font-size="14" font-family="system-ui, sans-serif" fill="#5a7b91">Element</text>
+  <!-- Element & Gear（字體變大） -->
+  <text x="${pad}" y="${midY-18}" font-size="16" font-family="system-ui, sans-serif" fill="#5a7b91">Element</text>
   ${elTextSVG}
-  <text x="${pad}" y="${yAfterEl-16}" font-size="14" font-family="system-ui, sans-serif" fill="#5a7b91">Gear</text>
+  <text x="${pad}" y="${yAfterEl-18}" font-size="16" font-family="system-ui, sans-serif" fill="#5a7b91">Gear</text>
   ${grTextSVG}
 
   ${excludedBadge}
@@ -495,7 +498,6 @@ function buildCardSVG(card){
 async function downloadCurrentBigCard(){
   if(!CURRENT_BIG_CARD){ toast("No card to download","err"); return; }
   const svgText = buildCardSVG(CURRENT_BIG_CARD);
-  // 轉成 PNG
   const svgBlob = new Blob([svgText], {type: "image/svg+xml"});
   const url = URL.createObjectURL(svgBlob);
   const img = new Image();
