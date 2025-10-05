@@ -21,31 +21,26 @@
   .btn.ghost{background:#fff}
   .kpi{background:#f1f7ff;border:1px dashed #cfe2f3;border-radius:10px;padding:8px 10px;display:inline-block;margin-right:10px}
 
-  /* ===== 卡片外觀：63:88 比例 ===== */
+  /* ===== 63:88 比例卡面 ===== */
   .card{
     position:relative; width:var(--bigW); aspect-ratio:63/88;
-    border:1px solid #dfe7f1; border-radius:calc(var(--radius) + 4px);
+    border:1px solid #dfe7f1; border-radius:16px;
     background:#fff; padding:12px; box-shadow:0 6px 18px rgba(16,50,74,.08);
-    display:flex; flex-direction:column;
+    display:flex; flex-direction:column; overflow:hidden;
   }
-  .card--mini{
-    width:var(--miniW); aspect-ratio:63/88; padding:10px;
-    border-radius:calc(var(--radius) + 2px); box-shadow:0 3px 10px rgba(16,50,74,.06);
-    display:flex; flex-direction:column; cursor:pointer; transition:transform .05s ease;
-  }
+  /* 顶部色帶（依元素色） */
+  .card__band{position:absolute;inset:0 0 auto 0;height:16%; opacity:.20; pointer-events:none}
+  .card--mini{width:var(--miniW); aspect-ratio:63/88; padding:10px; border-radius:14px; box-shadow:0 3px 10px rgba(16,50,74,.06); cursor:pointer; transition:transform .05s ease}
   .card--mini:active{ transform:scale(0.99); }
-  .card h3{margin:0;font-size:20px;line-height:1.2}       /* ▲ 大卡標題稍加大 */
+  .card h3{margin:0;font-size:20px;line-height:1.2}
   .card--mini h3{font-size:14px}
-  .badge{
-    position:absolute;right:10px;top:10px;font-size:12px;background:#fff3cd;border:1px solid #ffe08a;color:#8a6d3b;border-radius:999px;padding:2px 8px
-  }
-  /* ▲ 大卡技能標籤與 Element/Gear 的 pill 放大 */
+  .badge{position:absolute;right:10px;top:10px;font-size:12px;background:#fff3cd;border:1px solid #ffe08a;color:#8a6d3b;border-radius:999px;padding:2px 8px}
+
+  /* 技能標籤（加大） */
   .pill{display:inline-block;background:#e6f2ff;padding:3px 9px;border-radius:999px;margin-right:6px;font-size:13px}
   .tag{display:inline-block;border-radius:6px;padding:4px 8px;font-size:15px;color:#fff;margin-right:6px;white-space:nowrap}
   .card--mini .pill{font-size:11px;padding:2px 6px}
   .card--mini .tag{font-size:11px;padding:2px 5px}
-
-  /* 技能顏色 */
   .Move{background:#3a8ad8} .Look{background:#8e44ad} .Engage{background:#e67e22}
   .Help{background:#27ae60} .Take{background:#f1c40f;color:#000} .Overpower{background:#c0392b}
 
@@ -53,27 +48,22 @@
   .ok{color:var(--ok)} .err{color:var(--err)}
   .mini{font-size:12px;color:var(--muted)}
 
-  /* Excluded list 外觀 */
+  /* Excluded list */
   .excluded-item{display:flex;align-items:center;gap:8px;border:1px dashed #cfe2f3;border-radius:8px;padding:6px 8px;margin:6px 0;background:#f8fbff}
   .xbtn{margin-left:auto;border:1px solid #e4eaf2;border-radius:6px;background:#fff;cursor:pointer;padding:2px 6px}
 
-  /* 全域訊息列 */
-  .statusbar{max-width:1100px;margin:0 auto;padding:0 16px}
-  .statusbar .panel{margin-top:0}
+  /* Draw History Grid */
+  #history.history-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(var(--miniW), 1fr)); gap:12px}
 
-  /* Draw History 磁貼排列 */
-  #history.history-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(var(--miniW), 1fr));
-    gap:12px;
-  }
+  .clamp-2{-webkit-line-clamp:2} .clamp-3{-webkit-line-clamp:3}
+  .clamp-2,.clamp-3{display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
 
-  /* 文字裁切，確保卡面高度一致、好看 */
-  .clamp-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .clamp-3{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-
-  /* 用於把 Element/Gear 往中下推的 spacer */
   .spacer{flex:1 1 auto}
+
+  /* Element 圓徽章（HTML 顯示用；PNG 下載改 SVG 繪） */
+  .elem-badge{display:inline-flex;align-items:center;gap:8px}
+  .elem-circle{width:26px;height:26px;border-radius:50%;display:inline-grid;place-items:center;color:#fff;font-weight:700;font-size:12px;flex:0 0 26px}
+  .elem-img{width:26px;height:26px;border-radius:50%;object-fit:cover;display:none} /* 如設定了 iconUrl 會顯示 */
 </style>
 </head>
 <body>
@@ -82,13 +72,7 @@
   <p>Card list auto-imports on load. Excluded cards show up in Draw History.</p>
 </header>
 
-<!-- Global status / toasts -->
-<div class="statusbar">
-  <div class="panel"><div id="importMsg" class="hint"></div></div>
-</div>
-
 <div class="wrap">
-  <!-- (A) Mark previously drawn (Exclude) -->
   <section class="panel">
     <h2>Mark Previously Drawn (Exclude)</h2>
     <div class="mini">Enter card IDs; separate with commas or spaces, e.g. <code>S002, S006 S014</code></div>
@@ -100,7 +84,6 @@
     <div id="excludedList" style="margin-top:8px"></div>
   </section>
 
-  <!-- (B) Draw controls -->
   <section class="panel">
     <h2>Draw Controls</h2>
     <div>
@@ -116,7 +99,6 @@
     </div>
   </section>
 
-  <!-- (C) Views -->
   <section class="panel">
     <h2>Latest Draw</h2>
     <div id="last" class="hint">No card drawn yet</div>
@@ -131,393 +113,257 @@
 <script>
 const ELEMENTS=["CIRCUIT","WIND","ENERGY","FIRE","GOLD","SINEW","METAL","SAND","STONE","LEAF","WATER","WOOD"];
 const GEARS=["MASK","HORN","GAUNTLET","SCEPTER","HELM","HARNESS","CLOAK","TOME","DODECAHEDRON","MANTLE","BLADE","TOOLS"];
-const SKILL_COLORS={
-  Move:"#3a8ad8", Look:"#8e44ad", Engage:"#e67e22",
-  Help:"#27ae60", Take:"#f1c40f", Overpower:"#c0392b"
-};
-const GEAR_EMOJI = "⚡";
+const SKILL_COLORS={ Move:"#3a8ad8", Look:"#8e44ad", Engage:"#e67e22", Help:"#27ae60", Take:"#f1c40f", Overpower:"#c0392b" };
+const GEAR_EMOJI="⚡";
 
+/* ===== Element 顏色 + （可選）icon URL =====
+ * 將 iconUrl 改成你的 raw 檔案網址即可顯示圖示。
+ * PNG 下載時不載入外部圖片（避免 CORS），改用同色圓徽章。
+ */
+const ELEMENT_STYLE={
+  CIRCUIT:{color:"#7cc6ff", iconUrl:""},
+  ENERGY :{color:"#b990ff", iconUrl:""},
+  FIRE   :{color:"#ffa733", iconUrl:""},
+  GOLD   :{color:"#f6c85f", iconUrl:""},
+  LEAF   :{color:"#74d37e", iconUrl:""},
+  METAL  :{color:"#c1d6e3", iconUrl:""},
+  SAND   :{color:"#f0caa6", iconUrl:""},
+  SINEW  :{color:"#ff8a8a", iconUrl:""},
+  STONE  :{color:"#a9b7c4", iconUrl:""},
+  WATER  :{color:"#6bb6ff", iconUrl:""},
+  WIND   :{color:"#ff9dc8", iconUrl:""},
+  WOOD   :{color:"#c48f62", iconUrl:""}
+};
+// 你可以用這種方式填：
+// ELEMENT_STYLE.CIRCUIT.iconUrl="https://raw.githubusercontent.com/<user>/<repo>/main/icons/circuit.png";
+
+/* ===== 狀態 ===== */
 let FULL=[],DECK=[],DRAWN=[];
 const EXCLUDED=new Set();
-
-const DEFAULT_SRC = "https://zak5325.github.io/skirm_cardlist.txt";
+const DEFAULT_SRC="https://zak5325.github.io/skirm_cardlist.txt";
 
 const $=id=>document.getElementById(id);
 const deckCountEl=$("deckCount"),remainCountEl=$("remainCount"),drawnCountEl=$("drawnCount");
-const historyView=$("history"),lastView=$("last"),importMsg=$("importMsg");
-const excludedListEl=$("excludedList");
+const historyView=$("history"),lastView=$("last"),excludedListEl=$("excludedList");
+const importMsg={ set(v){ /* 已移除顯示列，保留 debug 時可掛到 console */ console.info(v);} };
 
-// 目前「大卡展示」的卡，用於下載
-let CURRENT_BIG_CARD = null;
+let CURRENT_BIG_CARD=null;
 
-function toast(msg,cls="ok"){importMsg.innerHTML=`<span class="${cls}">●</span> ${msg}`;}
-
-// ---- Error surfacing
-window.addEventListener('error', e => { importMsg.innerHTML = `<span class="err">●</span> ${e.message||'Unknown error'}`; });
-window.addEventListener('unhandledrejection', e => { importMsg.innerHTML = `<span class="err">●</span> ${e.reason||'Promise rejected'}`; });
-
-// ---- Sanitize & Parse
+/* ===== 工具 ===== */
 function sanitizeText(txt){
   if(txt && txt.charCodeAt(0)===0xFEFF) txt=txt.slice(1);
-  txt = txt.replace(/pair\.HORN:/g,"pair. - HORN:");
-  txt = txt.replace(/\bfore each player\b/g,"for each player");
-  const elemPat = "(?:" + ELEMENTS.join("|") + ")";
-  txt = txt.replace(new RegExp("(\\])\\s+("+elemPat+"):", "g"), "] - $2:");
+  txt=txt.replace(/pair\.HORN:/g,"pair. - HORN:");
+  txt=txt.replace(/\bfore each player\b/g,"for each player");
+  const elemPat="(?:"+ELEMENTS.join("|")+")";
+  txt=txt.replace(new RegExp("(\\])\\s+("+elemPat+"):", "g"), "] - $2:");
   return txt;
 }
 function parseLine(line){
-  const idMatch = line.match(/^S(\d{3})/i);
-  const speedMatch = line.match(/Speed\s+(\d{1,2})/i);
-  if(!idMatch || !speedMatch) return null;
-
-  let elemName = null, elemIdx = -1;
-  for(const e of ELEMENTS){
-    const idx = line.indexOf(e + ":");
-    if(idx !== -1 && (elemIdx === -1 || idx < elemIdx)){ elemIdx = idx; elemName = e; }
-  }
-  if(elemIdx === -1) return null;
-
-  let gearName = null, gearIdx = -1;
-  for(const g of GEARS){
-    const idx = line.lastIndexOf(g + ":");
-    if(idx > gearIdx){ gearIdx = idx; gearName = g; }
-  }
-  if(gearIdx === -1) return null;
-
-  // Skills only before Element section
-  const skillRegion = line.slice(0, elemIdx);
-  const rawSkills = Array.from(skillRegion.matchAll(/\[([^\]]+)\]/g)).map(m => m[1].trim());
-
-  const SKILL_SET = new Set(["Move","Look","Engage","Help","Take","Overpower"]);
-  const skills = Array.from(new Set(
-    rawSkills.map(s => s[0].toUpperCase() + s.slice(1).toLowerCase()).filter(s => SKILL_SET.has(s))
-  ));
-
-  const elementText = line.slice(elemIdx + (elemName.length + 1), gearIdx).replace(/^\s*-\s*/,'').trim();
-  const gearText = line.slice(gearIdx + (gearName.length + 1)).trim();
-
-  return { id:"S"+idMatch[1], speed:Number(speedMatch[1]), skills, element:elemName, elementText, gear:gearName, gearText, raw:line.trim() };
+  const idMatch=line.match(/^S(\d{3})/i);
+  const speedMatch=line.match(/Speed\s+(\d{1,2})/i);
+  if(!idMatch||!speedMatch) return null;
+  let elemName=null,elemIdx=-1;
+  for(const e of ELEMENTS){const idx=line.indexOf(e+":");if(idx!==-1&&(elemIdx===-1||idx<elemIdx)){elemIdx=idx;elemName=e;}}
+  if(elemIdx===-1) return null;
+  let gearName=null,gearIdx=-1;
+  for(const g of GEARS){const idx=line.lastIndexOf(g+":");if(idx>gearIdx){gearIdx=idx;gearName=g;}}
+  if(gearIdx===-1) return null;
+  const skillRegion=line.slice(0,elemIdx);
+  const rawSkills=Array.from(skillRegion.matchAll(/\[([^\]]+)\]/g)).map(m=>m[1].trim());
+  const SKILL_SET=new Set(["Move","Look","Engage","Help","Take","Overpower"]);
+  const skills=Array.from(new Set(rawSkills.map(s=>s[0].toUpperCase()+s.slice(1).toLowerCase()).filter(s=>SKILL_SET.has(s))));
+  const elementText=line.slice(elemIdx+(elemName.length+1),gearIdx).replace(/^\s*-\s*/,'').trim();
+  const gearText=line.slice(gearIdx+(gearName.length+1)).trim();
+  return {id:"S"+idMatch[1],speed:Number(speedMatch[1]),skills,element:elemName,elementText,gear:gearName,gearText,raw:line.trim()};
 }
-function parseTXT(txt){
-  txt = sanitizeText(txt);
-  const lines = txt.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
-  const out = [];
-  for(const ln of lines){ const c=parseLine(ln); if(c) out.push(c); }
-  return out;
-}
-function parseJSON(txt){
-  const data=JSON.parse(sanitizeText(txt));
-  return Array.isArray(data)?data:(data.cards||[]);
-}
+function parseTXT(txt){txt=sanitizeText(txt);return txt.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).map(parseLine).filter(Boolean);}
+function parseJSON(txt){const data=JSON.parse(sanitizeText(txt));return Array.isArray(data)?data:(data.cards||[]);}
+function toast(msg,_="ok"){console.log(msg);}
 
-// ---- Render (HTML big/mini)
-function renderSkills(skills){
-  return skills.map((s)=>`<span class="tag ${s}" title="Card skill">${s}</span>`).join(" ");
+/* ===== Render ===== */
+function renderSkills(skills){return skills.map(s=>`<span class="tag ${s}" title="Card skill">${s}</span>`).join(" ");}
+
+function elementBadgeHTML(elemName){
+  const style = ELEMENT_STYLE[elemName] || {color:"#ddd", iconUrl:""};
+  const short = ({CIRCUIT:"C",WIND:"Wi",ENERGY:"E",FIRE:"F",GOLD:"G",SINEW:"Si",METAL:"M",SAND:"Sa",STONE:"St",LEAF:"Le",WATER:"Wa",WOOD:"Wo"})[elemName]||elemName[0];
+  const img = style.iconUrl ? `<img class="elem-img" src="${style.iconUrl}" alt="${elemName}" onload="this.style.display='inline-block';this.previousElementSibling.style.display='none';">` : "";
+  return `<span class="elem-badge">
+            <span class="elem-circle" style="background:${style.color}">${short}</span>${img}
+            <span class="pill">${elemName}</span>
+          </span>`;
 }
-function renderCard(c, {mini=false} = {}){
+function elementBandStyle(elemName){
+  const c=(ELEMENT_STYLE[elemName]||{}).color||"#cfe2f3";
+  return `background:linear-gradient(180deg, ${c}, transparent);`;
+}
+function renderCard(c,{mini=false}={}){
   const el=document.createElement("div");
-  el.className = "card" + (mini ? " card--mini" : "");
-
-  // 使用 spacer 把 Element / Gear 推到中下
+  el.className="card"+(mini?" card--mini":"");
   el.innerHTML = `
+    <div class="card__band" style="${elementBandStyle(c.element)}"></div>
     <h3>${c.id} · Speed ${c.speed}</h3>
     <div>${renderSkills(c.skills)}</div>
     <div class="spacer"></div>
-    <div class="${mini?'clamp-2':''}" style="${mini?'':'font-size:15px'}"><span class="pill" title="Element · extra scoring">${c.element}</span> ${c.elementText}</div>
-    <div class="${mini?'clamp-3':''}" style="${mini?'':'font-size:15px'}"><span class="pill" title="Gear · resolves first">⚡ ${c.gear}</span> ${c.gearText}</div>
+    <div class="${mini?'clamp-2':''}" style="${mini?'':'font-size:15px'}">
+      ${elementBadgeHTML(c.element)} ${c.elementText}
+    </div>
+    <div class="${mini?'clamp-3':''}" style="${mini?'':'font-size:15px'}">
+      <span class="pill" title="Gear · resolves first">⚡ ${c.gear}</span> ${c.gearText}
+    </div>
   `;
-  if(c._excluded) el.innerHTML += `<div class="badge">Previously drawn (excluded)</div>`;
-
-  if(mini){
-    el.setAttribute("data-id", c.id);
-    el.title = "Click to show full card";
-    el.onclick = ()=> showAsBigCard(c);
-  }
+  if(c._excluded) el.innerHTML+=`<div class="badge">Previously drawn (excluded)</div>`;
+  if(mini){ el.title="Click to show full card"; el.onclick=()=>showAsBigCard(c); }
   return el;
 }
 
-// ---- Stats & Reset
-function refreshStats(){
-  const drawnActual = DRAWN.filter(c => !c._excluded).length;
-  deckCountEl.textContent = FULL.length;
-  remainCountEl.textContent = DECK.length;
-  drawnCountEl.textContent = drawnActual;
-}
+/* ===== Stats / Deck ===== */
+function refreshStats(){const drawnActual=DRAWN.filter(c=>!c._excluded).length; deckCountEl.textContent=FULL.length; remainCountEl.textContent=DECK.length; drawnCountEl.textContent=drawnActual;}
 function resetDeck(){
-  // deck = full - excluded
-  DECK = FULL.filter(c => !EXCLUDED.has(c.id));
-  // history: only excluded ghosts
-  const byId = new Map(FULL.map(c => [c.id, c]));
-  DRAWN = Array.from(EXCLUDED).map(id => byId.get(id)).filter(Boolean).map(c => ({...c,_excluded:true}));
-  refreshStats();
-  CURRENT_BIG_CARD = null;
-  lastView.textContent = "No card drawn yet";
-  historyView.innerHTML = "";
-  DRAWN.forEach(c => historyView.prepend(renderCard(c,{mini:true})));
+  DECK=FULL.filter(c=>!EXCLUDED.has(c.id));
+  const byId=new Map(FULL.map(c=>[c.id,c]));
+  DRAWN=Array.from(EXCLUDED).map(id=>byId.get(id)).filter(Boolean).map(c=>({...c,_excluded:true}));
+  refreshStats(); CURRENT_BIG_CARD=null; lastView.textContent="No card drawn yet"; historyView.innerHTML="";
+  DRAWN.forEach(c=>historyView.prepend(renderCard(c,{mini:true})));
   renderExcludedList();
 }
 
-// ---- Actions
-function showAsBigCard(card){
-  CURRENT_BIG_CARD = card;
-  lastView.innerHTML = "";
-  lastView.appendChild(renderCard(card,{mini:false}));
-}
+/* ===== Actions ===== */
+function showAsBigCard(card){ CURRENT_BIG_CARD=card; lastView.innerHTML=""; lastView.appendChild(renderCard(card,{mini:false})); }
 function drawOne(){
   if(!DECK.length){toast("Deck is empty","err");return;}
-  const idx=Math.floor(Math.random()*DECK.length);
-  const c=DECK.splice(idx,1)[0];
-  DRAWN.push(c);
-  showAsBigCard(c);
-  historyView.prepend(renderCard(c,{mini:true}));
-  refreshStats();
+  const idx=Math.floor(Math.random()*DECK.length); const c=DECK.splice(idx,1)[0];
+  DRAWN.push(c); showAsBigCard(c); historyView.prepend(renderCard(c,{mini:true})); refreshStats();
 }
-$("btnShuffle").onclick=()=>{ DECK.sort(()=>Math.random()-0.5); toast("Shuffled","ok"); };
-$("btnReset").onclick=resetDeck;
-$("btnDraw1").onclick=drawOne;
+document.getElementById("btnShuffle").onclick=()=>{DECK.sort(()=>Math.random()-0.5);toast("Shuffled");};
+document.getElementById("btnReset").onclick=resetDeck;
+document.getElementById("btnDraw1").onclick=drawOne;
 
-// ---- Exclusions
-function normalizeIds(input){ return input.split(/[,\s]+/).map(s=>s.trim().toUpperCase()).filter(Boolean); }
+/* ===== Exclude ===== */
+function normalizeIds(input){return input.split(/[,\s]+/).map(s=>s.trim().toUpperCase()).filter(Boolean);}
 function excludeByIds(ids){
   let added=0, notFound=[];
   const fullIds=new Set(FULL.map(c=>c.id));
   ids.forEach(id=>{
     if(!/^S\d{3}$/.test(id)) return;
-    if(!fullIds.has(id)) { notFound.push(id); return; }
+    if(!fullIds.has(id)){notFound.push(id);return;}
     if(!EXCLUDED.has(id)){
       EXCLUDED.add(id);
-      const idx = DECK.findIndex(c=>c.id===id);
-      if(idx>-1) DECK.splice(idx,1);
-      if(!DRAWN.some(c=>c.id===id)){
-        const base = FULL.find(c=>c.id===id);
-        if(base){
-          const ghost = {...base, _excluded:true};
-          DRAWN.push(ghost);
-          historyView.prepend(renderCard(ghost,{mini:true}));
-        }
-      }
+      const di=DECK.findIndex(c=>c.id===id); if(di>-1) DECK.splice(di,1);
+      if(!DRAWN.some(c=>c.id===id)){ const base=FULL.find(c=>c.id===id); if(base){const ghost={...base,_excluded:true}; DRAWN.push(ghost); historyView.prepend(renderCard(ghost,{mini:true}));}}
       added++;
     }
   });
-  if(added>0){ toast(`Excluded ${added} card(s)`); }
-  if(notFound.length){ importMsg.innerHTML = `<span class="err">●</span> Not found: ${notFound.join(", ")}`; }
-  refreshStats();
-  renderExcludedList();
+  if(added>0) toast(`Excluded ${added} card(s)`);
+  if(notFound.length) console.warn("Not found:",notFound.join(", "));
+  refreshStats(); renderExcludedList();
 }
-function clearExcluded(){
-  DRAWN = DRAWN.filter(c=>!c._excluded);
-  EXCLUDED.clear();
-  toast("Exclusions cleared");
-  resetDeck();
-}
+function clearExcluded(){DRAWN=DRAWN.filter(c=>!c._excluded); EXCLUDED.clear(); toast("Exclusions cleared"); resetDeck();}
 function renderExcludedList(){
-  excludedListEl.innerHTML="";
-  if(EXCLUDED.size===0){ excludedListEl.innerHTML = `<div class="hint">No excluded cards.</div>`; return; }
-  const byId = new Map(FULL.map(c=>[c.id,c]));
+  const el=excludedListEl; el.innerHTML="";
+  if(EXCLUDED.size===0){el.innerHTML=`<div class="mini">No excluded cards.</div>`;return;}
+  const byId=new Map(FULL.map(c=>[c.id,c]));
   Array.from(EXCLUDED).sort().forEach(id=>{
-    const c = byId.get(id);
-    const div = document.createElement("div");
-    div.className = "excluded-item";
-    div.innerHTML = `<strong>${id}</strong> <span class="mini">${c? `Speed ${c.speed} · ${c.skills.join(" / ")}` : ""}</span>
-                     <button class="xbtn" data-id="${id}" title="Remove from exclusions">✖</button>`;
-    excludedListEl.appendChild(div);
+    const c=byId.get(id);
+    const row=document.createElement("div");
+    row.className="excluded-item";
+    row.innerHTML=`<strong>${id}</strong> <span class="mini">${c?`Speed ${c.speed} · ${c.skills.join(" / ")}`:""}</span>
+      <button class="xbtn" data-id="${id}">✖</button>`;
+    el.appendChild(row);
   });
-  excludedListEl.querySelectorAll(".xbtn").forEach(btn=>{
-    btn.onclick = ()=>{
-      const id = btn.getAttribute("data-id");
-      if(!EXCLUDED.has(id)) return;
-      EXCLUDED.delete(id);
-      const idxHist = DRAWN.findIndex(x=>x.id===id && x._excluded);
-      if(idxHist>-1) DRAWN.splice(idxHist,1);
-      const c = FULL.find(x=>x.id===id);
-      if(c) DECK.push(c);
-      toast(`Removed ${id} from exclusions`);
-      refreshStats();
-      renderExcludedList();
-      historyView.innerHTML="";
-      DRAWN.forEach(x=>historyView.prepend(renderCard(x,{mini:true})));
+  el.querySelectorAll(".xbtn").forEach(btn=>{
+    btn.onclick=()=>{
+      const id=btn.getAttribute("data-id"); if(!EXCLUDED.has(id)) return;
+      EXCLUDED.delete(id); const hi=DRAWN.findIndex(x=>x.id===id&&x._excluded); if(hi>-1) DRAWN.splice(hi,1);
+      const c=FULL.find(x=>x.id===id); if(c) DECK.push(c);
+      toast(`Removed ${id} from exclusions`); refreshStats(); renderExcludedList();
+      historyView.innerHTML=""; DRAWN.forEach(x=>historyView.prepend(renderCard(x,{mini:true})));
     };
   });
 }
-$("btnExclude").onclick = ()=>{
-  const ids = normalizeIds($("excludeInput").value);
-  if(ids.length===0){ toast("Please enter card IDs","err"); return; }
-  excludeByIds(ids);
-  $("excludeInput").value="";
-};
-$("btnClearExcluded").onclick = clearExcluded;
+document.getElementById("btnExclude").onclick=()=>{const ids=normalizeIds(document.getElementById("excludeInput").value); if(!ids.length){toast("Please enter card IDs","err");return;} excludeByIds(ids); document.getElementById("excludeInput").value="";};
+document.getElementById("btnClearExcluded").onclick=clearExcluded;
 
-// ---- Robust auto-import
-function isLikelyHTML(text){ return /<html|<!doctype/i.test(text); }
-function buildRawFromPages(urlStr){
-  try{
-    const u=new URL(urlStr);
-    if(!u.hostname.endsWith("github.io")) return null;
-    const user = u.hostname.split(".")[0];
-    const repo = `${user}.github.io`;
-    const path = u.pathname.replace(/^\/+/,"");
-    const rawMain = `https://raw.githubusercontent.com/${user}/${repo}/main/${path}`;
-    const rawMaster = `https://raw.githubusercontent.com/${user}/${repo}/master/${path}`;
-    return {rawMain, rawMaster};
-  }catch{ return null; }
-}
+/* ===== 自動匯入 ===== */
+function isLikelyHTML(t){return /<html|<!doctype/i.test(t);}
+function buildRawFromPages(u0){try{const u=new URL(u0); if(!u.hostname.endsWith("github.io")) return null; const user=u.hostname.split(".")[0]; const repo=`${user}.github.io`; const path=u.pathname.replace(/^\/+/,""); return {rawMain:`https://raw.githubusercontent.com/${user}/${repo}/main/${path}`, rawMaster:`https://raw.githubusercontent.com/${user}/${repo}/master/${path}`};}catch{return null;}}
 async function fetchFromUrl(url){
   try{
-    toast("⏳ Loading…");
-    const res = await fetch(url, {cache:"no-store"});
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    const ct = (res.headers.get("content-type")||"").toLowerCase();
-    let text = await res.text();
-
-    let cards = [];
-    if(ct.includes("application/json") || url.toLowerCase().endsWith(".json")){
-      try{ cards = parseJSON(text); }catch{}
-    }else{
-      if(!isLikelyHTML(text)) cards = parseTXT(text);
-    }
-
-    if(cards.length===0){
-      const fallback = buildRawFromPages(url);
-      if(fallback){
-        for(const candidate of [fallback.rawMain, fallback.rawMaster]){
-          try{
-            toast(`⏳ Trying raw: ${candidate}`);
-            const r2 = await fetch(candidate, {cache:"no-store"});
-            if(r2.ok){
-              const t2 = await r2.text();
-              if(candidate.endsWith(".json")) cards = parseJSON(t2);
-              else if(!isLikelyHTML(t2)) cards = parseTXT(t2);
-              if(cards.length>0){ FULL=cards; toast(`Imported ${cards.length} cards (via raw)`); resetDeck(); return; }
-            }
-          }catch{}
-        }
-      }
-    }
-
-    if(!cards.length) throw new Error("No cards parsed. Please verify the source file is a plain TXT/JSON, not an HTML page.");
-    FULL = cards;
-    toast(`Imported ${cards.length} cards`);
-    resetDeck();
-  }catch(e){
-    importMsg.innerHTML = `<span class="err">●</span> Load failed: ${e.message}`;
-  }
+    const res=await fetch(url,{cache:"no-store"}); if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const ct=(res.headers.get("content-type")||"").toLowerCase(); const text=await res.text();
+    let cards=[];
+    if(ct.includes("application/json")||url.toLowerCase().endsWith(".json")){ try{cards=parseJSON(text);}catch{} }
+    else{ if(!isLikelyHTML(text)) cards=parseTXT(text); }
+    if(cards.length===0){ const fb=buildRawFromPages(url); if(fb){for(const candidate of [fb.rawMain,fb.rawMaster]){try{const r2=await fetch(candidate,{cache:"no-store"}); if(r2.ok){const t2=await r2.text(); if(candidate.endsWith(".json")) cards=parseJSON(t2); else if(!isLikelyHTML(t2)) cards=parseTXT(t2); if(cards.length>0){FULL=cards; resetDeck(); return;}}}catch{}}}
+    if(!cards.length) throw new Error("No cards parsed.");
+    FULL=cards; resetDeck();
+  }catch(e){ console.error("Load failed:",e.message); }
 }
-(function init(){
-  const urlObj=new URL(location.href);
-  const fromQuery=urlObj.searchParams.get("src");
-  const chosen = fromQuery || DEFAULT_SRC;
-  fetchFromUrl(chosen);
-})();
+(function init(){ const src=new URL(location.href).searchParams.get("src")||DEFAULT_SRC; fetchFromUrl(src); })();
 
-/* =======================
-   PNG 下載：以 SVG 繪製 → Canvas → PNG
-   已調大：標題/技能標籤/Element/Gear
-   ======================= */
-function wrapWords(str, maxLineLen){
-  const words = String(str||"").split(/\s+/);
-  const lines=[]; let cur="";
-  words.forEach(w=>{
-    if((cur+w).length <= maxLineLen){ cur += (cur? " ":"") + w; }
-    else{ if(cur) lines.push(cur); cur = w; }
-  });
-  if(cur) lines.push(cur);
-  return lines;
-}
-function skillPillsSVG(skills, x, y, maxWidth){
-  // 放大尺寸：高 34、字 15px、寬度估算上調
-  const h=34, padX=12, gap=8, vgap=8; let cx=x, cy=y; let out="";
-  skills.forEach(s=>{
-    const label=s;
-    const textLen = label.length;
-    const w = 18 + textLen*10;                  // ▲ 寬度估算更大
-    if(cx + w > x + maxWidth){ cx = x; cy += h + vgap; }
-    const color = SKILL_COLORS[s] || "#999";
-    const textColor = (s==="Take")?"#000":"#fff";
-    out += `
-      <rect x="${cx}" y="${cy}" rx="7" ry="7" width="${w}" height="${h}" fill="${color}" />
-      <text x="${cx+padX}" y="${cy+22}" font-size="15" font-family="system-ui, sans-serif" fill="${textColor}">${label}</text>
-    `;
-    cx += w + gap;
-  });
-  return {svg:out, lastY:cy+h};
+/* ===== PNG 下載（SVG 繪製，含 Element 顏色徽章與頂部色帶） ===== */
+function wrapWords(str,maxLine){const words=String(str||"").split(/\s+/);const lines=[];let cur="";for(const w of words){if((cur+w).length<=maxLine){cur+=(cur?" ":"")+w;}else{if(cur)lines.push(cur);cur=w;}}if(cur)lines.push(cur);return lines;}
+function skillPillsSVG(skills,x,y,maxW){const h=34,padX=12,gap=8,vgap=8;let cx=x,cy=y,out="";skills.forEach(s=>{const label=s;const w=18+label.length*10; if(cx+w>x+maxW){cx=x;cy+=h+vgap;} const color=SKILL_COLORS[s]||"#999"; const textColor=(s==="Take")?"#000":"#fff"; out+=`<rect x="${cx}" y="${cy}" rx="7" ry="7" width="${w}" height="${h}" fill="${color}" /> <text x="${cx+padX}" y="${cy+22}" font-size="15" font-family="system-ui, sans-serif" fill="${textColor}">${label}</text>`; cx+=w+gap;}); return {svg:out,lastY:cy+h};}
+function elementBadgeSVG(elemName,x,y){
+  const st=ELEMENT_STYLE[elemName]||{color:"#cfe2f3"}; const bg=st.color; const letter=({CIRCUIT:"C",WIND:"Wi",ENERGY:"E",FIRE:"F",GOLD:"G",SINEW:"Si",METAL:"M",SAND:"Sa",STONE:"St",LEAF:"Le",WATER:"Wa",WOOD:"Wo"})[elemName]||elemName[0];
+  return `<circle cx="${x+16}" cy="${y+16}" r="16" fill="${bg}"/><text x="${x+16}" y="${y+21}" font-size="14" text-anchor="middle" font-weight="700" font-family="system-ui, sans-serif" fill="#fff">${letter}</text>`;
 }
 function buildCardSVG(card){
-  // 630x880（等比 63x88 放大 10 倍）
-  const W=630, H=880, pad=24, innerW=W-2*pad;
-  const title = `${card.id} · Speed ${card.speed}`;
+  const W=630,H=880,pad=24,innerW=W-2*pad;
+  const title=`${card.id} · Speed ${card.speed}`;
+  const bandColor=(ELEMENT_STYLE[card.element]||{}).color||"#cfe2f3";
+  const pills=skillPillsSVG(card.skills||[],pad,130,innerW);
+  const elLines=wrapWords(`${card.element}: ${card.elementText}`,42);
+  const grLines=wrapWords(`⚡ ${card.gear}: ${card.gearText}`,42);
+  const midY=Math.max(pills.lastY+30,320); const lineH=24;
+  const yEl=midY, yAfterEl=yEl+elLines.length*lineH+20;
 
-  // 技能標籤：更大
-  const skills = card.skills||[];
-  const pills = skillPillsSVG(skills, pad, 130, innerW);
+  const elTextSVG=elLines.map((t,i)=>`<text x="${pad+50}" y="${yEl+i*lineH}" font-size="18" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`).join("");
+  const grTextSVG=grLines.map((t,i)=>`<text x="${pad+12}" y="${yAfterEl+i*lineH}" font-size="18" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`).join("");
 
-  // Element/Gear 文字放大；包裝行長稍微縮短，增加行數以填滿畫面
-  const elLines = wrapWords(`${card.element}: ${card.elementText}`, 42);   // ▲ 由 48 改為 42
-  const grLines = wrapWords(`⚡ ${card.gear}: ${card.gearText}`, 42);
+  const excludedBadge=card._excluded?`<rect x="${W-200}" y="16" rx="14" ry="14" width="184" height="30" fill="#fff3cd" stroke="#ffe08a"/><text x="${W-108}" y="36" font-size="12" text-anchor="middle" font-family="system-ui, sans-serif" fill="#8a6d3b">Previously drawn (excluded)</text>`:"";
 
-  // Element / Gear 區塊頂部位置：稍微上移，讓畫面更飽滿
-  const midY = Math.max(pills.lastY + 30, 320);  // ▲ 原本 380，改成 320
-  let yEl = midY, lineH=24;                       // ▲ 行高 24（原 22）
-  let elTextSVG = elLines.map((t,i)=>`<text x="${pad+12}" y="${yEl + i*lineH}" font-size="18" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`).join("");
-  let yAfterEl = yEl + elLines.length*lineH + 20; // ▲ 區塊之間間距加大
-  let grTextSVG = grLines.map((t,i)=>`<text x="${pad+12}" y="${yAfterEl + i*lineH}" font-size="18" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`).join("");
-
-  const excludedBadge = card._excluded
-    ? `<rect x="${W-200}" y="${16}" rx="14" ry="14" width="184" height="30" fill="#fff3cd" stroke="#ffe08a"/>
-       <text x="${W-108}" y="36" font-size="12" text-anchor="middle" font-family="system-ui, sans-serif" fill="#8a6d3b">Previously drawn (excluded)</text>`
-    : "";
-
-  const svg = `
+  return `
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
-  <defs>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="rgba(16,50,74,.25)" />
-    </filter>
-  </defs>
+  <defs><filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="rgba(16,50,74,.25)"/></filter></defs>
   <rect x="0" y="0" width="${W}" height="${H}" fill="none"/>
-  <g filter="url(#shadow)">
-    <rect x="10" y="10" width="${W-20}" height="${H-20}" rx="22" ry="22" fill="#fff" stroke="#dfe7f1"/>
-  </g>
+  <g filter="url(#shadow)"><rect x="10" y="10" width="${W-20}" height="${H-20}" rx="22" ry="22" fill="#fff" stroke="#dfe7f1"/></g>
+
+  <!-- Element top band -->
+  <rect x="10" y="10" width="${W-20}" height="${Math.round(H*0.16)}" rx="22" ry="22" fill="${bandColor}" opacity="0.18"/>
 
   <!-- Title -->
   <text x="${pad}" y="78" font-size="32" font-weight="700" font-family="system-ui, sans-serif" fill="#10324a">${title}</text>
 
-  <!-- Skills label -->
+  <!-- Skills -->
   <text x="${pad}" y="116" font-size="16" font-family="system-ui, sans-serif" fill="#5a7b91">Skills</text>
   ${pills.svg}
 
-  <!-- Element & Gear（字體變大） -->
-  <text x="${pad}" y="${midY-18}" font-size="16" font-family="system-ui, sans-serif" fill="#5a7b91">Element</text>
+  <!-- Element -->
+  <text x="${pad}" y="${yEl-18}" font-size="16" font-family="system-ui, sans-serif" fill="#5a7b91">Element</text>
+  ${elementBadgeSVG(card.element, pad+12, yEl-8)}
   ${elTextSVG}
+
+  <!-- Gear -->
   <text x="${pad}" y="${yAfterEl-18}" font-size="16" font-family="system-ui, sans-serif" fill="#5a7b91">Gear</text>
   ${grTextSVG}
 
   ${excludedBadge}
 </svg>`;
-  return svg;
 }
 async function downloadCurrentBigCard(){
-  if(!CURRENT_BIG_CARD){ toast("No card to download","err"); return; }
-  const svgText = buildCardSVG(CURRENT_BIG_CARD);
-  const svgBlob = new Blob([svgText], {type: "image/svg+xml"});
-  const url = URL.createObjectURL(svgBlob);
-  const img = new Image();
-  img.onload = ()=>{
-    const canvas = document.createElement("canvas");
-    canvas.width = img.width; canvas.height = img.height;
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(img, 0, 0);
-    URL.revokeObjectURL(url);
-    const png = canvas.toDataURL("image/png");
-    const a = document.createElement("a");
-    a.href = png;
-    a.download = `${CURRENT_BIG_CARD.id}.png`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+  if(!CURRENT_BIG_CARD){console.warn("No card");return;}
+  const svgText=buildCardSVG(CURRENT_BIG_CARD);
+  const svgBlob=new Blob([svgText],{type:"image/svg+xml"});
+  const url=URL.createObjectURL(svgBlob);
+  const img=new Image();
+  img.onload=()=>{
+    const canvas=document.createElement("canvas"); canvas.width=img.width; canvas.height=img.height;
+    const ctx=canvas.getContext("2d"); ctx.drawImage(img,0,0); URL.revokeObjectURL(url);
+    const png=canvas.toDataURL("image/png"); const a=document.createElement("a"); a.href=png; a.download=`${CURRENT_BIG_CARD.id}.png`; document.body.appendChild(a); a.click(); a.remove();
   };
-  img.src = url;
+  img.src=url;
 }
-$("btnDownload").onclick = downloadCurrentBigCard;
+document.getElementById("btnDownload").onclick=downloadCurrentBigCard;
 </script>
 </body>
 </html>
