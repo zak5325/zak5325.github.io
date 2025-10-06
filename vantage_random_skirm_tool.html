@@ -109,7 +109,7 @@ const GEARS=["MASK","HORN","GAUNTLET","SCEPTER","HELM","HARNESS","CLOAK","TOME",
 const SKILL_COLORS={Move:"#3a8ad8",Look:"#8e44ad",Engage:"#e67e22",Help:"#27ae60",Take:"#f1c40f",Overpower:"#c0392b"};
 const GEAR_EMOJI="⚡";
 
-/* Element color + icon data (fill your URLs here) */
+/* Element color + icon (fill your URLs) */
 const ELEMENT_STYLE={
   CIRCUIT:{color:"#7cc6ff",icon:"https://zak5325.github.io/vantage_element_icon/i-circuit.png"},
   WIND   :{color:"#ff9dc8",icon:"https://zak5325.github.io/vantage_element_icon/i-wind.png"},
@@ -138,7 +138,7 @@ const $=id=>document.getElementById(id);
 const deckCountEl=$("deckCount"),remainCountEl=$("remainCount"),drawnCountEl=$("drawnCount");
 const historyView=$("history"),lastView=$("last"),excludedListEl=$("excludedList");
 
-/* ===== Preload element icons as dataURL (so JPG keeps them) ===== */
+/* ===== Preload icons as dataURL so JPG keeps them ===== */
 let ICONS_READY = null;
 async function blobToDataURL(blob){return new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=rej;fr.readAsDataURL(blob);});}
 async function preloadElementIcons(){
@@ -200,40 +200,65 @@ function drawOne(){if(!DECK.length)return;const i=Math.floor(Math.random()*DECK.
 $("btnShuffle").onclick=()=>DECK.sort(()=>Math.random()-0.5);
 $("btnReset").onclick=resetDeck;
 $("btnDraw1").onclick=drawOne;
-
-/* ===== Exclusions ===== */
 $("btnExclude").onclick=()=>{const raw=$("excludeInput").value.trim();if(!raw)return;raw.split(/[,\s]+/).forEach(id=>{if(id)EXCLUDED.add(id.toUpperCase());});$("excludeInput").value="";resetDeck();};
 $("btnClearExcluded").onclick=()=>{EXCLUDED.clear();resetDeck();};
-function renderExcludedList(){
-  const el=excludedListEl; el.innerHTML="";
-  if(EXCLUDED.size===0){el.innerHTML=`<div class="mini">No excluded cards.</div>`;return;}
-  const byId=new Map(FULL.map(c=>[c.id,c]));
-  Array.from(EXCLUDED).sort().forEach(id=>{
-    const c=byId.get(id);
-    const row=document.createElement("div");
-    row.className="mini";
-    row.textContent=`${id}${c?` · Speed ${c.speed}`:""}`;
-    el.appendChild(row);
-  });
-}
 
-/* ===== Auto import ===== */
 (async()=>{
-  try{const r=await fetch(DEFAULT_PRIMARY,{cache:"no-store"});if(!r.ok)throw new Error(`HTTP ${r.status}`);FULL=parseTXT(await r.text());resetDeck();renderExcludedList();}
+  try{const r=await fetch(DEFAULT_PRIMARY,{cache:"no-store"});if(!r.ok)throw new Error(`HTTP ${r.status}`);FULL=parseTXT(await r.text());resetDeck();}
   catch(e){console.error("Failed to load card list:",e);}
 })();
 
-/* ===== JPG Export：Element/Gear 用「pill」並置底 ===== */
+/* ===== JPG Export with pixel-based pill widths ===== */
 
-/* helpers for wrapping */
-function wrapByChars(str,max){const words=String(str||"").split(/\s+/);const out=[];let cur="";for(const w of words){const t=cur?cur+" "+w:w;if(t.length<=max){cur=t}else{if(cur)out.push(cur);cur=w}}if(cur)out.push(cur);return out;}
-function wrapWithFirstIndent(text,firstMax,otherMax){const words=String(text||"").split(/\s+/);const lines=[];let cur="";let limit=firstMax;let first=true;for(const w of words){const t=cur?cur+" "+w:w;if(t.length<=limit){cur=t}else{if(cur)lines.push(cur);cur=w;if(first){first=false;limit=otherMax}}}if(cur)lines.push(cur);return lines;}
+/* 1) measurement helpers using offscreen canvas */
+const MEASURE_CANVAS=document.createElement("canvas");
+const CTX=MEASURE_CANVAS.getContext("2d");
+function textWidthPx(text, font){ try{CTX.font=font;return CTX.measureText(String(text||"")).width;}catch{return String(text||"").length*11.5;} }
+function wrapWithFirstIndentByPx(text, firstIndentPx, lineWidthPx, font){
+  const words=String(text||"").split(/\s+/);
+  const lines=[]; let cur=""; let curW=0;
+  let limit= lineWidthPx - firstIndentPx; let first=true;
+  for(const w of words){
+    const ww=textWidthPx((cur?cur+" ":"")+w, font);
+    if(ww<=limit){ cur=(cur?cur+" ":"")+w; curW=ww; }
+    else { if(cur){ lines.push(cur); } cur=w; curW=textWidthPx(cur,font); if(first){ first=false; limit=lineWidthPx; } }
+  }
+  if(cur) lines.push(cur);
+  return lines;
+}
 
-/* skill pills */
+/* 2) SVG pills that use measured widths */
+function pillWithIconSVG({x,y,text,iconData,fontSize=20,bg="#e6f2ff",textColor="#10324a",padX=12,padY=8,iconSize=22,gap=8,rx=14,fontWeight=700}){
+  const font=`${fontWeight} ${fontSize}px system-ui, sans-serif`;
+  const textW = textWidthPx(text, font);
+  const w = padX*2 + (iconData?iconSize+gap:0) + textW;
+  const h = padY*2 + Math.max(iconSize,fontSize);
+  const baseY = y + padY + Math.max(iconSize,fontSize) - 5;
+  const parts=[];
+  parts.push(`<rect x="${x}" y="${y}" rx="${rx}" ry="${rx}" width="${w}" height="${h}" fill="${bg}" />`);
+  if(iconData) parts.push(`<image href="${iconData}" x="${x+padX}" y="${y+(h-iconSize)/2}" width="${iconSize}" height="${iconSize}" preserveAspectRatio="xMidYMid slice" />`);
+  const textX = x + padX + (iconData?iconSize+gap:0);
+  parts.push(`<text x="${textX}" y="${baseY}" font-size="${fontSize}" font-weight="${fontWeight}" font-family="system-ui, sans-serif" fill="${textColor}">${text}</text>`);
+  return {svg:parts.join(""), w, h};
+}
+function pillSVG({x,y,text,fontSize=20,bg="#e6f2ff",textColor="#10324a",padX=12,padY=8,rx=14,fontWeight=700}){
+  const font=`${fontWeight} ${fontSize}px system-ui, sans-serif`;
+  const textW = textWidthPx(text, font);
+  const w = padX*2 + textW;
+  const h = padY*2 + fontSize;
+  const baseY = y + padY + fontSize - 4;
+  const parts=[];
+  parts.push(`<rect x="${x}" y="${y}" rx="${rx}" ry="${rx}" width="${w}" height="${h}" fill="${bg}" />`);
+  parts.push(`<text x="${x+padX}" y="${baseY}" font-size="${fontSize}" font-weight="${fontWeight}" font-family="system-ui, sans-serif" fill="${textColor}">${text}</text>`);
+  return {svg:parts.join(""), w, h};
+}
+
+/* skills (簡化：近似寬度已足夠) */
 function skillPillsSVG(skills,x,y,maxW){
   const h=34,padX=12,gap=8,vgap=8;let cx=x,cy=y,out="";
   skills.forEach(s=>{
-    const w=18+String(s).length*10;
+    const font="15px system-ui, sans-serif";
+    const w=padX*2 + textWidthPx(s,font);
     if(cx+w>x+maxW){cx=x;cy+=h+vgap;}
     const color=SKILL_COLORS[s]||"#999"; const textColor=(s==="Take")?"#000":"#fff";
     out+=`<rect x="${cx}" y="${cy}" rx="7" ry="7" width="${w}" height="${h}" fill="${color}"/>`;
@@ -243,32 +268,7 @@ function skillPillsSVG(skills,x,y,maxW){
   return {svg:out,lastY:cy+h};
 }
 
-/* pill with icon (for Element) */
-function pillWithIconSVG({x,y,text,iconData,fontSize=20,bg="#e6f2ff",textColor="#10324a",padX=12,padY=8,iconSize=22,gap=8,rx=14}){
-  const textW = text.length*11.5; // rough
-  const w = padX*2 + (iconData?iconSize+gap:0) + textW;
-  const h = padY*2 + Math.max(iconSize,fontSize);
-  const baseY = y + padY + Math.max(iconSize,fontSize) - 5;
-  const pieces = [];
-  pieces.push(`<rect x="${x}" y="${y}" rx="${rx}" ry="${rx}" width="${w}" height="${h}" fill="${bg}" />`);
-  if(iconData) pieces.push(`<image href="${iconData}" x="${x+padX}" y="${y+(h-iconSize)/2}" width="${iconSize}" height="${iconSize}" preserveAspectRatio="xMidYMid slice" />`);
-  const textX = x + padX + (iconData?iconSize+gap:0);
-  pieces.push(`<text x="${textX}" y="${baseY}" font-size="${fontSize}" font-family="system-ui, sans-serif" fill="${textColor}" font-weight="700">${text}</text>`);
-  return {svg:pieces.join(""), w, h};
-}
-
-/* pill without icon (for Gear) */
-function pillSVG({x,y,text,fontSize=20,bg="#e6f2ff",textColor="#10324a",padX=12,padY=8,rx=14}){
-  const textW = text.length*11.5;
-  const w = padX*2 + textW;
-  const h = padY*2 + fontSize;
-  const baseY = y + padY + fontSize - 4;
-  const pieces=[];
-  pieces.push(`<rect x="${x}" y="${y}" rx="${rx}" ry="${rx}" width="${w}" height="${h}" fill="${bg}" />`);
-  pieces.push(`<text x="${x+padX}" y="${baseY}" font-size="${fontSize}" font-family="system-ui, sans-serif" fill="${textColor}" font-weight="700">${text}</text>`);
-  return {svg:pieces.join(""), w, h};
-}
-
+/* 3) Build SVG (Element/Gear pills stick to bottom; titles removed by request) */
 function buildCardSVG(card){
   const W=630,H=880,pad=24,innerW=W-2*pad;
   const title=`${card.id} · Speed ${card.speed}`;
@@ -276,48 +276,48 @@ function buildCardSVG(card){
   const bg=st.color||"#cfe2f3";
   const iconData=st.iconData||null;
 
-  // top area
+  // Top (title + skills)
   const titleY=78;
   const pills=skillPillsSVG(card.skills||[],pad,130,innerW);
 
-  // text metrics
-  const lineH=26, descFont=20, chipGap=12, blockGap=18, bottomPad=pad;
-  const charsPerLine=Math.floor(innerW/11); // rough char width estimation
+  // Layout constants
+  const lineH=26, descFontPx=20, chipGap=12, blockGap=18, bottomPad=pad;
+  const fontBody=`${descFontPx}px system-ui, sans-serif`;
 
-  /* ---- Gear block at bottom: [⚡ GEAR] pill + text (wrap w/ first-line indent) ---- */
+  // Gear block (bottom)
   const gearPillText = `${GEAR_EMOJI} ${card.gear}`;
-  const gearPill = pillSVG({x:pad+12, y:0, text:gearPillText, fontSize:20}); // temp y
-  const gearFirstMax = Math.max(8, Math.floor((innerW - (gearPill.w + chipGap))/11));
-  const gearLines = wrapWithFirstIndent(card.gearText, gearFirstMax, charsPerLine);
+  const gearPillTemp = pillSVG({x:pad+12, y:0, text:gearPillText, fontSize:20});
+  const gearFirstIndent = gearPillTemp.w + chipGap;
+  const gearLines = wrapWithFirstIndentByPx(card.gearText, gearFirstIndent, innerW, fontBody);
   const gearTextH = gearLines.length * lineH;
-  const gearBlockH = Math.max(gearPill.h, lineH) + (gearLines.length?8:0) + gearTextH;
+  const gearBlockH = Math.max(gearPillTemp.h, lineH) + (gearLines.length?8:0) + gearTextH;
   const gearStartY = H - bottomPad - gearBlockH;
 
-  /* ---- Element block above gear: [icon Element] pill + desc (first-line indent) ---- */
-  const elemPill = pillWithIconSVG({x:pad+12, y:0, text:card.element, iconData, fontSize:22}); // temp y
-  const elemFirstMax = Math.max(8, Math.floor((innerW - (elemPill.w + chipGap))/11));
-  const elemLines = wrapWithFirstIndent(card.elementText, elemFirstMax, charsPerLine);
+  // Element block (above gear)
+  const elemPillTemp = pillWithIconSVG({x:pad+12, y:0, text:card.element, iconData, fontSize:22});
+  const elemFirstIndent = elemPillTemp.w + chipGap;
+  const elemLines = wrapWithFirstIndentByPx(card.elementText, elemFirstIndent, innerW, fontBody);
   const elemTextH = elemLines.length * lineH;
-  const elemBlockH = Math.max(elemPill.h, lineH) + (elemLines.length?8:0) + elemTextH;
+  const elemBlockH = Math.max(elemPillTemp.h, lineH) + (elemLines.length?8:0) + elemTextH;
   const elemStartY = gearStartY - blockGap - elemBlockH;
 
-  // rebuild pills with real Y
-  const elemPillReal = pillWithIconSVG({x:pad+12, y:elemStartY, text:card.element, iconData, fontSize:22});
-  const gearPillReal = pillSVG({x:pad+12, y:gearStartY, text:gearPillText, fontSize:20});
+  // Rebuild pills with real Y
+  const elemPill = pillWithIconSVG({x:pad+12, y:elemStartY, text:card.element, iconData, fontSize:22});
+  const gearPill = pillSVG({x:pad+12, y:gearStartY, text:gearPillText, fontSize:20});
 
-  // compose texts
+  // Descriptions
   let elemDescSVG="";
   elemLines.forEach((t,i)=>{
-    const x=(i===0)?(pad+12+elemPillReal.w+chipGap):(pad+12);
-    const y=elemStartY + elemPillReal.h + 8 + i*lineH;
-    elemDescSVG += `<text x="${x}" y="${y}" font-size="${descFont}" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`;
+    const x=(i===0)?(pad+12+elemPill.w+chipGap):(pad+12);
+    const y=elemStartY + elemPill.h + 8 + i*lineH;
+    elemDescSVG += `<text x="${x}" y="${y}" font-size="${descFontPx}" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`;
   });
 
   let gearDescSVG="";
   gearLines.forEach((t,i)=>{
-    const x=(i===0)?(pad+12+gearPillReal.w+chipGap):(pad+12);
-    const y=gearStartY + gearPillReal.h + 8 + i*lineH;
-    gearDescSVG += `<text x="${x}" y="${y}" font-size="${descFont}" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`;
+    const x=(i===0)?(pad+12+gearPill.w+chipGap):(pad+12);
+    const y=gearStartY + gearPill.h + 8 + i*lineH;
+    gearDescSVG += `<text x="${x}" y="${y}" font-size="${descFontPx}" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`;
   });
 
   const excludedBadge = card._excluded
@@ -337,19 +337,19 @@ function buildCardSVG(card){
   <text x="${pad}" y="116" font-size="18" font-family="system-ui, sans-serif" fill="#2b4a60">Skills</text>
   ${pills.svg}
 
-  <!-- Element block (pill + wrap) -->
-  ${elemPillReal.svg}
+  <!-- Element (pill + wrapped text) -->
+  ${elemPill.svg}
   ${elemDescSVG}
 
-  <!-- Gear block (pill + wrap) -->
-  ${gearPillReal.svg}
+  <!-- Gear (pill + wrapped text) -->
+  ${gearPill.svg}
   ${gearDescSVG}
 
   ${excludedBadge}
 </svg>`;
 }
 
-/* download */
+/* Download as JPG */
 async function downloadCurrentBigCard(){
   if(!CURRENT_BIG_CARD) return;
   try{await ICONS_READY;}catch{}
