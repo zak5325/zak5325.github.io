@@ -112,20 +112,20 @@ const GEARS=["MASK","HORN","GAUNTLET","SCEPTER","HELM","HARNESS","CLOAK","TOME",
 const SKILL_COLORS={Move:"#3a8ad8",Look:"#8e44ad",Engage:"#e67e22",Help:"#27ae60",Take:"#f1c40f",Overpower:"#c0392b"};
 const GEAR_EMOJI="⚡";
 
-/* 🔧 Element color + icon (your GitHub image URLs) */
+/* 🔧 Element color + icon (your hosted PNGs). You can replace these URLs. */
 const ELEMENT_STYLE={
   CIRCUIT:{color:"#7cc6ff",icon:"https://zak5325.github.io/vantage_element_icon/i-circuit.png"},
-  WIND:{color:"#ff9dc8",icon:"https://zak5325.github.io/vantage_element_icon/i-wind.png"},
-  ENERGY:{color:"#b990ff",icon:"https://zak5325.github.io/vantage_element_icon/i-energy.png"},
-  FIRE:{color:"#ffa733",icon:"https://zak5325.github.io/vantage_element_icon/i-fire.png"},
-  GOLD:{color:"#f6c85f",icon:"https://zak5325.github.io/vantage_element_icon/i-gold.png"},
-  SINEW:{color:"#ff8a8a",icon:"https://zak5325.github.io/vantage_element_icon/i-sinew.png"},
-  METAL:{color:"#c1d6e3",icon:"https://zak5325.github.io/vantage_element_icon/i-metal.png"},
-  SAND:{color:"#f0caa6",icon:"https://zak5325.github.io/vantage_element_icon/i-sand.png"},
-  STONE:{color:"#a9b7c4",icon:"https://zak5325.github.io/vantage_element_icon/i-stone.png"},
-  LEAF:{color:"#74d37e",icon:"https://zak5325.github.io/vantage_element_icon/i-leaf.png"},
-  WATER:{color:"#6bb6ff",icon:"https://zak5325.github.io/vantage_element_icon/i-water.png"},
-  WOOD:{color:"#c48f62",icon:"https://zak5325.github.io/vantage_element_icon/i-wood.png"}
+  WIND   :{color:"#ff9dc8",icon:"https://zak5325.github.io/vantage_element_icon/i-wind.png"},
+  ENERGY :{color:"#b990ff",icon:"https://zak5325.github.io/vantage_element_icon/i-energy.png"},
+  FIRE   :{color:"#ffa733",icon:"https://zak5325.github.io/vantage_element_icon/i-fire.png"},
+  GOLD   :{color:"#f6c85f",icon:"https://zak5325.github.io/vantage_element_icon/i-gold.png"},
+  SINEW  :{color:"#ff8a8a",icon:"https://zak5325.github.io/vantage_element_icon/i-sinew.png"},
+  METAL  :{color:"#c1d6e3",icon:"https://zak5325.github.io/vantage_element_icon/i-metal.png"},
+  SAND   :{color:"#f0caa6",icon:"https://zak5325.github.io/vantage_element_icon/i-sand.png"},
+  STONE  :{color:"#a9b7c4",icon:"https://zak5325.github.io/vantage_element_icon/i-stone.png"},
+  LEAF   :{color:"#74d37e",icon:"https://zak5325.github.io/vantage_element_icon/i-leaf.png"},
+  WATER  :{color:"#6bb6ff",icon:"https://zak5325.github.io/vantage_element_icon/i-water.png"},
+  WOOD   :{color:"#c48f62",icon:"https://zak5325.github.io/vantage_element_icon/i-wood.png"}
 };
 
 /* Source (auto-import) */
@@ -141,7 +141,7 @@ const $=id=>document.getElementById(id);
 const deckCountEl=$("deckCount"),remainCountEl=$("remainCount"),drawnCountEl=$("drawnCount");
 const historyView=$("history"),lastView=$("last"),excludedListEl=$("excludedList");
 
-/* ===== Preload element icons as dataURL (to keep icons in downloaded JPG) ===== */
+/* ===== Preload element icons as dataURL (so JPG export keeps them) ===== */
 let ICONS_READY = null;
 
 async function blobToDataURL(blob){
@@ -187,7 +187,7 @@ function parseTXT(t){return sanitizeText(t).split(/\r?\n/).map(s=>s.trim()).filt
 /* ===== Render (page) ===== */
 function renderSkills(skills){return skills.map(s=>`<span class="tag ${s}">${s}</span>`).join(" ");}
 
-/* Element pill on page: [icon] ElementName  */
+/* Element pill on page: [icon] ElementName */
 function elementBadgeHTML(elemName){
   const st = ELEMENT_STYLE[elemName] || { color:"#ccc" };
   const iconHTML = st.icon
@@ -205,7 +205,7 @@ function renderCard(c,{mini=false}={}){
     <div>${renderSkills(c.skills)}</div>
     <div class="spacer"></div>
     <div class="line">${elementBadgeHTML(c.element)} ${c.elementText}</div>
-    <div class="line"><span class="pill" title="Resolves first">${GEAR_EMOJI} ${c.gear}</span> ${c.gearText}</div>`;
+    <div class="line"><span class="pill" title="Resolves first">⚡ ${c.gear}</span> ${c.gearText}</div>`;
   if(c._excluded)el.innerHTML+=`<div class="badge">Previously drawn (excluded)</div>`;
   if(mini){ el.title="Click to preview as big card"; el.onclick=()=>showAsBigCard(c); }
   return el;
@@ -264,10 +264,20 @@ function renderExcludedList(){
   }
 })();
 
-/* ===== JPG Export (Element/Gear pinned to bottom, icon next to Element name) ===== */
+/* ===== JPG Export (Element/Gear pinned to bottom; icon on same line as Element name) ===== */
 
-/* Wrap long text by rough char length */
-function wrapWords(str,maxChars){const words=String(str||"").split(/\s+/);const lines=[];let cur="";for(const w of words){const t=cur?cur+" "+w:w;if(t.length<=maxChars){cur=t;}else{if(cur)lines.push(cur);cur=w;}}if(cur)lines.push(cur);return lines;}
+/* Simple word-wrap by char length */
+function wrapWords(str,maxChars){
+  const words=String(str||"").split(/\s+/);
+  const lines=[]; let cur="";
+  for(const w of words){
+    const t=cur?cur+" "+w:w;
+    if(t.length<=maxChars){cur=t;}
+    else{ if(cur)lines.push(cur); cur=w; }
+  }
+  if(cur)lines.push(cur);
+  return lines;
+}
 /* Pills drawing (SVG) */
 function skillPillsSVG(skills,x,y,maxW){
   const h=34,padX=12,gap=8,vgap=8;let cx=x,cy=y,out="";
@@ -282,10 +292,10 @@ function skillPillsSVG(skills,x,y,maxW){
   return {svg:out,lastY:cy+h};
 }
 
-/* Build export SVG:
+/* Build export SVG
  * - Gear at the very bottom
  * - Element above Gear
- * - Element icon image is on the SAME LINE as the Element name (like page layout)
+ * - Element icon image placed on same line as Element name (with safe spacing & baseline)
  */
 function buildCardSVG(card){
   const W=630,H=880,pad=24,innerW=W-2*pad;
@@ -298,11 +308,12 @@ function buildCardSVG(card){
   const skillsTopY=116;
   const pills=skillPillsSVG(card.skills||[],pad,130,innerW);
 
-  // Bottom layout metrics
-  const nameLineH=28;   // Element name line (with icon)
-  const lineH=26;       // wrapped lines
-  const labelH=22;
-  const blockGap=16;
+  // Bottom layout metrics (tuned to avoid any overlap)
+  const nameFontSize=22;        // Element name font size
+  const lineH=26;               // wrap line height
+  const labelH=22;              // "Element"/"Gear" label height
+  const nameLineExtraGap=10;    // extra gap below the name row before description
+  const blockGap=18;            // gap between Element and Gear blocks
   const bottomPad=pad;
 
   // Split Element: first line is [icon] ElementName, description wraps below
@@ -311,30 +322,33 @@ function buildCardSVG(card){
   const grLines = wrapWords(`${GEAR_EMOJI} ${card.gear}: ${card.gearText}`, 44);
 
   // Heights
-  const elNameH = nameLineH;
+  const elNameH = nameFontSize + 4;             // name row height
   const elDescH = elDescLines.length * lineH;
-  const elBlockH = labelH + elNameH + elDescH + 6;
+  const elBlockH = labelH + elNameH + nameLineExtraGap + elDescH;
 
   const grTextH = grLines.length * lineH;
-  const grBlockH = labelH + grTextH + 6;
+  const grBlockH = labelH + grTextH;
 
-  // Pin Gear to bottom; Element block sits above it
+  // Pin Gear to bottom; Element sits above it
   const gearStartY = H - bottomPad - grBlockH;
   const elemStartY = gearStartY - blockGap - elBlockH;
 
-  // Element name row: icon + name at the same y
-  const elIconSize = 24;
+  // Element name row positions (icon + name)
+  const elIconSize = 26;
+  const elIconMargin = 12;                            // space between icon and name
   const elIconX = pad + 12;
-  const elIconY = elemStartY + labelH - 4;     // align with text baseline
-  const elNameX = elIconX + (iconData ? elIconSize + 8 : 0);  // push right if icon exists
-  const elNameY = elemStartY + labelH + 18;    // baseline for name
+  const elNameX = iconData ? elIconX + elIconSize + elIconMargin : pad + 12;
+  const elNameBaselineY = elemStartY + labelH + nameFontSize;   // baseline for name
+  const elIconY = elNameBaselineY - elIconSize + 6;             // visual center to baseline
 
-  // Element description lines
+  // Element description lines start AFTER an extra gap
+  const elDescStartY = elemStartY + labelH + elNameH + nameLineExtraGap;
+
+  // Build text SVGs
   const elDescSVG = elDescLines.map((t,i)=>
-    `<text x="${pad+12}" y="${elemStartY + labelH + elNameH + i*lineH}" font-size="20" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`
+    `<text x="${pad+12}" y="${elDescStartY + i*lineH}" font-size="20" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`
   ).join("");
 
-  // Gear lines
   const grTextSVG = grLines.map((t,i)=>
     `<text x="${pad+12}" y="${gearStartY + labelH + i*lineH}" font-size="20" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`
   ).join("");
@@ -363,13 +377,13 @@ function buildCardSVG(card){
   <text x="${pad}" y="${skillsTopY}" font-size="18" font-family="system-ui, sans-serif" fill="#2b4a60">Skills</text>
   ${pills.svg}
 
-  <!-- Element (above Gear; icon on same line as name) -->
+  <!-- Element block -->
   <text x="${pad}" y="${elemStartY}" font-size="18" font-family="system-ui, sans-serif" fill="#2b4a60">Element</text>
   ${elIconSVG}
-  <text x="${elNameX}" y="${elNameY}" font-size="20" font-family="system-ui, sans-serif" font-weight="700" fill="#10324a">${elName}</text>
+  <text x="${elNameX}" y="${elNameBaselineY}" font-size="${nameFontSize}" font-family="system-ui, sans-serif" font-weight="700" fill="#10324a">${elName}</text>
   ${elDescSVG}
 
-  <!-- Gear (bottom) -->
+  <!-- Gear block -->
   <text x="${pad}" y="${gearStartY}" font-size="18" font-family="system-ui, sans-serif" fill="#2b4a60">Gear</text>
   ${grTextSVG}
 
@@ -397,6 +411,20 @@ async function downloadCurrentBigCard(){
   img.src=url;
 }
 $("btnDownload").onclick=downloadCurrentBigCard;
+
+/* ===== Auto-import ===== */
+(async()=>{
+  try{
+    const res=await fetch(DEFAULT_PRIMARY,{cache:"no-store"});
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const txt=await res.text();
+    FULL=parseTXT(txt);
+    resetDeck();
+    renderExcludedList();
+  }catch(e){
+    console.error("Failed to load card list:", e);
+  }
+})();
 </script>
 </body>
 </html>
