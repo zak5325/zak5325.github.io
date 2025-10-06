@@ -112,7 +112,7 @@ const GEARS=["MASK","HORN","GAUNTLET","SCEPTER","HELM","HARNESS","CLOAK","TOME",
 const SKILL_COLORS={Move:"#3a8ad8",Look:"#8e44ad",Engage:"#e67e22",Help:"#27ae60",Take:"#f1c40f",Overpower:"#c0392b"};
 const GEAR_EMOJI="⚡";
 
-/* 🔧 Element color + icon (your hosted PNGs). You can replace these URLs. */
+/* Element color + icon (you can replace URLs) */
 const ELEMENT_STYLE={
   CIRCUIT:{color:"#7cc6ff",icon:"https://zak5325.github.io/vantage_element_icon/i-circuit.png"},
   WIND   :{color:"#ff9dc8",icon:"https://zak5325.github.io/vantage_element_icon/i-wind.png"},
@@ -141,7 +141,7 @@ const $=id=>document.getElementById(id);
 const deckCountEl=$("deckCount"),remainCountEl=$("remainCount"),drawnCountEl=$("drawnCount");
 const historyView=$("history"),lastView=$("last"),excludedListEl=$("excludedList");
 
-/* ===== Preload element icons as dataURL (so JPG export keeps them) ===== */
+/* ===== Preload element icons as dataURL (so JPG keeps them) ===== */
 let ICONS_READY = null;
 
 async function blobToDataURL(blob){
@@ -264,21 +264,23 @@ function renderExcludedList(){
   }
 })();
 
-/* ===== JPG Export (Element/Gear pinned to bottom; icon on same line as Element name) ===== */
+/* ===== JPG Export (titles removed; icon+name in same line; no overlap) ===== */
 
-/* Simple word-wrap by char length */
-function wrapWords(str,maxChars){
-  const words=String(str||"").split(/\s+/);
-  const lines=[]; let cur="";
+/* word-wrap helpers */
+function wrapByChars(str,max){const words=String(str||"").split(/\s+/);const lines=[];let cur="";for(const w of words){const t=cur?cur+" "+w:w;if(t.length<=max){cur=t}else{if(cur)lines.push(cur);cur=w}}if(cur)lines.push(cur);return lines;}
+function wrapWithFirstIndent(text, firstMax, otherMax){
+  const words=String(text||"").split(/\s+/); const lines=[];
+  let cur=""; let limit=firstMax; let first=true;
   for(const w of words){
     const t=cur?cur+" "+w:w;
-    if(t.length<=maxChars){cur=t;}
-    else{ if(cur)lines.push(cur); cur=w; }
+    if(t.length<=limit){cur=t;}
+    else{ if(cur) lines.push(cur); cur=w; if(first){first=false; limit=otherMax;} }
   }
-  if(cur)lines.push(cur);
+  if(cur) lines.push(cur);
   return lines;
 }
-/* Pills drawing (SVG) */
+
+/* draw skill pills (SVG) */
 function skillPillsSVG(skills,x,y,maxW){
   const h=34,padX=12,gap=8,vgap=8;let cx=x,cy=y,out="";
   skills.forEach(s=>{
@@ -292,70 +294,75 @@ function skillPillsSVG(skills,x,y,maxW){
   return {svg:out,lastY:cy+h};
 }
 
-/* Build export SVG
- * - Gear at the very bottom
- * - Element above Gear
- * - Element icon image placed on same line as Element name (with safe spacing & baseline)
- */
 function buildCardSVG(card){
   const W=630,H=880,pad=24,innerW=W-2*pad;
   const title=`${card.id} · Speed ${card.speed}`;
-  const bg=(ELEMENT_STYLE[card.element]||{}).color||"#cfe2f3";
-  const iconData=(ELEMENT_STYLE[card.element]||{}).iconData;
+  const st = ELEMENT_STYLE[card.element]||{};
+  const bg=st.color||"#cfe2f3";
+  const iconData=st.iconData||null;
+
+  // layout constants
+  const nameFontSize=22;                  // Element name font size (bold)
+  const descFontSize=20;
+  const lineH=26;                         // desc line height
+  const blockGap=18;                      // gap between Element block and Gear block
+  const bottomPad=pad;
+  const textPerChar=11;                   // rough char width estimation for wrap
 
   // Top: title + skills
   const titleY=78;
   const skillsTopY=116;
   const pills=skillPillsSVG(card.skills||[],pad,130,innerW);
 
-  // Bottom layout metrics (tuned to avoid any overlap)
-  const nameFontSize=22;        // Element name font size
-  const lineH=26;               // wrap line height
-  const labelH=22;              // "Element"/"Gear" label height
-  const nameLineExtraGap=10;    // extra gap below the name row before description
-  const blockGap=18;            // gap between Element and Gear blocks
-  const bottomPad=pad;
+  // --- Gear block (bottom) ---
+  const gearLine = `${'⚡'} ${card.gear}: ${card.gearText}`;
+  const gearLines = wrapByChars(gearLine, Math.floor(innerW/textPerChar));
+  const gearTextH = gearLines.length * lineH;
+  const gearStartY = H - bottomPad - gearTextH;        // no "Gear" title
 
-  // Split Element: first line is [icon] ElementName, description wraps below
+  // --- Element block (above gear) ---
   const elName = card.element;
-  const elDescLines = wrapWords(card.elementText, 48);
-  const grLines = wrapWords(`${GEAR_EMOJI} ${card.gear}: ${card.gearText}`, 44);
+  // pill width estimation (icon + gap + name + padding)
+  const elIconSize=26;
+  const elIconGap=10;
+  const namePx = elName.length * 12;                    // name visual width
+  const pillPx = (iconData?elIconSize+elIconGap:0) + namePx + 18; // + padding
+  const firstLineStartX = pad + 12 + pillPx + 12;       // start of desc 1st line
+  const firstMax = Math.max(8, Math.floor((W - firstLineStartX - pad)/textPerChar));
+  const otherMax = Math.floor(innerW/textPerChar);
 
-  // Heights
-  const elNameH = nameFontSize + 4;             // name row height
+  const elDescLines = wrapWithFirstIndent(card.elementText, firstMax, otherMax);
   const elDescH = elDescLines.length * lineH;
-  const elBlockH = labelH + elNameH + nameLineExtraGap + elDescH;
+  const elBlockH = Math.max(elIconSize, nameFontSize+4) + 8 + elDescH; // name row + gap + desc
 
-  const grTextH = grLines.length * lineH;
-  const grBlockH = labelH + grTextH;
-
-  // Pin Gear to bottom; Element sits above it
-  const gearStartY = H - bottomPad - grBlockH;
   const elemStartY = gearStartY - blockGap - elBlockH;
 
-  // Element name row positions (icon + name)
-  const elIconSize = 26;
-  const elIconMargin = 12;                            // space between icon and name
-  const elIconX = pad + 12;
-  const elNameX = iconData ? elIconX + elIconSize + elIconMargin : pad + 12;
-  const elNameBaselineY = elemStartY + labelH + nameFontSize;   // baseline for name
-  const elIconY = elNameBaselineY - elIconSize + 6;             // visual center to baseline
+  // Baselines
+  const elNameBaseY = elemStartY + Math.max(elIconSize, nameFontSize+4) - 6; // align icon & name
+  const elIconX = pad + 12, elIconY = elNameBaseY - elIconSize + 6;
+  const elNameX = (iconData? elIconX + elIconSize + elIconGap : elIconX);
 
-  // Element description lines start AFTER an extra gap
-  const elDescStartY = elemStartY + labelH + elNameH + nameLineExtraGap;
-
-  // Build text SVGs
-  const elDescSVG = elDescLines.map((t,i)=>
-    `<text x="${pad+12}" y="${elDescStartY + i*lineH}" font-size="20" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`
-  ).join("");
-
-  const grTextSVG = grLines.map((t,i)=>
-    `<text x="${pad+12}" y="${gearStartY + labelH + i*lineH}" font-size="20" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`
-  ).join("");
-
+  // SVG pieces
   const elIconSVG = iconData
     ? `<image href="${iconData}" x="${elIconX}" y="${elIconY}" width="${elIconSize}" height="${elIconSize}" preserveAspectRatio="xMidYMid slice" />`
     : "";
+
+  const elNameSVG = `<text x="${elNameX}" y="${elNameBaseY}" font-size="${nameFontSize}" font-weight="700" font-family="system-ui, sans-serif" fill="#10324a">${elName}</text>`;
+
+  // Element description: first line starts after pill, others from left
+  const elDescFirstX = firstLineStartX;
+  const elDescOtherX = pad + 12;
+  let elDescSVG = "";
+  elDescLines.forEach((t,i)=>{
+    const x = (i===0 ? elDescFirstX : elDescOtherX);
+    const y = elemStartY + Math.max(elIconSize, nameFontSize+4) + 8 + i*lineH;
+    elDescSVG += `<text x="${x}" y="${y}" font-size="${descFontSize}" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`;
+  });
+
+  // Gear text lines
+  const gearTextSVG = gearLines.map((t,i)=>
+    `<text x="${pad+12}" y="${gearStartY + i*lineH}" font-size="${descFontSize}" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`
+  ).join("");
 
   const excludedBadge = card._excluded
     ? `<rect x="${W-220}" y="16" rx="14" ry="14" width="204" height="30" fill="#fff3cd" stroke="#ffe08a"/>
@@ -364,10 +371,7 @@ function buildCardSVG(card){
 
   return `
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
-  <!-- Background with Element color -->
   <rect x="0" y="0" width="${W}" height="${H}" fill="${bg}"/>
-
-  <!-- Inner frame -->
   <rect x="10" y="10" width="${W-20}" height="${H-20}" rx="22" ry="22" fill="${bg}" stroke="#dfe7f1"/>
 
   <!-- Title -->
@@ -377,21 +381,19 @@ function buildCardSVG(card){
   <text x="${pad}" y="${skillsTopY}" font-size="18" font-family="system-ui, sans-serif" fill="#2b4a60">Skills</text>
   ${pills.svg}
 
-  <!-- Element block -->
-  <text x="${pad}" y="${elemStartY}" font-size="18" font-family="system-ui, sans-serif" fill="#2b4a60">Element</text>
+  <!-- Element row: [icon] NAME + description (first line indented to avoid the pill) -->
   ${elIconSVG}
-  <text x="${elNameX}" y="${elNameBaselineY}" font-size="${nameFontSize}" font-family="system-ui, sans-serif" font-weight="700" fill="#10324a">${elName}</text>
+  ${elNameSVG}
   ${elDescSVG}
 
-  <!-- Gear block -->
-  <text x="${pad}" y="${gearStartY}" font-size="18" font-family="system-ui, sans-serif" fill="#2b4a60">Gear</text>
-  ${grTextSVG}
+  <!-- Gear row at bottom -->
+  ${gearTextSVG}
 
   ${excludedBadge}
 </svg>`;
 }
 
-/* Download JPG: wait icons preloaded, then render SVG -> Canvas -> JPG */
+/* Download JPG */
 async function downloadCurrentBigCard(){
   if(!CURRENT_BIG_CARD) return;
   try{ await ICONS_READY; }catch{}
@@ -420,7 +422,6 @@ $("btnDownload").onclick=downloadCurrentBigCard;
     const txt=await res.text();
     FULL=parseTXT(txt);
     resetDeck();
-    renderExcludedList();
   }catch(e){
     console.error("Failed to load card list:", e);
   }
