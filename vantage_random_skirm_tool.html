@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -20,50 +20,65 @@
   .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
   .btn.ghost{background:#fff}
   .kpi{background:#f1f7ff;border:1px dashed #cfe2f3;border-radius:10px;padding:8px 10px;display:inline-block;margin-right:10px}
-  .card{position:relative;width:var(--bigW);aspect-ratio:63/88;border:1px solid #dfe7f1;
-        border-radius:16px;background:#fff;padding:12px;box-shadow:0 6px 18px rgba(16,50,74,.08);
-        display:flex;flex-direction:column;overflow:hidden}
-  .card--mini{width:var(--miniW);aspect-ratio:63/88;padding:10px;border-radius:14px;
-              box-shadow:0 3px 10px rgba(16,50,74,.06);display:flex;flex-direction:column;
-              cursor:pointer;transition:transform .05s ease}
+
+  /* 卡片比例 63:88 */
+  .card{
+    position:relative;width:var(--bigW);aspect-ratio:63/88;border:1px solid #dfe7f1;
+    border-radius:16px;background:#fff;padding:12px;box-shadow:0 6px 18px rgba(16,50,74,.08);
+    display:flex;flex-direction:column;overflow:hidden
+  }
+  .card--mini{
+    width:var(--miniW);aspect-ratio:63/88;padding:10px;border-radius:14px;
+    box-shadow:0 3px 10px rgba(16,50,74,.06);display:flex;flex-direction:column;
+    cursor:pointer;transition:transform .05s ease
+  }
   .card--mini:active{transform:scale(0.99)}
-  .card h3{margin:0;font-size:20px;line-height:1.2}
-  .card--mini h3{font-size:14px}
+  .card h3{margin:0 0 6px;font-size:20px;line-height:1.2}
+  .card--mini h3{font-size:14px;margin-bottom:4px}
+
   .badge{position:absolute;right:10px;top:10px;font-size:12px;background:#fff3cd;
          border:1px solid #ffe08a;color:#8a6d3b;border-radius:999px;padding:2px 8px}
-  .pill{display:inline-block;background:#e6f2ff;padding:3px 9px;border-radius:999px;
+
+  .pill{display:inline-flex;align-items:center;gap:6px;background:#e6f2ff;padding:3px 9px;border-radius:999px;
         margin-right:6px;font-size:13px}
   .tag{display:inline-block;border-radius:6px;padding:4px 8px;font-size:15px;color:#fff;
        margin-right:6px;white-space:nowrap}
   .Move{background:#3a8ad8}.Look{background:#8e44ad}.Engage{background:#e67e22}
   .Help{background:#27ae60}.Take{background:#f1c40f;color:#000}.Overpower{background:#c0392b}
+
   .mini{font-size:12px;color:var(--muted)}
+
+  /* Draw History grid */
   #history.history-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--miniW),1fr));gap:12px}
-  .elem-badge{display:inline-flex;align-items:center;gap:8px}
-  .elem-circle{width:26px;height:26px;border-radius:50%;display:inline-grid;
-               place-items:center;color:#fff;font-weight:700;font-size:12px;flex:0 0 26px}
+
+  /* 讓 Element/Gear 置底 */
+  .spacer{flex:1 1 auto}
+  .line{font-size:15px}
+  .card--mini .line{font-size:12px}
 </style>
 </head>
 <body>
 <header>
   <h1>Vantage Skirm Card Pool</h1>
-  <p>Auto-imports on load. Excluded cards appear in Draw History.</p>
+  <p>啟動即自動載入卡表。被排除的卡會列在歷史中。</p>
 </header>
 
 <div class="wrap">
+  <!-- 排除 -->
   <section class="panel">
-    <h2>Mark Previously Drawn (Exclude)</h2>
-    <div class="mini">Enter IDs (e.g. S002 S006)</div>
+    <h2>標記已抽過（排除）</h2>
+    <div class="mini">輸入卡牌編號（用逗號或空白分隔，例如：<code>S002 S006</code>）</div>
     <div style="margin-top:8px;display:flex;gap:8px">
       <input id="excludeInput" type="text" placeholder="S002, S006...">
-      <button id="btnExclude" class="btn">Add</button>
-      <button id="btnClearExcluded" class="btn">Clear</button>
+      <button id="btnExclude" class="btn">加入</button>
+      <button id="btnClearExcluded" class="btn">清空</button>
     </div>
     <div id="excludedList" style="margin-top:8px"></div>
   </section>
 
+  <!-- 控制 -->
   <section class="panel">
-    <h2>Draw Controls</h2>
+    <h2>抽牌控制</h2>
     <div>
       <span class="kpi">Deck: <span id="deckCount">0</span></span>
       <span class="kpi">Remaining: <span id="remainCount">0</span></span>
@@ -77,25 +92,29 @@
     </div>
   </section>
 
+  <!-- 目前抽到 -->
   <section class="panel">
-    <h2>Latest Draw</h2>
+    <h2>最新抽到</h2>
     <div id="last" class="mini">No card drawn yet</div>
   </section>
 
+  <!-- 歷史 -->
   <section class="panel">
-    <h2>Draw History</h2>
+    <h2>抽卡歷史</h2>
     <div id="history" class="history-grid"></div>
   </section>
 </div>
 
 <script>
+/* ===== 常數 ===== */
 const ELEMENTS=["CIRCUIT","WIND","ENERGY","FIRE","GOLD","SINEW","METAL","SAND","STONE","LEAF","WATER","WOOD"];
 const GEARS=["MASK","HORN","GAUNTLET","SCEPTER","HELM","HARNESS","CLOAK","TOME","DODECAHEDRON","MANTLE","BLADE","TOOLS"];
 const SKILL_COLORS={Move:"#3a8ad8",Look:"#8e44ad",Engage:"#e67e22",Help:"#27ae60",Take:"#f1c40f",Overpower:"#c0392b"};
+const GEAR_EMOJI="⚡";
 
-// 🟡 這裡填入每個 Element 的 icon URL（raw.githubusercontent 連結）
+/* 🟡 這裡是 Element 顏色與 icon 位置（已放你的 GitHub 圖） */
 const ELEMENT_STYLE={
-  CIRCUIT:{color:"#7cc6ff",icon:"https://zak5325.github.io/vantage_element_icon/i-circuit.png"},  // <= 在這裡填入
+  CIRCUIT:{color:"#7cc6ff",icon:"https://zak5325.github.io/vantage_element_icon/i-circuit.png"},
   WIND:{color:"#ff9dc8",icon:"https://zak5325.github.io/vantage_element_icon/i-wind.png"},
   ENERGY:{color:"#b990ff",icon:"https://zak5325.github.io/vantage_element_icon/i-energy.png"},
   FIRE:{color:"#ffa733",icon:"https://zak5325.github.io/vantage_element_icon/i-fire.png"},
@@ -109,33 +128,75 @@ const ELEMENT_STYLE={
   WOOD:{color:"#c48f62",icon:"https://zak5325.github.io/vantage_element_icon/i-wood.png"}
 };
 
+/* 來源（自動載入） */
+const DEFAULT_PRIMARY="https://raw.githubusercontent.com/zak5325/zak5325.github.io/main/skirm_cardlist.txt";
+
+/* 狀態 */
 let FULL=[],DECK=[],DRAWN=[];
 const EXCLUDED=new Set();
 let CURRENT_BIG_CARD=null;
-const DEFAULT_PRIMARY="https://raw.githubusercontent.com/zak5325/zak5325.github.io/main/skirm_cardlist.txt";
+
+/* DOM */
 const $=id=>document.getElementById(id);
 const deckCountEl=$("deckCount"),remainCountEl=$("remainCount"),drawnCountEl=$("drawnCount");
 const historyView=$("history"),lastView=$("last"),excludedListEl=$("excludedList");
 
-function sanitizeText(t){if(t.charCodeAt(0)===0xFEFF)t=t.slice(1);return t;}
+/* ===== 預載 icon 成 dataURL（避免下載 JPG 時 icon 消失） ===== */
+let ICONS_READY = null;
+
+async function blobToDataURL(blob){
+  return new Promise((resolve, reject)=>{
+    const fr = new FileReader();
+    fr.onload = ()=>resolve(fr.result);
+    fr.onerror = reject;
+    fr.readAsDataURL(blob);
+  });
+}
+async function preloadElementIcons(){
+  const entries = Object.entries(ELEMENT_STYLE);
+  await Promise.all(entries.map(async ([name, st])=>{
+    if(!st || !st.icon) return;
+    try{
+      const res = await fetch(st.icon, { mode:"cors", cache:"force-cache" });
+      if(!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      st.iconData = await blobToDataURL(blob); // 轉成 dataURL 內嵌進 SVG
+    }catch(err){
+      console.warn("Icon preload failed:", name, err);
+      st.iconData = null; // 失敗就僅顯示文字
+    }
+  }));
+}
+ICONS_READY = preloadElementIcons();
+
+/* ===== 輸入清理 & 解析 ===== */
+function sanitizeText(t){if(t && t.charCodeAt(0)===0xFEFF) t=t.slice(1);return t;}
 function parseLine(l){
   const id=l.match(/^S(\d{3})/i);const sp=l.match(/Speed\s+(\d{1,2})/i);
   if(!id||!sp)return null;
   let e=null,ei=-1,g=null,gi=-1;
-  for(const x of ELEMENTS){const p=l.indexOf(x+":");if(p!=-1&&(ei==-1||p<ei)){ei=p;e=x;}}if(ei==-1)return null;
-  for(const x of GEARS){const p=l.lastIndexOf(x+":");if(p>gi){gi=p;g=x;}}if(gi==-1)return null;
+  for(const x of ELEMENTS){const p=l.indexOf(x+":");if(p!=-1&&(ei==-1||p<ei)){ei=p;e=x;}}if(ei===-1)return null;
+  for(const x of GEARS){const p=l.lastIndexOf(x+":");if(p>gi){gi=p;g=x;}}if(gi===-1)return null;
   const skills=Array.from(l.matchAll(/\[([^\]]+)\]/g)).map(m=>m[1]);
   const et=l.slice(ei+(e.length+1),gi).replace(/^\s*-\s*/,'').trim();
   const gt=l.slice(gi+(g.length+1)).trim();
   return{id:"S"+id[1],speed:+sp[1],skills,element:e,elementText:et,gear:g,gearText:gt};
 }
-function parseTXT(t){return t.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).map(parseLine).filter(Boolean);}
-function renderSkills(s){return s.map(x=>`<span class="tag ${x}">${x}</span>`).join(" ");}
-function elementBadgeHTML(e){
-  const st=ELEMENT_STYLE[e]||{color:"#ccc"};
-  const icon=st.icon?`<img src="${st.icon}" width="26" height="26" style="border-radius:50%;object-fit:cover">`:`<span class="elem-circle" style="background:${st.color}">${e[0]}</span>`;
-  return `<span class="elem-badge">${icon}<span class="pill">${e}</span></span>`;
+function parseTXT(t){return sanitizeText(t).split(/\r?\n/).map(s=>s.trim()).filter(Boolean).map(parseLine).filter(Boolean);}
+
+/* ===== Render（頁面用） ===== */
+function renderSkills(skills){return skills.map(s=>`<span class="tag ${s}">${s}</span>`).join(" ");}
+
+/* Element 標章：icon 顯示在 Element 名稱旁（像第二列 emoji 的概念） */
+function elementBadgeHTML(elemName){
+  const st = ELEMENT_STYLE[elemName] || { color:"#ccc" };
+  const iconHTML = st.icon
+    ? `<img src="${st.icon}" width="18" height="18" style="vertical-align:-3px;border-radius:3px;object-fit:cover">`
+    : ""; // 沒 icon 就只顯示文字
+  return `<span class="pill">${iconHTML}${elemName}</span>`;
 }
+
+/* 卡片（大/小一致：標題、技能；中間 spacer 撐開；底部依序 Element、Gear） */
 function renderCard(c,{mini=false}={}){
   const el=document.createElement("div");
   el.className="card"+(mini?" card--mini":"");
@@ -143,17 +204,20 @@ function renderCard(c,{mini=false}={}){
     <h3>${c.id} · Speed ${c.speed}</h3>
     <div>${renderSkills(c.skills)}</div>
     <div class="spacer"></div>
-    <div>${elementBadgeHTML(c.element)} ${c.elementText}</div>
-    <div><span class="pill">⚡ ${c.gear}</span> ${c.gearText}</div>`;
-  if(c._excluded)el.innerHTML+=`<div class="badge">Excluded</div>`;
-  if(mini)el.onclick=()=>showAsBigCard(c);
+    <div class="line">${elementBadgeHTML(c.element)} ${c.elementText}</div>
+    <div class="line"><span class="pill" title="先發動的技能">${GEAR_EMOJI} ${c.gear}</span> ${c.gearText}</div>`;
+  if(c._excluded)el.innerHTML+=`<div class="badge">Previously drawn (excluded)</div>`;
+  if(mini){ el.title="點擊放大檢視"; el.onclick=()=>showAsBigCard(c); }
   return el;
 }
+
+/* ===== Deck / 狀態 ===== */
 function refreshStats(){deckCountEl.textContent=FULL.length;remainCountEl.textContent=DECK.length;drawnCountEl.textContent=DRAWN.filter(c=>!c._excluded).length;}
 function resetDeck(){
   DECK=FULL.filter(c=>!EXCLUDED.has(c.id));
   DRAWN=Array.from(EXCLUDED).map(id=>({...FULL.find(c=>c.id===id),_excluded:true}));
-  lastView.textContent="No card drawn yet";historyView.innerHTML="";
+  lastView.textContent="No card drawn yet";
+  historyView.innerHTML="";
   DRAWN.forEach(c=>historyView.prepend(renderCard(c,{mini:true})));
   refreshStats();
 }
@@ -163,37 +227,138 @@ $("btnShuffle").onclick=()=>DECK.sort(()=>Math.random()-0.5);
 $("btnReset").onclick=resetDeck;
 $("btnDraw1").onclick=drawOne;
 
-// Exclude control
-$("btnExclude").onclick=()=>{const ids=$("excludeInput").value.trim().split(/[,\s]+/);ids.forEach(id=>{if(id)EXCLUDED.add(id.toUpperCase());});$("excludeInput").value="";resetDeck();};
+/* ===== 排除功能 ===== */
+$("btnExclude").onclick=()=>{
+  const raw=$("excludeInput").value.trim();
+  if(!raw) return;
+  raw.split(/[,\s]+/).forEach(id=>{ if(id) EXCLUDED.add(id.toUpperCase()); });
+  $("excludeInput").value="";
+  resetDeck();
+};
 $("btnClearExcluded").onclick=()=>{EXCLUDED.clear();resetDeck();};
 
-// Auto load
+function renderExcludedList(){
+  const el=excludedListEl; el.innerHTML="";
+  if(EXCLUDED.size===0){el.innerHTML=`<div class="mini">No excluded cards.</div>`;return;}
+  const byId=new Map(FULL.map(c=>[c.id,c]));
+  Array.from(EXCLUDED).sort().forEach(id=>{
+    const c=byId.get(id);
+    const row=document.createElement("div");
+    row.className="mini";
+    row.textContent = `${id}${c?` · Speed ${c.speed}`:""}`;
+    el.appendChild(row);
+  });
+}
+
+/* ===== 自動載入卡表 ===== */
 (async()=>{
-  const res=await fetch(DEFAULT_PRIMARY);
-  const txt=await res.text();
-  FULL=parseTXT(txt);
-  resetDeck();
+  try{
+    const res=await fetch(DEFAULT_PRIMARY,{cache:"no-store"});
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const txt=await res.text();
+    FULL=parseTXT(txt);
+    resetDeck();
+    renderExcludedList();
+  }catch(e){
+    console.error("載入卡表失敗：", e);
+  }
 })();
 
-// Download current card to JPG
-function buildCardSVG(c){
-  const W=630,H=880;const pad=24;
-  const bg=(ELEMENT_STYLE[c.element]||{}).color||"#ddd";
-  const icon=(ELEMENT_STYLE[c.element]||{}).icon;
-  const iconImg=icon?`<image href="${icon}" x="${W/2-40}" y="${H-140}" width="80" height="80"/>`:"";
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
-    <rect width="${W}" height="${H}" fill="${bg}"/>
-    <text x="${pad}" y="80" font-size="32" font-weight="700">${c.id} · Speed ${c.speed}</text>
-    <text x="${pad}" y="120" font-size="18">Skills</text>
-    ${c.skills.map((s,i)=>`<rect x="${pad}" y="${150+i*40}" width="120" height="30" rx="5" fill="${SKILL_COLORS[s]||"#999"}"/><text x="${pad+10}" y="${172+i*40}" fill="${s==='Take'?'#000':'#fff'}" font-size="16">${s}</text>`).join("")}
-    <text x="${pad}" y="${H-220}" font-size="18">Element: ${c.element}</text>
-    ${iconImg}
-    <text x="${pad}" y="${H-150}" font-size="18">${c.elementText}</text>
-    <text x="${pad}" y="${H-100}" font-size="18">⚡ ${c.gear}: ${c.gearText}</text>
-  </svg>`;
+/* ===== 匯出 JPG（Element/Gear 置底 + icon 保留） ===== */
+
+/* 文本換行（大略字數） */
+function wrapWords(str,maxChars){const words=String(str||"").split(/\s+/);const lines=[];let cur="";for(const w of words){const t=cur?cur+" "+w:w;if(t.length<=maxChars){cur=t;}else{if(cur)lines.push(cur);cur=w;}}if(cur)lines.push(cur);return lines;}
+/* 技能 pills（SVG） */
+function skillPillsSVG(skills,x,y,maxW){
+  const h=34,padX=12,gap=8,vgap=8;let cx=x,cy=y,out="";
+  skills.forEach(s=>{
+    const w=18+String(s).length*10;
+    if(cx+w>x+maxW){cx=x;cy+=h+vgap;}
+    const color=SKILL_COLORS[s]||"#999"; const textColor=(s==="Take")?"#000":"#fff";
+    out+=`<rect x="${cx}" y="${cy}" rx="7" ry="7" width="${w}" height="${h}" fill="${color}"/>`;
+    out+=`<text x="${cx+padX}" y="${cy+22}" font-size="15" font-family="system-ui, sans-serif" fill="${textColor}">${s}</text>`;
+    cx+=w+gap;
+  });
+  return {svg:out,lastY:cy+h};
 }
-function downloadCurrentBigCard(){
-  if(!CURRENT_BIG_CARD)return;
+
+/* 匯出用 SVG：Gear 最底、Element 在上；Element 標籤旁放 icon（使用預載的 dataURL） */
+function buildCardSVG(card){
+  const W=630,H=880,pad=24,innerW=W-2*pad;
+  const title=`${card.id} · Speed ${card.speed}`;
+  const bg=(ELEMENT_STYLE[card.element]||{}).color||"#cfe2f3";
+  const iconData=(ELEMENT_STYLE[card.element]||{}).iconData;
+
+  // 上方：標題與技能
+  const titleY=78;
+  const skillsTopY=116;
+  const pills=skillPillsSVG(card.skills||[],pad,130,innerW);
+
+  // 底部排版
+  const lineH=26,labelH=22,blockGap=16,bottomPad=pad;
+  const elLines=wrapWords(`${card.element}: ${card.elementText}`,40);
+  const grLines=wrapWords(`⚡ ${card.gear}: ${card.gearText}`,40);
+
+  const elIconW = iconData ? 28 : 0;         // icon 寬度（含間距）
+  const elTextX = pad + 12 + elIconW;        // 文字往右推，讓出 icon
+  const elBadgeH = Math.max(32, elLines.length*lineH);
+  const elBlockH = labelH + elBadgeH + 6;
+  const grTextH  = grLines.length*lineH;
+  const grBlockH = labelH + grTextH + 6;
+
+  const gearStartY = H - bottomPad - grBlockH;
+  const elemStartY = gearStartY - blockGap - elBlockH;
+
+  const elTextSVG = elLines.map((t,i)=>
+    `<text x="${elTextX}" y="${elemStartY + labelH + i*lineH}" font-size="20" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`
+  ).join("");
+
+  const grTextSVG = grLines.map((t,i)=>
+    `<text x="${pad+12}" y="${gearStartY + labelH + i*lineH}" font-size="20" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`
+  ).join("");
+
+  const elIconSVG = iconData
+    ? `<image href="${iconData}" x="${pad+12}" y="${elemStartY + labelH - 4}" width="24" height="24" preserveAspectRatio="xMidYMid slice" />`
+    : "";
+
+  const excludedBadge = card._excluded
+    ? `<rect x="${W-220}" y="16" rx="14" ry="14" width="204" height="30" fill="#fff3cd" stroke="#ffe08a"/>
+       <text x="${W-118}" y="36" font-size="12" text-anchor="middle" font-family="system-ui, sans-serif" fill="#8a6d3b">Previously drawn (excluded)</text>`
+    : "";
+
+  return `
+<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
+  <!-- 背景用 Element 色 -->
+  <rect x="0" y="0" width="${W}" height="${H}" fill="${bg}"/>
+
+  <!-- 內框 -->
+  <rect x="10" y="10" width="${W-20}" height="${H-20}" rx="22" ry="22" fill="${bg}" stroke="#dfe7f1"/>
+
+  <!-- Title -->
+  <text x="${pad}" y="${titleY}" font-size="34" font-weight="700" font-family="system-ui, sans-serif" fill="#10324a">${title}</text>
+
+  <!-- Skills -->
+  <text x="${pad}" y="${skillsTopY}" font-size="18" font-family="system-ui, sans-serif" fill="#2b4a60">Skills</text>
+  ${pills.svg}
+
+  <!-- Element（置底上方） -->
+  <text x="${pad}" y="${elemStartY}" font-size="18" font-family="system-ui, sans-serif" fill="#2b4a60">Element</text>
+  ${elIconSVG}
+  ${elTextSVG}
+
+  <!-- Gear（最底） -->
+  <text x="${pad}" y="${gearStartY}" font-size="18" font-family="system-ui, sans-serif" fill="#2b4a60">Gear</text>
+  ${grTextSVG}
+
+  ${excludedBadge}
+</svg>`;
+}
+
+/* 下載 JPG：先確保 icon 預載完成（ICONS_READY），再轉 Canvas → JPG */
+async function downloadCurrentBigCard(){
+  if(!CURRENT_BIG_CARD) return;
+  try{ await ICONS_READY; }catch{}  // 即使失敗也不中斷，會退回無 icon 的樣式
+
   const svg=buildCardSVG(CURRENT_BIG_CARD);
   const blob=new Blob([svg],{type:"image/svg+xml"});
   const url=URL.createObjectURL(blob);
@@ -201,10 +366,11 @@ function downloadCurrentBigCard(){
   img.onload=()=>{
     const canvas=document.createElement("canvas");
     canvas.width=img.width;canvas.height=img.height;
-    canvas.getContext("2d").drawImage(img,0,0);
+    const ctx=canvas.getContext("2d");
+    ctx.drawImage(img,0,0);
+    URL.revokeObjectURL(url);
     const jpg=canvas.toDataURL("image/jpeg",0.95);
-    const a=document.createElement("a");a.href=jpg;a.download=`${CURRENT_BIG_CARD.id}.jpg`;
-    a.click();URL.revokeObjectURL(url);
+    const a=document.createElement("a");a.href=jpg;a.download=`${CURRENT_BIG_CARD.id}.jpg`;a.click();
   };
   img.src=url;
 }
