@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -21,7 +21,7 @@
   .btn.ghost{background:#fff}
   .kpi{background:#f1f7ff;border:1px dashed #cfe2f3;border-radius:10px;padding:8px 10px;display:inline-block;margin-right:10px}
 
-  /* 卡片比例 63:88 */
+  /* Card aspect ratio 63:88 */
   .card{
     position:relative;width:var(--bigW);aspect-ratio:63/88;border:1px solid #dfe7f1;
     border-radius:16px;background:#fff;padding:12px;box-shadow:0 6px 18px rgba(16,50,74,.08);
@@ -51,7 +51,7 @@
   /* Draw History grid */
   #history.history-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--miniW),1fr));gap:12px}
 
-  /* 讓 Element/Gear 置底 */
+  /* Push Element/Gear to bottom of the card */
   .spacer{flex:1 1 auto}
   .line{font-size:15px}
   .card--mini .line{font-size:12px}
@@ -60,25 +60,25 @@
 <body>
 <header>
   <h1>Vantage Skirm Card Pool</h1>
-  <p>啟動即自動載入卡表。被排除的卡會列在歷史中。</p>
+  <p>Auto-imports on load. Excluded cards appear in Draw History.</p>
 </header>
 
 <div class="wrap">
-  <!-- 排除 -->
+  <!-- Exclusions -->
   <section class="panel">
-    <h2>標記已抽過（排除）</h2>
-    <div class="mini">輸入卡牌編號（用逗號或空白分隔，例如：<code>S002 S006</code>）</div>
+    <h2>Mark Previously Drawn (Exclude)</h2>
+    <div class="mini">Enter card IDs separated by comma or space (e.g., <code>S002 S006</code>)</div>
     <div style="margin-top:8px;display:flex;gap:8px">
       <input id="excludeInput" type="text" placeholder="S002, S006...">
-      <button id="btnExclude" class="btn">加入</button>
-      <button id="btnClearExcluded" class="btn">清空</button>
+      <button id="btnExclude" class="btn">Add</button>
+      <button id="btnClearExcluded" class="btn">Clear</button>
     </div>
     <div id="excludedList" style="margin-top:8px"></div>
   </section>
 
-  <!-- 控制 -->
+  <!-- Controls -->
   <section class="panel">
-    <h2>抽牌控制</h2>
+    <h2>Draw Controls</h2>
     <div>
       <span class="kpi">Deck: <span id="deckCount">0</span></span>
       <span class="kpi">Remaining: <span id="remainCount">0</span></span>
@@ -92,27 +92,27 @@
     </div>
   </section>
 
-  <!-- 目前抽到 -->
+  <!-- Latest -->
   <section class="panel">
-    <h2>最新抽到</h2>
+    <h2>Latest Draw</h2>
     <div id="last" class="mini">No card drawn yet</div>
   </section>
 
-  <!-- 歷史 -->
+  <!-- History -->
   <section class="panel">
-    <h2>抽卡歷史</h2>
+    <h2>Draw History</h2>
     <div id="history" class="history-grid"></div>
   </section>
 </div>
 
 <script>
-/* ===== 常數 ===== */
+/* ===== Constants ===== */
 const ELEMENTS=["CIRCUIT","WIND","ENERGY","FIRE","GOLD","SINEW","METAL","SAND","STONE","LEAF","WATER","WOOD"];
 const GEARS=["MASK","HORN","GAUNTLET","SCEPTER","HELM","HARNESS","CLOAK","TOME","DODECAHEDRON","MANTLE","BLADE","TOOLS"];
 const SKILL_COLORS={Move:"#3a8ad8",Look:"#8e44ad",Engage:"#e67e22",Help:"#27ae60",Take:"#f1c40f",Overpower:"#c0392b"};
 const GEAR_EMOJI="⚡";
 
-/* 🟡 這裡是 Element 顏色與 icon 位置（已放你的 GitHub 圖） */
+/* 🔧 Element color + icon (your GitHub image URLs) */
 const ELEMENT_STYLE={
   CIRCUIT:{color:"#7cc6ff",icon:"https://zak5325.github.io/vantage_element_icon/i-circuit.png"},
   WIND:{color:"#ff9dc8",icon:"https://zak5325.github.io/vantage_element_icon/i-wind.png"},
@@ -128,10 +128,10 @@ const ELEMENT_STYLE={
   WOOD:{color:"#c48f62",icon:"https://zak5325.github.io/vantage_element_icon/i-wood.png"}
 };
 
-/* 來源（自動載入） */
+/* Source (auto-import) */
 const DEFAULT_PRIMARY="https://raw.githubusercontent.com/zak5325/zak5325.github.io/main/skirm_cardlist.txt";
 
-/* 狀態 */
+/* State */
 let FULL=[],DECK=[],DRAWN=[];
 const EXCLUDED=new Set();
 let CURRENT_BIG_CARD=null;
@@ -141,7 +141,7 @@ const $=id=>document.getElementById(id);
 const deckCountEl=$("deckCount"),remainCountEl=$("remainCount"),drawnCountEl=$("drawnCount");
 const historyView=$("history"),lastView=$("last"),excludedListEl=$("excludedList");
 
-/* ===== 預載 icon 成 dataURL（避免下載 JPG 時 icon 消失） ===== */
+/* ===== Preload element icons as dataURL (to keep icons in downloaded JPG) ===== */
 let ICONS_READY = null;
 
 async function blobToDataURL(blob){
@@ -160,16 +160,16 @@ async function preloadElementIcons(){
       const res = await fetch(st.icon, { mode:"cors", cache:"force-cache" });
       if(!res.ok) throw new Error(`HTTP ${res.status}`);
       const blob = await res.blob();
-      st.iconData = await blobToDataURL(blob); // 轉成 dataURL 內嵌進 SVG
+      st.iconData = await blobToDataURL(blob);
     }catch(err){
       console.warn("Icon preload failed:", name, err);
-      st.iconData = null; // 失敗就僅顯示文字
+      st.iconData = null;
     }
   }));
 }
 ICONS_READY = preloadElementIcons();
 
-/* ===== 輸入清理 & 解析 ===== */
+/* ===== Parse ===== */
 function sanitizeText(t){if(t && t.charCodeAt(0)===0xFEFF) t=t.slice(1);return t;}
 function parseLine(l){
   const id=l.match(/^S(\d{3})/i);const sp=l.match(/Speed\s+(\d{1,2})/i);
@@ -184,19 +184,19 @@ function parseLine(l){
 }
 function parseTXT(t){return sanitizeText(t).split(/\r?\n/).map(s=>s.trim()).filter(Boolean).map(parseLine).filter(Boolean);}
 
-/* ===== Render（頁面用） ===== */
+/* ===== Render (page) ===== */
 function renderSkills(skills){return skills.map(s=>`<span class="tag ${s}">${s}</span>`).join(" ");}
 
-/* Element 標章：icon 顯示在 Element 名稱旁（像第二列 emoji 的概念） */
+/* Element pill on page: [icon] ElementName  */
 function elementBadgeHTML(elemName){
   const st = ELEMENT_STYLE[elemName] || { color:"#ccc" };
   const iconHTML = st.icon
     ? `<img src="${st.icon}" width="18" height="18" style="vertical-align:-3px;border-radius:3px;object-fit:cover">`
-    : ""; // 沒 icon 就只顯示文字
+    : "";
   return `<span class="pill">${iconHTML}${elemName}</span>`;
 }
 
-/* 卡片（大/小一致：標題、技能；中間 spacer 撐開；底部依序 Element、Gear） */
+/* Card DOM (Element/Gear fixed to bottom using .spacer) */
 function renderCard(c,{mini=false}={}){
   const el=document.createElement("div");
   el.className="card"+(mini?" card--mini":"");
@@ -205,13 +205,13 @@ function renderCard(c,{mini=false}={}){
     <div>${renderSkills(c.skills)}</div>
     <div class="spacer"></div>
     <div class="line">${elementBadgeHTML(c.element)} ${c.elementText}</div>
-    <div class="line"><span class="pill" title="先發動的技能">${GEAR_EMOJI} ${c.gear}</span> ${c.gearText}</div>`;
+    <div class="line"><span class="pill" title="Resolves first">${GEAR_EMOJI} ${c.gear}</span> ${c.gearText}</div>`;
   if(c._excluded)el.innerHTML+=`<div class="badge">Previously drawn (excluded)</div>`;
-  if(mini){ el.title="點擊放大檢視"; el.onclick=()=>showAsBigCard(c); }
+  if(mini){ el.title="Click to preview as big card"; el.onclick=()=>showAsBigCard(c); }
   return el;
 }
 
-/* ===== Deck / 狀態 ===== */
+/* ===== Deck / State ===== */
 function refreshStats(){deckCountEl.textContent=FULL.length;remainCountEl.textContent=DECK.length;drawnCountEl.textContent=DRAWN.filter(c=>!c._excluded).length;}
 function resetDeck(){
   DECK=FULL.filter(c=>!EXCLUDED.has(c.id));
@@ -227,7 +227,7 @@ $("btnShuffle").onclick=()=>DECK.sort(()=>Math.random()-0.5);
 $("btnReset").onclick=resetDeck;
 $("btnDraw1").onclick=drawOne;
 
-/* ===== 排除功能 ===== */
+/* ===== Exclusions ===== */
 $("btnExclude").onclick=()=>{
   const raw=$("excludeInput").value.trim();
   if(!raw) return;
@@ -250,7 +250,7 @@ function renderExcludedList(){
   });
 }
 
-/* ===== 自動載入卡表 ===== */
+/* ===== Auto import deck from fixed URL ===== */
 (async()=>{
   try{
     const res=await fetch(DEFAULT_PRIMARY,{cache:"no-store"});
@@ -260,15 +260,15 @@ function renderExcludedList(){
     resetDeck();
     renderExcludedList();
   }catch(e){
-    console.error("載入卡表失敗：", e);
+    console.error("Failed to load card list:", e);
   }
 })();
 
-/* ===== 匯出 JPG（Element/Gear 置底 + icon 保留） ===== */
+/* ===== JPG Export (Element/Gear pinned to bottom, icon next to Element name) ===== */
 
-/* 文本換行（大略字數） */
+/* Wrap long text by rough char length */
 function wrapWords(str,maxChars){const words=String(str||"").split(/\s+/);const lines=[];let cur="";for(const w of words){const t=cur?cur+" "+w:w;if(t.length<=maxChars){cur=t;}else{if(cur)lines.push(cur);cur=w;}}if(cur)lines.push(cur);return lines;}
-/* 技能 pills（SVG） */
+/* Pills drawing (SVG) */
 function skillPillsSVG(skills,x,y,maxW){
   const h=34,padX=12,gap=8,vgap=8;let cx=x,cy=y,out="";
   skills.forEach(s=>{
@@ -282,43 +282,65 @@ function skillPillsSVG(skills,x,y,maxW){
   return {svg:out,lastY:cy+h};
 }
 
-/* 匯出用 SVG：Gear 最底、Element 在上；Element 標籤旁放 icon（使用預載的 dataURL） */
+/* Build export SVG:
+ * - Gear at the very bottom
+ * - Element above Gear
+ * - Element icon image is on the SAME LINE as the Element name (like page layout)
+ */
 function buildCardSVG(card){
   const W=630,H=880,pad=24,innerW=W-2*pad;
   const title=`${card.id} · Speed ${card.speed}`;
   const bg=(ELEMENT_STYLE[card.element]||{}).color||"#cfe2f3";
   const iconData=(ELEMENT_STYLE[card.element]||{}).iconData;
 
-  // 上方：標題與技能
+  // Top: title + skills
   const titleY=78;
   const skillsTopY=116;
   const pills=skillPillsSVG(card.skills||[],pad,130,innerW);
 
-  // 底部排版
-  const lineH=26,labelH=22,blockGap=16,bottomPad=pad;
-  const elLines=wrapWords(`${card.element}: ${card.elementText}`,40);
-  const grLines=wrapWords(`⚡ ${card.gear}: ${card.gearText}`,40);
+  // Bottom layout metrics
+  const nameLineH=28;   // Element name line (with icon)
+  const lineH=26;       // wrapped lines
+  const labelH=22;
+  const blockGap=16;
+  const bottomPad=pad;
 
-  const elIconW = iconData ? 28 : 0;         // icon 寬度（含間距）
-  const elTextX = pad + 12 + elIconW;        // 文字往右推，讓出 icon
-  const elBadgeH = Math.max(32, elLines.length*lineH);
-  const elBlockH = labelH + elBadgeH + 6;
-  const grTextH  = grLines.length*lineH;
+  // Split Element: first line is [icon] ElementName, description wraps below
+  const elName = card.element;
+  const elDescLines = wrapWords(card.elementText, 48);
+  const grLines = wrapWords(`${GEAR_EMOJI} ${card.gear}: ${card.gearText}`, 44);
+
+  // Heights
+  const elNameH = nameLineH;
+  const elDescH = elDescLines.length * lineH;
+  const elBlockH = labelH + elNameH + elDescH + 6;
+
+  const grTextH = grLines.length * lineH;
   const grBlockH = labelH + grTextH + 6;
 
+  // Pin Gear to bottom; Element block sits above it
   const gearStartY = H - bottomPad - grBlockH;
   const elemStartY = gearStartY - blockGap - elBlockH;
 
-  const elTextSVG = elLines.map((t,i)=>
-    `<text x="${elTextX}" y="${elemStartY + labelH + i*lineH}" font-size="20" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`
+  // Element name row: icon + name at the same y
+  const elIconSize = 24;
+  const elIconX = pad + 12;
+  const elIconY = elemStartY + labelH - 4;     // align with text baseline
+  const elNameX = elIconX + (iconData ? elIconSize + 8 : 0);  // push right if icon exists
+  const elNameY = elemStartY + labelH + 18;    // baseline for name
+
+  // Element description lines
+  const elDescSVG = elDescLines.map((t,i)=>
+    `<text x="${pad+12}" y="${elemStartY + labelH + elNameH + i*lineH}" font-size="20" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`
   ).join("");
 
+  // Gear lines
   const grTextSVG = grLines.map((t,i)=>
     `<text x="${pad+12}" y="${gearStartY + labelH + i*lineH}" font-size="20" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`
   ).join("");
 
   const elIconSVG = iconData
-    ? `<image href="${iconData}" x="${pad+12}" y="${elemStartY + labelH - 4}" width="24" height="24" preserveAspectRatio="xMidYMid slice" />`
+    ? `<image href="${iconData}" x="${elIconX}" y="${elIconY}" width="${elIconSize}" height="${elIconSize}" preserveAspectRatio="xMidYMid slice" />`
     : "";
 
   const excludedBadge = card._excluded
@@ -328,10 +350,10 @@ function buildCardSVG(card){
 
   return `
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
-  <!-- 背景用 Element 色 -->
+  <!-- Background with Element color -->
   <rect x="0" y="0" width="${W}" height="${H}" fill="${bg}"/>
 
-  <!-- 內框 -->
+  <!-- Inner frame -->
   <rect x="10" y="10" width="${W-20}" height="${H-20}" rx="22" ry="22" fill="${bg}" stroke="#dfe7f1"/>
 
   <!-- Title -->
@@ -341,12 +363,13 @@ function buildCardSVG(card){
   <text x="${pad}" y="${skillsTopY}" font-size="18" font-family="system-ui, sans-serif" fill="#2b4a60">Skills</text>
   ${pills.svg}
 
-  <!-- Element（置底上方） -->
+  <!-- Element (above Gear; icon on same line as name) -->
   <text x="${pad}" y="${elemStartY}" font-size="18" font-family="system-ui, sans-serif" fill="#2b4a60">Element</text>
   ${elIconSVG}
-  ${elTextSVG}
+  <text x="${elNameX}" y="${elNameY}" font-size="20" font-family="system-ui, sans-serif" font-weight="700" fill="#10324a">${elName}</text>
+  ${elDescSVG}
 
-  <!-- Gear（最底） -->
+  <!-- Gear (bottom) -->
   <text x="${pad}" y="${gearStartY}" font-size="18" font-family="system-ui, sans-serif" fill="#2b4a60">Gear</text>
   ${grTextSVG}
 
@@ -354,11 +377,10 @@ function buildCardSVG(card){
 </svg>`;
 }
 
-/* 下載 JPG：先確保 icon 預載完成（ICONS_READY），再轉 Canvas → JPG */
+/* Download JPG: wait icons preloaded, then render SVG -> Canvas -> JPG */
 async function downloadCurrentBigCard(){
   if(!CURRENT_BIG_CARD) return;
-  try{ await ICONS_READY; }catch{}  // 即使失敗也不中斷，會退回無 icon 的樣式
-
+  try{ await ICONS_READY; }catch{}
   const svg=buildCardSVG(CURRENT_BIG_CARD);
   const blob=new Blob([svg],{type:"image/svg+xml"});
   const url=URL.createObjectURL(blob);
