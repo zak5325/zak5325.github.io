@@ -38,8 +38,7 @@ input[type="text"]{flex:1 1 240px;border:1px solid #cfe2f3;border-radius:10px;pa
   cursor:pointer;transition:transform .05s ease
 }
 .card--mini:active{transform:scale(0.99)}
-.card h3{margin:0 0 6px;font-size:20px;line-height:1.2}
-.card--mini h3{font-size:14px;margin-bottom:4px}
+/* removed big title; using badges instead */
 
 .badge{position:absolute;right:10px;top:10px;font-size:12px;background:#fff3cd;
        border:1px solid #ffe08a;color:#8a6d3b;border-radius:999px;padding:2px 8px}
@@ -57,10 +56,25 @@ input[type="text"]{flex:1 1 240px;border:1px solid #cfe2f3;border-radius:10px;pa
 /* Keep skills single-line (scrollable on page if overflow) */
 .skills{display:flex;gap:6px;flex-wrap:nowrap;overflow:auto}
 
+/* position helpers */
 .spacer{flex:1 1 auto}
 .line{font-size:15px}
 .card--mini .line{font-size:12px}
+
+/* element small icon in pill on page */
 .elem-badge img{width:18px;height:18px;vertical-align:-3px;border-radius:3px;object-fit:cover}
+
+/* speed (top-right) + id (bottom-right) */
+.speed-badge{
+  position:absolute;right:10px;top:8px;
+  font-size:24px;font-weight:800;color:var(--ink);
+}
+.card--mini .speed-badge{font-size:18px;top:6px;right:8px}
+
+.card-id{
+  position:absolute;right:10px;bottom:6px;
+  font-size:11px;color:var(--muted);
+}
 
 /* Excluded list */
 .excluded-list .row,
