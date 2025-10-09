@@ -4,8 +4,6 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Vantage Skirm Card Pool</title>
-
-<!-- App styles -->
 <link rel="stylesheet" href="skirm.css" />
 </head>
 <body>
@@ -139,12 +137,19 @@ function elementBadgeHTML(elemName){
 function renderCard(c,{mini=false}={}){
   const el=document.createElement("div");
   el.className="card"+(mini?" card--mini":"");
+
+  // speed (top-right) + id (bottom-right)
+  const speedHTML = `<div class="speed-badge">${c.speed}</div>`;
+  const idHTML = `<div class="card-id">${c.id}</div>`;
+
   el.innerHTML=`
-    <h3>${c.id} · Speed ${c.speed}</h3>
+    ${speedHTML}
     ${renderSkills(c.skills)}
     <div class="spacer"></div>
     <div class="line">${elementBadgeHTML(c.element)} ${c.elementText}</div>
-    <div class="line"><span class="pill">⚡ ${c.gear}</span> ${c.gearText}</div>`;
+    <div class="line"><span class="pill">${GEAR_EMOJI} ${c.gear}</span> ${c.gearText}</div>
+    ${idHTML}
+  `;
   if(c._excluded)el.innerHTML+=`<div class="badge">Previously drawn (excluded)</div>`;
   if(mini){el.title="Click to preview as big card";el.onclick=()=>showAsBigCard(c);}
   return el;
@@ -172,13 +177,13 @@ $("btnClearExcluded").onclick=()=>{EXCLUDED.clear();resetDeck();};
   catch(e){console.error("Failed to load card list:",e);}
 })();
 
-/* ===== JPG Export ===== */
-/* measurement helpers */
+/* ===== JPG Export (mirrors page layout) ===== */
+/* measure text width */
 const MEASURE_CANVAS=document.createElement("canvas");
 const CTX=MEASURE_CANVAS.getContext("2d");
 function textWidthPx(text, font){ try{CTX.font=font;return CTX.measureText(String(text||"")).width;}catch{return String(text||"").length*11.5;} }
 
-/* single-line skills: compute total width, then scale to fit */
+/* skills single row (auto scale to fit) */
 function skillRowSVG(skills, x, y, maxW){
   const height=34, padX=12, gap=8;
   const font="15px system-ui, sans-serif";
@@ -193,7 +198,7 @@ function skillRowSVG(skills, x, y, maxW){
   items.forEach(it=>{
     out += `<rect x="${cursor}" y="0" rx="7" ry="7" width="${it.w}" height="${height}" fill="${it.color}"/>`;
     out += `<text x="${cursor+padX}" y="22" font-size="15" font-family="system-ui, sans-serif" fill="${it.textColor}">${it.s}</text>`;
-    cursor += it.w + 8;
+    cursor += it.w + gap;
   });
   out += `</g>`;
   return {svg:out, usedH:height, scaledW: totalW*scale};
@@ -213,7 +218,7 @@ function wrapWithFirstIndentByPx(text, firstIndentPx, lineWidthPx, fontPx=20){
   return lines;
 }
 
-/* element/gear pills (pixel-perfect) */
+/* pill generators */
 function pillWithIconSVG({x,y,text,iconData,fontSize=22,bg="#e6f2ff",textColor="#10324a",padX=12,padY=8,iconSize=22,gap=8,rx=14,fontWeight=700}){
   const font=`${fontWeight} ${fontSize}px system-ui, sans-serif`;
   const textW = textWidthPx(text, font);
@@ -237,19 +242,20 @@ function pillSVG({x,y,text,fontSize=20,bg="#e6f2ff",textColor="#10324a",padX=12,
   return {svg, w, h};
 }
 
-/* build SVG: title + single-row skills, bottom element/gear (no "Element"/"Gear" titles) */
+/* build SVG with new layout (skills TL, speed TR, element/gear bottom, id BR) */
 function buildCardSVG(card){
   const W=630,H=880,pad=24,innerW=W-2*pad;
   const st = ELEMENT_STYLE[card.element]||{};
   const bg=st.color||"#cfe2f3";
   const iconData=st.iconData||null;
 
-  const title=`${card.id} · Speed ${card.speed}`;
-  const titleY=78;
+  // Top strip: skills on left, speed number on right
+  const skillsTopY = 64;
+  const skillsRow = skillRowSVG(card.skills||[], pad, skillsTopY, innerW-140); // leave space at right for speed
+  const speedX = W - pad - 8;
+  const speedY = skillsTopY + 28; // visually aligned
 
-  const skillsRow = skillRowSVG(card.skills||[], pad, 120, innerW);
-
-  // bottom layout
+  // Bottom layout
   const lineH=26, descFontPx=20, chipGap=12, blockGap=18, bottomPad=pad;
   const gearPillText = `${GEAR_EMOJI} ${card.gear}`;
   const gearPillTmp = pillSVG({x:pad+12,y:0,text:gearPillText,fontSize:20});
@@ -280,6 +286,9 @@ function buildCardSVG(card){
     gearDescSVG += `<text x="${x}" y="${y}" font-size="${descFontPx}" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`;
   });
 
+  const idTextX = W - pad - 8;
+  const idTextY = H - pad + 2; // a bit above the inner edge
+
   const excludedBadge = card._excluded
     ? `<rect x="${W-220}" y="16" rx="14" ry="14" width="204" height="30" fill="#fff3cd" stroke="#ffe08a"/>
        <text x="${W-118}" y="36" font-size="12" text-anchor="middle" font-family="system-ui, sans-serif" fill="#8a6d3b">Previously drawn (excluded)</text>`
@@ -290,15 +299,22 @@ function buildCardSVG(card){
   <rect x="0" y="0" width="${W}" height="${H}" fill="${bg}"/>
   <rect x="10" y="10" width="${W-20}" height="${H-20}" rx="22" ry="22" fill="${bg}" stroke="#dfe7f1"/>
 
-  <text x="${pad}" y="${titleY}" font-size="34" font-weight="700" font-family="system-ui, sans-serif" fill="#10324a">${title}</text>
-
+  <!-- skills TL -->
   ${skillsRow.svg}
 
+  <!-- speed TR (number only) -->
+  <text x="${speedX}" y="${speedY}" text-anchor="end" font-size="40" font-weight="800" font-family="system-ui, sans-serif" fill="#10324a">${card.speed}</text>
+
+  <!-- bottom: element -->
   ${elemPill.svg}
   ${elemDescSVG}
 
+  <!-- bottom: gear -->
   ${gearPill.svg}
   ${gearDescSVG}
+
+  <!-- id BR -->
+  <text x="${idTextX}" y="${idTextY}" text-anchor="end" font-size="14" font-family="system-ui, sans-serif" fill="#5a7b91">${card.id}</text>
 
   ${excludedBadge}
 </svg>`;
