@@ -6,32 +6,60 @@
 <title>Vantage Skirm Card Pool</title>
 <style>
   :root{
-    --bg:#f7fbff;--card:#fff;--ink:#10324a;--muted:#5a7b91;--accent:#3a8ad8;--chip:#e6f2ff;
+    --bg:#f0f3f8;--card:#fff;--ink:#10324a;--muted:#5a7b91;--accent:#3a8ad8;--chip:#e6f2ff;
     --ok:#1f9d55;--err:#b00020;--radius:12px;
-    --bigW:280px;--miniW:180px;
+    --bigW:320px;   /* 大卡寬（桌面版放大一點） */
+    --miniW:200px;  /* 小卡寬（桌面版放大一點） */
+    --colLeft:380px;/* 左側欄固定寬 */
+    --pageW:1280px; /* 全站固定寬 */
   }
-  /* Page basics */
+
+  /* 固定為桌面配置：不做窄螢幕適配 */
   html,body{height:100%}
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,"Noto Sans TC",Arial,Helvetica,sans-serif;display:flex;flex-direction:column}
-  .site-header{background:#333;color:#fff;text-align:center;padding:20px 12px}
-  .site-header h1{margin:0 0 6px;font-size:2rem}
-  .site-header p{margin:0;font-size:1rem;color:#dfe7f1}
-  .wrap{max-width:1100px;margin:0 auto;padding:16px 16px 60px}
-  .panel{background:var(--card);border:1px solid #e6eef7;border-radius:var(--radius);box-shadow:0 2px 8px rgba(16,50,74,.06);padding:14px;margin-top:14px}
-  .controls-row{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-  .kpi-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px}
-  .btn{border:1px solid #cfe2f3;background:var(--chip);padding:8px 12px;border-radius:10px;cursor:pointer}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:system-ui,"Noto Sans TC",Arial,Helvetica,sans-serif;
+    display:flex;flex-direction:column;min-width:1280px;
+  }
+
+  /* Header / Footer */
+  .site-header{background:#2d3340;color:#fff;text-align:center;padding:22px 16px}
+  .site-header h1{margin:0 0 6px;font-size:28px;letter-spacing:.3px}
+  .site-header p{margin:0;font-size:14px;color:#dfe7f1}
+
+  .site-footer{margin-top:auto;text-align:center;padding:22px 16px;background:#2d3340;color:#fff}
+  .site-footer .back-button{
+    display:inline-block;margin-top:12px;padding:12px 20px;background:#28a745;color:#fff;
+    text-decoration:none;border-radius:8px;font-weight:700;transition:background .2s, box-shadow .2s
+  }
+  .site-footer .back-button:hover{background:#218838;box-shadow:0 4px 8px rgba(0,0,0,.2)}
+
+  /* Desktop layout: 左欄固定、右欄自動 */
+  .wrap{
+    width:var(--pageW); margin:0 auto; padding:20px 18px 60px;
+    display:grid; grid-template-columns: var(--colLeft) 1fr; gap:18px;
+  }
+
+  .panel{
+    background:var(--card);border:1px solid #e6eef7;border-radius:var(--radius);
+    box-shadow:0 2px 8px rgba(16,50,74,.06);padding:16px;
+  }
+  .panel h2{margin:0 0 12px;font-size:18px}
+
+  .btn{border:1px solid #cfe2f3;background:var(--chip);padding:10px 14px;border-radius:10px;cursor:pointer;font-size:14px}
   .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
   .btn.ghost{background:#fff}
-  input[type="text"]{flex:1 1 240px;border:1px solid #cfe2f3;border-radius:10px;padding:10px;background:#fff}
-  .kpi{background:#f1f7ff;border:1px dashed #cfe2f3;border-radius:10px;padding:8px 10px;display:inline-block}
+  .controls-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .kpi-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+  .kpi{background:#f1f7ff;border:1px dashed #cfe2f3;border-radius:10px;padding:8px 10px;display:inline-block;font-size:14px}
   .mini{font-size:12px;color:var(--muted)}
+  input[type="text"]{flex:1 1 auto;min-width:220px;border:1px solid #cfe2f3;border-radius:10px;padding:10px;background:#fff;font-size:14px}
 
   /* Card ratio 63:88 */
   .card{
-    position:relative; /* IMPORTANT for absolute badges */
-    width:var(--bigW);aspect-ratio:63/88;border:1px solid #dfe7f1;
-    border-radius:16px;background:#fff;padding:12px;box-shadow:0 6px 18px rgba(16,50,74,.08);
+    position:relative;
+    width:var(--bigW);aspect-ratio:63/88;border:1px solid #dfe7f1;border-radius:16px;
+    background:#fff;padding:12px;box-shadow:0 6px 18px rgba(16,50,74,.08);
     display:flex;flex-direction:column;overflow:hidden
   }
   .card--mini{
@@ -43,51 +71,48 @@
 
   .badge{position:absolute;right:10px;top:36px;font-size:12px;background:#fff3cd;border:1px solid #ffe08a;color:#8a6d3b;border-radius:999px;padding:2px 8px;z-index:3}
 
-  /* Skills row */
-  .skills{display:flex;gap:6px;flex-wrap:nowrap;overflow:auto;margin-right:60px}
-  .tag{display:inline-block;border-radius:6px;padding:4px 8px;font-size:15px;color:#fff;margin-right:0;white-space:nowrap}
+  /* Fixed info: Speed / ID */
+  .speed-badge{
+    position:absolute; right:10px; top:8px;
+    font-size:26px; font-weight:800; color:var(--ink); line-height:1; z-index:4;
+  }
+  .card--mini .speed-badge{top:6px; right:8px; font-size:16px}
+
+  .card-id{
+    position:absolute; right:10px; bottom:6px;
+    font-size:11px; color:var(--muted); line-height:1; z-index:4;
+  }
+  .card--mini .card-id{right:8px; bottom:6px; font-size:10px}
+
+  /* Skills row（桌面：不滾動，超出就隱藏） */
+  .skills{display:flex;gap:6px;flex-wrap:nowrap;overflow:hidden;white-space:nowrap;margin-right:64px}
+  .tag{display:inline-block;border-radius:6px;padding:5px 10px;font-size:15px;color:#fff;margin-right:0}
   .Move{background:#3a8ad8}.Look{background:#8e44ad}.Engage{background:#e67e22}
   .Help{background:#27ae60}.Take{background:#f1c40f;color:#000}.Overpower{background:#c0392b}
   .card--mini .tag{font-size:11px;padding:3px 6px}
 
-  .pill{display:inline-flex;align-items:center;gap:6px;background:#e6f2ff;padding:3px 9px;border-radius:999px;margin-right:6px;font-size:13px;white-space:nowrap}
-  .card--mini .pill{font-size:11px;padding:2px 7px}
+  .pill{display:inline-flex;align-items:center;gap:6px;background:#e6f2ff;padding:4px 10px;border-radius:999px;margin-right:6px;font-size:13px;white-space:nowrap}
+  .card--mini .pill{font-size:11px;padding:3px 8px}
 
   .elem-badge img{width:18px;height:18px;vertical-align:-3px;border-radius:3px;object-fit:cover}
   .spacer{flex:1 1 auto}
   .line{font-size:15px}
   .card--mini .line{font-size:12px}
 
-  /* Draw History grid */
-  .history-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--miniW),1fr));gap:12px}
+  /* Right column layout: 最新一張 + 歷史區塊 置右 */
+  .right-col{display:grid; grid-template-rows: auto 1fr; gap:18px; align-content:start}
+  .latest-wrap{display:flex; gap:18px; align-items:flex-start}
+  .latest-card-box{display:flex;align-items:flex-start;gap:16px}
 
-  /* Absolute badges - FIXED POSITIONS */
-  .speed-badge{
-    position:absolute; right:10px; top:8px;
-    font-size:24px; font-weight:800; color:var(--ink); line-height:1; z-index:4;
-  }
-  .card--mini .speed-badge{
-    top:6px; right:8px; font-size:16px; /* smaller for mini */
-  }
-  .card-id{
-    position:absolute; right:10px; bottom:6px;
-    font-size:11px; color:var(--muted); line-height:1; z-index:4;
-  }
-  .card--mini .card-id{
-    right:8px; bottom:6px; font-size:10px; /* smaller for mini */
-  }
+  /* Draw History grid */
+  .history-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--miniW),1fr));gap:14px}
 
   /* Excluded list */
   .excluded-list .row,.excluded-item{display:flex;align-items:center;gap:8px;border:1px dashed #cfe2f3;border-radius:8px;padding:6px 8px;margin:6px 0;background:#f8fbff}
   .xbtn{margin-left:auto;border:1px solid #e4eaf2;border-radius:6px;background:#fff;cursor:pointer;padding:2px 6px}
 
-  /* Footer */
-  .site-footer{margin-top:auto;text-align:center;padding:20px 12px;background:#333;color:#fff}
-  .site-footer .back-button{
-    display:inline-block;margin-top:12px;padding:12px 20px;background:#28a745;color:#fff;
-    text-decoration:none;border-radius:8px;font-weight:700;transition:background .2s, box-shadow .2s
-  }
-  .site-footer .back-button:hover{background:#218838;box-shadow:0 4px 8px rgba(0,0,0,.2)}
+  /* Desktop-only cosmetic tweak for panel titles */
+  .panel h2{letter-spacing:.2px}
 </style>
 </head>
 <body>
@@ -96,47 +121,52 @@
   <p>Auto-imports on load. Excluded cards appear in Draw History.</p>
 </header>
 
-<main class="wrap">
-  <!-- Exclusions -->
-  <section class="panel">
-    <h2>Mark Previously Drawn (Exclude)</h2>
-    <div class="mini">Enter card IDs separated by comma or space (e.g., <code>S002 S006</code>)</div>
-    <div class="controls-row">
-      <input id="excludeInput" type="text" placeholder="S002, S006..." />
-      <button id="btnExclude" class="btn">Add</button>
-      <button id="btnClearExcluded" class="btn">Clear</button>
-    </div>
-    <div id="excludedList" class="excluded-list"></div>
-  </section>
+<div class="wrap">
+  <!-- Left column: controls -->
+  <div class="left-col" style="display:flex;flex-direction:column;gap:18px">
+    <section class="panel">
+      <h2>Mark Previously Drawn (Exclude)</h2>
+      <div class="mini" style="margin-bottom:8px">Enter card IDs separated by comma or space (e.g., <code>S002 S006</code>)</div>
+      <div class="controls-row">
+        <input id="excludeInput" type="text" placeholder="S002, S006..." />
+        <button id="btnExclude" class="btn">Add</button>
+        <button id="btnClearExcluded" class="btn">Clear</button>
+      </div>
+      <div id="excludedList" class="excluded-list"></div>
+    </section>
 
-  <!-- Controls -->
-  <section class="panel">
-    <h2>Draw Controls</h2>
-    <div class="kpi-row">
-      <span class="kpi">Deck: <span id="deckCount">0</span></span>
-      <span class="kpi">Remaining: <span id="remainCount">0</span></span>
-      <span class="kpi">Drawn: <span id="drawnCount">0</span></span>
-    </div>
-    <div class="controls-row">
-      <button id="btnShuffle" class="btn">Shuffle</button>
-      <button id="btnReset" class="btn">Reset</button>
-      <button id="btnDraw1" class="btn primary">Draw</button>
-      <button id="btnDownload" class="btn ghost">Download JPG</button>
-    </div>
-  </section>
+    <section class="panel">
+      <h2>Draw Controls</h2>
+      <div class="kpi-row">
+        <span class="kpi">Deck: <span id="deckCount">0</span></span>
+        <span class="kpi">Remaining: <span id="remainCount">0</span></span>
+        <span class="kpi">Drawn: <span id="drawnCount">0</span></span>
+      </div>
+      <div class="controls-row">
+        <button id="btnShuffle" class="btn">Shuffle</button>
+        <button id="btnReset" class="btn">Reset</button>
+        <button id="btnDraw1" class="btn primary">Draw</button>
+        <button id="btnDownload" class="btn ghost">Download JPG</button>
+      </div>
+    </section>
+  </div>
 
-  <!-- Latest -->
-  <section class="panel">
-    <h2>Latest Draw</h2>
-    <div id="last" class="mini">No card drawn yet</div>
-  </section>
+  <!-- Right column: latest + history -->
+  <div class="right-col">
+    <section class="panel latest-wrap">
+      <div style="min-width:var(--bigW)">
+        <h2 style="margin-bottom:12px">Latest Draw</h2>
+        <div id="last" class="mini">No card drawn yet</div>
+      </div>
+      <!-- 可加說明或下一步按鈕的位置 -->
+    </section>
 
-  <!-- History -->
-  <section class="panel">
-    <h2>Draw History</h2>
-    <div id="history" class="history-grid"></div>
-  </section>
-</main>
+    <section class="panel">
+      <h2>Draw History</h2>
+      <div id="history" class="history-grid"></div>
+    </section>
+  </div>
+</div>
 
 <footer class="site-footer">
   <p>&copy; 2024 Boardgame Tools. All rights reserved.</p>
@@ -231,7 +261,7 @@ function renderCard(c,{mini=false}={}){
     ${renderSkills(c.skills)}
     <div class="spacer"></div>
     <div class="line">${elementBadgeHTML(c.element)} ${c.elementText}</div>
-    <div class="line"><span class="pill">⚡ ${c.gear}</span> ${c.gearText}</div>
+    <div class="line"><span class="pill">${GEAR_EMOJI} ${c.gear}</span> ${c.gearText}</div>
     ${idHTML}
   `;
   if(c._excluded)el.innerHTML+=`<div class="badge">Previously drawn (excluded)</div>`;
@@ -327,59 +357,59 @@ function pillSVG({x,y,text,fontSize=20,bg="#e6f2ff",textColor="#10324a",padX=12,
 
 /* build SVG with speed at TR, id at BR; skills TL; bottom element+gear */
 function buildCardSVG(card){
-  const W=630,H=880,pad=24,innerW=W-2*pad;
+  const W=700,H=980,pad=28,innerW=W-2*pad;   /* 桌面輸出放大一點，字清晰 */
   const st = ELEMENT_STYLE[card.element]||{};
   const bg=st.color||"#cfe2f3";
   const iconData=st.iconData||null;
 
   // Skills (TL) + Speed (TR)
-  const skillsTopY = 64;
-  const skillsRow = skillRowSVG(card.skills||[], pad, skillsTopY, innerW-140);
+  const skillsTopY = 70;
+  const skillsRow = skillRowSVG(card.skills||[], pad, skillsTopY, innerW-150);
   const speedX = W - pad - 8;
-  const speedY = skillsTopY + 28;
+  const speedY = skillsTopY + 34;
 
   // Bottom Element + Gear with pill + wrapped text
-  const lineH=26, descFontPx=20, chipGap=12, blockGap=18, bottomPad=pad;
+  const lineH=30, descFontPx=22, chipGap=14, blockGap=20, bottomPad=pad;
   const gearPillText = `${GEAR_EMOJI} ${card.gear}`;
-  const gearPillTmp = pillSVG({x:pad+12,y:0,text:gearPillText,fontSize:20});
+  const gearPillTmp = pillSVG({x:pad+12,y:0,text:gearPillText,fontSize:22});
   const gearFirstIndent = gearPillTmp.w + chipGap;
   const gearLines = wrapWithFirstIndentByPx(card.gearText, gearFirstIndent, innerW, descFontPx);
   const gearTextH = gearLines.length * lineH;
-  const gearBlockH = Math.max(gearPillTmp.h, lineH) + (gearLines.length?8:0) + gearTextH;
+  const gearBlockH = Math.max(gearPillTmp.h, lineH) + (gearLines.length?10:0) + gearTextH;
   const gearStartY = H - bottomPad - gearBlockH;
 
-  const elemPillTmp = pillWithIconSVG({x:pad+12,y:0,text:card.element,iconData,fontSize:22});
+  const elemPillTmp = pillWithIconSVG({x:pad+12,y:0,text:card.element,iconData,fontSize:24});
   const elemFirstIndent = elemPillTmp.w + chipGap;
   const elemLines = wrapWithFirstIndentByPx(card.elementText, elemFirstIndent, innerW, descFontPx);
   const elemTextH = elemLines.length * lineH;
-  const elemBlockH = Math.max(elemPillTmp.h, lineH) + (elemLines.length?8:0) + elemTextH;
+  const elemBlockH = Math.max(elemPillTmp.h, lineH) + (elemLines.length?10:0) + elemTextH;
   const elemStartY = gearStartY - blockGap - elemBlockH;
 
-  const elemPill = pillWithIconSVG({x:pad+12,y:elemStartY,text:card.element,iconData,fontSize:22});
-  const gearPill = pillSVG({x:pad+12,y:gearStartY,text:gearPillText,fontSize:20});
+  const elemPill = pillWithIconSVG({x:pad+12,y:elemStartY,text:card.element,iconData,fontSize:24});
+  const gearPill = pillSVG({x:pad+12,y:gearStartY,text:gearPillText,fontSize:22});
 
   let elemDescSVG=""; elemLines.forEach((t,i)=>{
     const x=(i===0)?(pad+12+elemPill.w+chipGap):(pad+12);
-    const y=elemStartY + elemPill.h + 8 + i*lineH;
+    const y=elemStartY + elemPill.h + 10 + i*lineH;
     elemDescSVG += `<text x="${x}" y="${y}" font-size="${descFontPx}" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`;
   });
   let gearDescSVG=""; gearLines.forEach((t,i)=>{
     const x=(i===0)?(pad+12+gearPill.w+chipGap):(pad+12);
-    const y=gearStartY + gearPill.h + 8 + i*lineH;
+    const y=gearStartY + gearPill.h + 10 + i*lineH;
     gearDescSVG += `<text x="${x}" y="${y}" font-size="${descFontPx}" font-family="system-ui, sans-serif" fill="#10324a">${t}</text>`;
   });
 
   // Card ID (BR)
   const idTextX = W - pad - 8;
-  const idTextY = H - pad + 2;
+  const idTextY = H - pad + 4;
 
   return `
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
   <rect x="0" y="0" width="${W}" height="${H}" fill="${bg}"/>
-  <rect x="10" y="10" width="${W-20}" height="${H-20}" rx="22" ry="22" fill="${bg}" stroke="#dfe7f1"/>
+  <rect x="12" y="12" width="${W-24}" height="${H-24}" rx="24" ry="24" fill="${bg}" stroke="#dfe7f1"/>
 
   ${skillsRow.svg}
-  <text x="${speedX}" y="${speedY}" text-anchor="end" font-size="40" font-weight="800" font-family="system-ui, sans-serif" fill="#10324a">${card.speed}</text>
+  <text x="${speedX}" y="${speedY}" text-anchor="end" font-size="46" font-weight="800" font-family="system-ui, sans-serif" fill="#10324a">${card.speed}</text>
 
   ${elemPill.svg}
   ${elemDescSVG}
@@ -387,7 +417,7 @@ function buildCardSVG(card){
   ${gearPill.svg}
   ${gearDescSVG}
 
-  <text x="${idTextX}" y="${idTextY}" text-anchor="end" font-size="14" font-family="system-ui, sans-serif" fill="#5a7b91">${card.id}</text>
+  <text x="${idTextX}" y="${idTextY}" text-anchor="end" font-size="16" font-family="system-ui, sans-serif" fill="#5a7b91">${card.id}</text>
 </svg>`;
 }
 
@@ -404,7 +434,7 @@ async function downloadCurrentBigCard(){
     canvas.width=img.width;canvas.height=img.height;
     const ctx=canvas.getContext("2d");ctx.drawImage(img,0,0);
     URL.revokeObjectURL(url);
-    const jpg=canvas.toDataURL("image/jpeg",0.95);
+    const jpg=canvas.toDataURL("image/jpeg",0.96);
     const a=document.createElement("a");a.href=jpg;a.download=`${CURRENT_BIG_CARD.id}.jpg`;a.click();
   };
   img.src=url;
